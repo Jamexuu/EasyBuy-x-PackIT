@@ -9,7 +9,7 @@
 
     <style>
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Poppins';
             background-color: #f8f9fa;
         }
 
@@ -18,14 +18,6 @@
             border-radius: 12px;
         }
 
-        .btn-green {
-            background-color: #6EC064;
-            border: none;
-        }
-
-        .btn-green:hover {
-            background-color: #349C55;
-        }
 
         .qty-btn {
             width: 28px;
@@ -36,6 +28,15 @@
             color: #fff;
             font-weight: bold;
         }
+
+        .btn-order {
+            background-color: #6EC064;
+        }
+
+        .btn-secondary:hover {
+            background-color: #349C55;
+        }
+
 
         .qty-box {
             width: 30px;
@@ -62,7 +63,7 @@
 <body>
     <?php include 'components/navbar.php'; ?> 
 
-    <div class="container mt-4">
+    <div class="container mt-4 text-strong fw-bold">
         <h3>Your Shopping Cart</h3>
     </div>
 
@@ -79,7 +80,7 @@
 
                     <div class="row align-items-center mb-4">
                         <div class="col-5 d-flex align-items-center">
-                            <img src="images/43.jpg" class="m-3 mx-4" width="60" alt="Product Image">
+                            <img src="" class="m-3 mx-4 img product-img" width="100" height="100" alt="Product Image" onerror="this.src='https://via.placeholder.com/60'">
                             <div>
                                 <div class="mx-4">ARLA</div>
                                 <small class="text-muted ms-4">Milk</small>
@@ -92,28 +93,28 @@
                         </div>
 
                         <div class="col-3 text-end">
-                            ₱150.00
+                            <span id="item-price" data-price="150">₱150.00</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-4">
-                <div class="card-custom p-4 shadow-sm text-center">
+                <div class="card-custom p-4 shadow-sm text-center text-muted">
                     <h5 class="mb-3">Order Summary</h5>
                     <hr>
                     <div class="d-flex justify-content-between">
                         <span>Subtotal</span>
-                        <span>₱150.00</span>
+                        <span id="subtotal">₱150.00</span>
                     </div>
                     <div class="d-flex justify-content-between">
                         <span>Shipping Fee</span>
-                        <span>₱50.00</span>
+                        <span id="shipping" data-shipping="50">₱50.00</span>
                     </div>
                     <hr>
-                    <div class="d-flex justify-content-between fw-bold mb-4">
+                    <div class="d-flex justify-content-between mb-4 fw-bold">
                         <span>Order Total</span>
-                        <span>₱200.00</span>
+                        <span id="order-total">₱200.00</span>
                     </div>
                     <button class="btn btn-secondary w-100">CHECKOUT</button>
                 </div>
@@ -145,15 +146,70 @@
         </div>
     </div>
 
-    <div class="container text-center my-5">
-        <button class="btn btn-green px-5 py-2 text-white fw-bold" onclick="">
-            PLACE ORDER
-        </button>
-    </div>
+   <div class="container text-center my-5">
+    <button class="btn btn-success text-white fw-bold py-2 px-4">
+        PLACE ORDER
+    </button>
+</div>
+
+
     </div>
 
     <?php include "components/footer.php"; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function formatPhp(n) {
+            return '₱' + n.toFixed(2);
+        }
+
+        function getItemPrice() {
+            const el = document.getElementById('item-price');
+            return el && el.dataset && el.dataset.price ? parseFloat(el.dataset.price) : 0;
+        }
+
+        function getShipping() {
+            const el = document.getElementById('shipping');
+            if (!el) return 0;
+            const ds = el.dataset && el.dataset.shipping;
+            if (ds) return parseFloat(ds);
+            return parseFloat(el.textContent.replace(/[^0-9.]/g, '')) || 0;
+        }
+
+        function updateTotals() {
+            const qtyEl = document.getElementById('qty');
+            const qty = Math.max(1, parseInt(qtyEl.value) || 1);
+            const price = getItemPrice();
+            const subtotal = price * qty;
+            const shipping = getShipping();
+            const total = subtotal + shipping;
+
+            const subtotalEl = document.getElementById('subtotal');
+            const orderTotalEl = document.getElementById('order-total');
+            if (subtotalEl) subtotalEl.textContent = formatPhp(subtotal);
+            if (orderTotalEl) orderTotalEl.textContent = formatPhp(total);
+        }
+
+        function increaseQty() {
+            const qtyEl = document.getElementById('qty');
+            if (!qtyEl) return;
+            let current = parseInt(qtyEl.value) || 1;
+            current += 1;
+            qtyEl.value = current;
+            updateTotals();
+        }
+
+        function decreaseQty() {
+            const qtyEl = document.getElementById('qty');
+            if (!qtyEl) return;
+            let current = parseInt(qtyEl.value) || 1;
+            if (current > 1) current -= 1;
+            qtyEl.value = current;
+            updateTotals();
+        }
+
+        document.addEventListener('DOMContentLoaded', updateTotals);
+    </script>
 </body>
 
 </html>
