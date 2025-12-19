@@ -15,10 +15,10 @@
     <div class="container-fluid" style="background: var(--gradient-color-footer);">
         <footer class="py-3 px-5">
             <div class="row">
-                <div class="col-3">
+                <div class="col-12 col-lg-3">
                     <div class="row py-2">
                         <div class="col">
-                            <img src="../../assets/navbar_logo.svg" alt="" class="img-fluid">
+                            <img src="../assets/navbar_logo.svg" alt="" class="img-fluid">
                         </div>
                     </div>
                     <div class="row my-2">
@@ -52,7 +52,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-2 py-5">
+                <div class="col-12 col-lg-2 py-lg-5">
                     <ul class="list-unstyled fw-normal">
                         <li>
                             <div class="h6 fw-bold  ">Company</div>
@@ -68,7 +68,7 @@
                         </li>
                     </ul>
                 </div>
-                <div class="col-2 py-5">
+                <div class="col-12 col-lg-2 py-lg-5">
                     <ul class="list-unstyled fw-normal">
                         <li>
                             <div class="h6 fw-bold">Services</div>
@@ -88,7 +88,7 @@
                         </li>
                     </ul>
                 </div>
-                <div class="col-2 py-5">
+                <div class="col-12 col-lg-2 py-lg-5">
                     <ul class="list-unstyled fw-normal">
                         <li>
                             <div class="h6 fw-bold">Customer Care</div>
@@ -101,7 +101,7 @@
                         </li>
                     </ul>
                 </div>
-                <div class="col-3 py-5">
+                <div class="col-12 col-lg-3 py-lg-5">
                     <div class="h6 fw-bold">Newsletter</div>
                     <div class=" fw-normal">Subscribe to our weekly Newsletter and
                         receive updates via SMS.</div>
