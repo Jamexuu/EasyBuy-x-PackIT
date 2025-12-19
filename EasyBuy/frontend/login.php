@@ -7,13 +7,14 @@
     <title>Bootstrap demo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 
 <body>
     <div class="container">
         <div class="row">
             <div class="col d-flex justify-content-center align-items-center">
-                <img src="../assets/Group 21987.svg" alt="Badge"
+                <img src="../assets/easybuylogo.svg" alt="Badge"
                     style="height: 350px; width: 350px; object-fit: cover;">
             </div>
         </div>
@@ -39,7 +40,7 @@
 
                     <div class="d-flex justify-content-center">
                         <button type="submit"
-                            class="btn btn-primary text-white px-4 py-2 rounded-pill fw-bold w-100">Log in</button>
+                            class="btn text-white px-4 py-2 rounded-pill fw-bold w-100" style="background: var(--gradient-color)">Log in</button>
                     </div>
                     <div class="mt-2 d-flex justify-content-center">
                         <p class="text-muted">or log in using</p>
@@ -47,7 +48,7 @@
                     <div class="d-flex justify-content-center">
                         <!--This is where the endpoint of PACKIT-->
                         <a href=""
-                            class="btn btn-danger rounded-pill w-100 d-flex align-items-center justify-content-center gap-2">
+                            class="btn btn-secondary rounded-pill w-100 d-flex align-items-center justify-content-center gap-2">
                             <!--This is where the logo of PACKIT-->
                             <img src="" width="18" height="18" alt="logo of packit">
                             Sign in with PackIT
