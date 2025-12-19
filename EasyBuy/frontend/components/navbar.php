@@ -8,14 +8,14 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    <link rel="stylesheet" href="../../assets/css/style.css" />
+    <link rel="stylesheet" href="../assets/css/style.css" />
 </head>
 
 <body>
     <nav class="navbar navbar-expand-lg" style="background: var(--gradient-color)">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">
-                <img src="../../assets/navbar_logo.svg" alt="" class="img-fluid px-lg-5 p-2" style="max-height: 68px;">
+                <img src="../assets/navbar_logo.svg" alt="" class="img-fluid px-lg-5 p-2" style="max-height: 68px;">
             </a>
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
