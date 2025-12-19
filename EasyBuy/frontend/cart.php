@@ -60,7 +60,7 @@
 </head>
 
 <body>
-    <?php include '../frontend/components/navbar.php'; ?> 
+    <?php include 'components/navbar.php'; ?> 
 
     <div class="container mt-4">
         <h3>Your Shopping Cart</h3>
@@ -152,6 +152,7 @@
     </div>
     </div>
 
+    <?php include "components/footer.php"; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
