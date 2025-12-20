@@ -35,6 +35,7 @@ $orders = [
 $view = 'list';
 $activeOrder = null;
 
+// Check if a specific track_id is requested AND if it exists in our data
 if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
     $view = 'detail';
     $activeOrder = $orders[$_GET['track_id']];
@@ -55,7 +56,7 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
         :root {
             --gradient-color: linear-gradient(90deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
             --secondary-teal: #203a43;
-            --card-border: #203a43; /* Teal border to match navbar */
+            --card-border: #203a43;
         }
 
         body {
@@ -75,7 +76,7 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
         .main-container {
             background: #ffffff;
             border-radius: 15px;
-            border: 2px solid var(--card-border); /* Outer Border */
+            border: 2px solid var(--card-border);
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             min-height: 500px;
@@ -83,7 +84,7 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
 
         /* --- LIST VIEW STYLES --- */
         .order-card-item {
-            background-color: #f8f9fa; /* Light gray background */
+            background-color: #f8f9fa;
             border-radius: 15px;
             border: 1px solid #e9ecef;
             transition: transform 0.2s;
