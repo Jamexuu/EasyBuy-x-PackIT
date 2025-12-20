@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courier Navbar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+
+    <style>
+        :root {
+            --gradient-color: linear-gradient(90deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+        }
+        .nav-link:hover {
+            opacity: 0.8;
+            text-decoration: underline;
+        }
+        .form-control:focus {
+            box-shadow: none;
+            border-color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg" style="background: var(--gradient-color)">
+        <div class="container-fluid">
+            
+            <a class="navbar-brand text-white fw-bold d-flex align-items-center gap-2 px-lg-4" href="#">
+                <span class="material-symbols-outlined fs-1">local_shipping</span>
+                PackIT
+            </a>
+
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="material-symbols-outlined text-white fs-2">menu</span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                
+                <ul class="navbar-nav navbar-text mb-2 ms-auto mb-lg-0 gap-4">
+                    <li class="nav-item">
+                        <a class="nav-link text-white ps-3" href="#">HOME</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white ps-3" href="#">SERVICES</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white ps-3" href="#">RATES</a>
+                    </li>
+                </ul>
+
+                <div class="d-flex flex-column flex-lg-row align-items-center gap-2 px-lg-5 px-3 mt-3 mt-lg-0">
+                    
+                    <div class="d-flex align-items-center gap-2 w-100 w-lg-auto">
+                        <input type="text" placeholder="Enter Tracking #" class="form-control rounded-5" aria-label="Track Package">
+                        <button class="btn p-0 border-0">
+                            <span class="material-symbols-outlined text-white fs-2">
+                                search
+                            </span>
+                        </button>
+                    </div>
+
+                    <div class="d-flex gap-4 gap-lg-2 justify-content-center mt-3 mt-lg-0">
+                        
+                        <div class="btn text-center">
+                            <span class="material-symbols-outlined text-white fs-1 fs-lg-2">
+                                account_circle
+                            </span>
+                            <br>
+                            <span class="text-white small">Login</span>
+                        </div>
+                        
+                        <div class="btn text-center">
+                            <span class="material-symbols-outlined text-white fs-1 fs-lg-2">
+                                box
+                            </span>
+                            <br>
+                            <span class="text-white small">Ship Now</span>
+                        </div>
+                        
+                        <div class="btn text-center">
+                            <span class="material-symbols-outlined text-white fs-1 fs-lg-2">
+                                support_agent
+                            </span>
+                            <br>
+                            <span class="text-white small">Support</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </nav>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
