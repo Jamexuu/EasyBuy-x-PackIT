@@ -12,10 +12,18 @@
     body { background-color: #f8f9fa; }
     .step-container { display: none; animation: fadeIn 0.35s; }
     .step-container.active { display: block; }
-    .price-tag { font-size: 2.2rem; font-weight: 800; color: #0d6efd; }
+    .price-tag { font-size: 2.2rem; font-weight: 800; color: #e6cc32; }
     .receipt-card { background: #fff; border: 2px dashed #ccc; max-width:420px; margin:0 auto; }
 
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    :root {
+  --brand-yellow: #f8e14b;
+  --brand-yellow-dark: #e6cc32;
+  --brand-black: #1c1c1c;
+  --brand-gray: #f5f5f5;
+}
+
 
     /* Autocomplete dropdown */
     .ac-wrap { position: relative; }
@@ -37,7 +45,7 @@
     .ac-item { padding: .5rem .75rem; cursor: pointer; border-bottom: 1px solid rgba(0,0,0,.05); }
     .ac-item:hover, .ac-item.active { background: #f1f5ff; }
     .ac-title { font-weight: 700; }
-    .ac-sub { font-size: .85rem; color: #6c757d; }
+    .ac-sub { font-size: .85rem; color: #000000ff; }
 
     /* Items UI */
     .item-card { border: 1px solid rgba(0,0,0,.06); background:#fff; padding: .75rem; border-radius: .5rem; margin-bottom:.75rem; }
@@ -48,13 +56,65 @@
     .vehicle-item { flex: 1 1 30%; min-width:120px; background:#fff; border:1px solid rgba(0,0,0,.06); padding:.6rem; border-radius:.6rem; text-align:center; cursor:pointer; }
     .vehicle-item.small { padding:.5rem; }
     .vehicle-item img { width:80px; height:60px; object-fit:cover; border-radius:.25rem; }
-    .vehicle-item.active { box-shadow: 0 0 0 3px rgba(13,110,253,.12); border-color:#0d6efd; }
+    .vehicle-item.active { box-shadow: 0 0 0 3px rgba(216, 203, 49, 1); border-color:#0d6efd; }
 
     .muted-sm { font-size:.85rem; color:#6c757d; }
     .required { color:#d00; }
 
     /* smaller UI tweaks */
     .small-input { font-size:.92rem; padding: .45rem .6rem; }
+
+    /* Header */
+.card-header {
+  background-color: var(--brand-yellow) !important;
+  color: var(--brand-black) !important;
+}
+
+/* Primary buttons */
+.btn-primary {
+  background-color: var(--brand-yellow);
+  border-color: var(--brand-yellow);
+  color: var(--brand-black);
+  font-weight: 600;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--brand-yellow-dark);
+  border-color: var(--brand-yellow-dark);
+  color: var(--brand-black);
+}
+
+.btn-outline-secondary {
+  border-color: var(--brand-yellow);
+  color: var(--brand-black);
+}
+
+.btn-outline-secondary:hover {
+  background-color: var(--brand-yellow);
+  color: var(--brand-black);
+}
+
+.price-tag {
+  color: var(--brand-black);
+}
+
+.badge.bg-warning {
+  background-color: var(--brand-yellow) !important;
+  color: var(--brand-black) !important;
+}
+
+.vehicle-item.active {
+  border-color: var(--brand-yellow);
+  box-shadow: 0 0 0 3px rgba(248, 225, 75, 1);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--brand-yellow);
+  box-shadow: 0 0 0 0.2rem rgba(248, 225, 75, 0.25);
+}
+
   </style>
 </head>
 <body>
@@ -71,7 +131,7 @@
 
           <!-- STEP 1: Items -->
           <div id="step1" class="step-container active">
-            <h5 class="mb-3 text-primary">1. Items (one product per row)</h5>
+            <h5 class="mb-3 text-dark">1. Items (one product per row)</h5>
             <div id="itemsList">
               <!-- JS will populate initial item -->
             </div>
@@ -97,7 +157,7 @@
 
           <!-- STEP 2: Addresses & vehicle selection -->
           <div id="step2" class="step-container">
-            <h5 class="mb-3 text-primary">2. Where (pickup & drop) & choose vehicle</h5>
+            <h5 class="mb-3 text-dark">2. Where (pickup & drop) & choose vehicle</h5>
 
             <div class="row g-3 mb-3">
               <!-- Pickup -->
@@ -225,7 +285,7 @@
 
           <!-- STEP 3: Review & Pay -->
           <div id="step3" class="step-container">
-            <h5 class="mb-3 text-primary">3. Confirm Booking & Payment</h5>
+            <h5 class="mb-3 text-dark">3. Confirm Booking & Payment</h5>
 
             <div class="text-center mb-3">
               <small class="text-uppercase text-muted ls-1">Total Fare</small>
@@ -275,7 +335,7 @@
               </div>
               <div class="d-flex justify-content-between mt-3">
                 <span class="fw-bold">AMOUNT PAID</span>
-                <span class="fw-bold text-primary">₱<span id="recAmount">0.00</span></span>
+                <span class="fw-bold text-dark">₱<span id="recAmount">0.00</span></span>
               </div>
             </div>
 
@@ -325,13 +385,13 @@
   let paypalRendered = false;
 
   const VEHICLES = [
-    { key: "Motorcycle", label: "Motorcycle", img: "https://via.placeholder.com/160x120?text=Motorcycle" },
-    { key: "ToktokTricycle", label: "Toktok / Tricycle", img: "https://via.placeholder.com/160x120?text=Toktok" },
-    { key: "Sedan", label: "Sedan / Car", img: "https://via.placeholder.com/160x120?text=Sedan" },
-    { key: "SUV", label: "SUV", img: "https://via.placeholder.com/160x120?text=SUV" },
-    { key: "Pickup", label: "Pickup", img: "https://via.placeholder.com/160x120?text=Pickup" },
-    { key: "Truck", label: "Truck", img: "https://via.placeholder.com/160x120?text=Truck" }
-  ];
+  { key: "Motorcycle", label: "Motorcycle", img: "../assets/motorcycle.png" },
+  { key: "ToktokTricycle", label: "Toktok / Tricycle", img: "../assets/tricycle.png" },
+  { key: "Sedan", label: "Sedan / Car", img: "../assets/sedan.png" },
+  { key: "SUV", label: "SUV", img: "../assets/suv.png" },
+  { key: "Pickup", label: "Pickup", img: "../assets/pickup.png" },
+  { key: "Truck", label: "Truck", img: "../assets/truck.png" }
+];
 
   // --- UI NAV ---
   function showStep(step) {
