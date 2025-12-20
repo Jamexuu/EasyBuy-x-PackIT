@@ -25,7 +25,6 @@ if (isset($_GET['p_lat'], $_GET['p_lng'], $_GET['d_lat'], $_GET['d_lng'], $_GET[
     curl_setopt($ch, CURLOPT_URL, $api_url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     $response = curl_exec($ch);
-    curl_close($ch);
 
     $data = json_decode($response, true);
 
