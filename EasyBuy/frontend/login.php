@@ -49,7 +49,7 @@
                         <a href=""
                             class="btn btn-danger rounded-pill w-100 d-flex align-items-center justify-content-center gap-2">
                             <!--This is where the logo of PACKIT-->
-                            <img src="" width="18" height="18" alt="logo of packit">
+                            <img src="../assets/Group 6.svg" width="18" height="18" alt="logo of packit">
                             Sign in with PackIT
                         </a>
                     </div>
