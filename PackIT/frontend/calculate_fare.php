@@ -1,54 +1,128 @@
-<!--New Code-->
-<!--New Code-->
 <?php
-// calculate_fare.php
+// calculate_fare.php (distance-based using OSRM) with:
+// - included_km (first X km included in base fare)
+// - minimum fare
+// - rounding up to nearest 5 pesos
 
-if (isset($_GET['p_lat'], $_GET['p_lng'], $_GET['d_lat'], $_GET['d_lng'], $_GET['vehicle'])) {
-    
-    // 1. Get Inputs
-    $pickup = $_GET['p_lng'] . ',' . $_GET['p_lat'];
-    $dropoff = $_GET['d_lng'] . ',' . $_GET['d_lat'];
-    $vehicleType = $_GET['vehicle'];
+header('Content-Type: application/json; charset=utf-8');
 
-    // 2. Define Pricing Rules (No Database, just JSON/Array logic)
-    $pricingRules = [
-        'Motorcycle' => ['base' => 50, 'per_km' => 10], // Cheaper per km
-        'Car'        => ['base' => 150, 'per_km' => 25] // Expensive start & per km
-    ];
-
-    // Default to Car if unknown
-    $rates = isset($pricingRules[$vehicleType]) ? $pricingRules[$vehicleType] : $pricingRules['Car'];
-
-    // 3. Call OSRM API for Distance
-    $api_url = "http://router.project-osrm.org/route/v1/driving/$pickup;$dropoff?overview=false";
-    
-    // Use cURL to fetch
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $api_url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    $response = curl_exec($ch);
-
-    $data = json_decode($response, true);
-
-    if (isset($data['routes'][0])) {
-        // Distance comes in meters, convert to KM
-        $distance_meters = $data['routes'][0]['distance'];
-        $distance_km = $distance_meters / 1000;
-
-        // 4. Calculate Final Price
-        // Formula: Base Fare + (Distance * Per KM Price)
-        $total_price = $rates['base'] + ($distance_km * $rates['per_km']);
-
-        echo json_encode([
-            'status' => 'success',
-            'distance_km' => round($distance_km, 2),
-            'price' => round($total_price, 2),
-            'currency' => 'PHP'
-        ]);
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Route not found']);
-    }
-} else {
-    echo json_encode(['status' => 'error', 'message' => 'Missing data']);
+function respond($arr, $httpCode = 200) {
+    http_response_code($httpCode);
+    echo json_encode($arr);
+    exit;
 }
-?>
+
+$required = ['p_lat','p_lng','d_lat','d_lng','vehicle'];
+foreach ($required as $k) {
+    if (!isset($_GET[$k]) || $_GET[$k] === '') {
+        respond(['status' => 'error', 'message' => "Missing data: $k"], 400);
+    }
+}
+
+$p_lat = filter_var($_GET['p_lat'], FILTER_VALIDATE_FLOAT);
+$p_lng = filter_var($_GET['p_lng'], FILTER_VALIDATE_FLOAT);
+$d_lat = filter_var($_GET['d_lat'], FILTER_VALIDATE_FLOAT);
+$d_lng = filter_var($_GET['d_lng'], FILTER_VALIDATE_FLOAT);
+
+if ($p_lat === false || $p_lng === false || $d_lat === false || $d_lng === false) {
+    respond(['status' => 'error', 'message' => 'Invalid coordinates'], 400);
+}
+
+// Normalize vehicle
+$vehicleRaw = trim((string)$_GET['vehicle']);
+$v = strtolower($vehicleRaw);
+
+if ($v === 'motorcycle' || $v === 'motorbike' || $v === 'bike') {
+    $vehicleKey = 'Motorcycle';
+} elseif ($v === 'car' || $v === 'sedan' || $v === 'sedan / car') {
+    $vehicleKey = 'Car';
+} else {
+    $vehicleKey = 'Car';
+}
+
+/**
+ * Pricing model:
+ * total = base + max(0, distance_km - included_km) * per_km
+ * then apply minimum fare and rounding
+ *
+ * Adjust numbers here to match your business rules.
+ */
+$pricingRules = [
+    'Motorcycle' => [
+        'base' => 70,         // base fare
+        'included_km' => 3.0, // first 3km included in base
+        'per_km' => 12,       // charge per km AFTER included_km
+        'min_fare' => 70,     // absolute minimum
+        'round_to' => 5       // round UP to nearest 5 pesos
+    ],
+    'Car' => [
+        'base' => 170,
+        'included_km' => 3.0,
+        'per_km' => 25,
+        'min_fare' => 170,
+        'round_to' => 5
+    ]
+];
+
+$rates = $pricingRules[$vehicleKey];
+
+// OSRM requires lng,lat
+$pickup = $p_lng . ',' . $p_lat;
+$dropoff = $d_lng . ',' . $d_lat;
+
+// Use HTTPS OSRM public server
+$api_url = "https://router.project-osrm.org/route/v1/driving/$pickup;$dropoff?overview=false&alternatives=false&steps=false";
+
+$ch = curl_init();
+curl_setopt_array($ch, [
+    CURLOPT_URL => $api_url,
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_TIMEOUT => 10,
+    CURLOPT_CONNECTTIMEOUT => 5,
+    CURLOPT_USERAGENT => 'PackIT/1.0'
+]);
+
+$response = curl_exec($ch);
+$err = curl_error($ch);
+curl_close($ch);
+
+if ($response === false) {
+    respond(['status' => 'error', 'message' => 'OSRM request failed', 'details' => $err], 502);
+}
+
+$data = json_decode($response, true);
+if (!is_array($data) || ($data['code'] ?? '') !== 'Ok' || empty($data['routes'][0]['distance'])) {
+    respond([
+        'status' => 'error',
+        'message' => 'Route not found',
+        'osrm_code' => $data['code'] ?? null,
+        'osrm_message' => $data['message'] ?? null
+    ], 404);
+}
+
+$distance_m = (float)$data['routes'][0]['distance'];
+$distance_km = $distance_m / 1000.0;
+
+if ($distance_km <= 0) {
+    respond(['status' => 'error', 'message' => 'Invalid route distance'], 502);
+}
+
+$billable_km = max(0.0, $distance_km - (float)$rates['included_km']);
+
+$total = (float)$rates['base'] + ($billable_km * (float)$rates['per_km']);
+$total = max($total, (float)$rates['min_fare']);
+
+// round UP to nearest N pesos
+$roundTo = (float)$rates['round_to'];
+if ($roundTo > 0) {
+    $total = ceil($total / $roundTo) * $roundTo;
+}
+
+respond([
+    'status' => 'success',
+    'vehicle' => $vehicleKey,
+    'distance_km' => round($distance_km, 2),
+    'billable_km' => round($billable_km, 2),
+    'price' => round($total, 2),
+    'currency' => 'PHP'
+]);
