@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Cart</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    <link rel="stylesheet" href="../assets/css/style.css">
+    
     <style>
         body {
             font-family: 'Poppins';
@@ -80,7 +81,7 @@
 
                     <div class="row align-items-center mb-4">
                         <div class="col-5 d-flex align-items-center">
-                            <img src="" class="m-3 mx-4 img product-img" width="100" height="100" alt="Product Image" onerror="this.src='https://via.placeholder.com/60'">
+                            <img src="" class="m-3 mx-4 img product-img" width="100" height="100" alt="Product Image">
                             <div>
                                 <div class="mx-4">ARLA</div>
                                 <small class="text-muted ms-4">Milk</small>
