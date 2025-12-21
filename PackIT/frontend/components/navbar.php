@@ -9,6 +9,7 @@ $base_path = file_exists('assets/LOGO.svg') ? '' : '../';
 
             <a class="navbar-brand d-flex align-items-center" href="index.php">
                 <img src="<?php echo $base_path; ?>assets/LOGO.svg" alt="PackIT" height="40" class="object-fit-contain">
+                <img src="assets/LOGO.svg" alt="PackIT" height="40" class="object-fit-contain">
             </a>
 
             <button class="navbar-toggler border-0 p-0" type="button" data-bs-toggle="collapse"
@@ -33,6 +34,8 @@ $base_path = file_exists('assets/LOGO.svg') ? '' : '../';
                 <button class="btn p-0 border-0 text-dark"><i class="bi bi-bell fs-4"></i></button>
                 <a href="<?php echo $base_path; ?>frontend/login.html"
                     class="text-dark text-decoration-none fw-bold text-uppercase lh-1 small">
+                <a href="login.html" class="text-dark text-decoration-none fw-bold text-uppercase lh-1"
+                    style="font-size: 0.9rem;">
                     Login/<br>Signup
                 </a>
             </div>
