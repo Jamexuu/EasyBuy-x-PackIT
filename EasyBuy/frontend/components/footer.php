@@ -12,11 +12,7 @@
             <ul class="list-unstyled fw-normal">
               <li>
                 <a href="" class="text-dark text-decoration-none d-flex align-items-center gap-2">
-<<<<<<< HEAD
-                  <span class="material-symbols-outlined" style="font-size:20px; line-height:1;">
-=======
                   <span class="material-symbols-rounded" style="font-size:20px; line-height:1;">
->>>>>>> 5a73be99eca6d0b59ddbe8b56eba1cf20b05864e
                     location_on
                   </span>
                   <span>Tanauan City, Batangas</span>
@@ -24,11 +20,7 @@
               </li>
               <li>
                 <a href="" class="text-dark text-decoration-none d-flex align-items-center gap-2">
-<<<<<<< HEAD
-                  <span class="material-symbols-outlined" style="font-size:20px; line-height:1;">
-=======
                   <span class="material-symbols-rounded" style="font-size:20px; line-height:1;">
->>>>>>> 5a73be99eca6d0b59ddbe8b56eba1cf20b05864e
                     phone_in_talk
                   </span>
                   <span>09455678910</span>
@@ -36,11 +28,7 @@
               </li>
               <li>
                 <a href="" class="text-dark text-decoration-none d-flex align-items-center gap-2">
-<<<<<<< HEAD
-                  <span class="material-symbols-outlined" style="font-size:20px; line-height:1;">
-=======
                   <span class="material-symbols-rounded" style="font-size:20px; line-height:1;">
->>>>>>> 5a73be99eca6d0b59ddbe8b56eba1cf20b05864e
                     mail
                   </span>
                   <span>info@easybuy.com</span>
@@ -99,10 +87,6 @@
             <a href="" class="text-decoration-none text-dark">Contact us</a>
           </li>
         </ul>
-<<<<<<< HEAD
-
-=======
->>>>>>> 5a73be99eca6d0b59ddbe8b56eba1cf20b05864e
       </div>
       <div class="col-12 col-lg-3 pb-5 mb-5 py-lg-5">
         <div class="h6 fw-bold">Newsletter</div>
@@ -111,11 +95,7 @@
         <div class="d-flex align-items-center gap-2">
           <input type="text" placeholder="Phone Number" class="form-control rounded-5" style="max-width:250px">
           <button class="btn" style="border-radius:999px; ">
-<<<<<<< HEAD
-            <span class="material-symbols-outlined text-white">send</span>
-=======
             <span class="material-symbols-rounded text-white">send</span>
->>>>>>> 5a73be99eca6d0b59ddbe8b56eba1cf20b05864e
           </button>
         </div>
       </div>
