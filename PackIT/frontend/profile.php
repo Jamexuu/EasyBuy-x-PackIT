@@ -255,6 +255,7 @@
     </div>
 
     <?php include("components/footer.php"); ?>
+    <?php include("../frontend/components/chat.php"); ?>
 
     <script>
         function previewImage(event) {
