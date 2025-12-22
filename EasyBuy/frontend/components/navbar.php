@@ -7,7 +7,7 @@
 
 <body>
 
-  <div class="d-block d-lg-none text-center" style="background: var(--gradient-color);">
+  <div class="d-block d-lg-none text-center sticky-top" style="background: var(--gradient-color);">
     <div class="pt-3 pb-1 ">
       <img src="assets/easybuylogolongwhite.svg" alt="EasyBuy" style="max-height:36px;">
     </div>
