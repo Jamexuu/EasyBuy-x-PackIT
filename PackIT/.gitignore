@@ -1,0 +1,2 @@
+# Ignore PayPal secrets
+**/paypal_secrets.php
