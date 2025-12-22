@@ -28,6 +28,8 @@
 </head>
 
 <body>
+    <?php include './components/navbar.php'; ?>
+
     <div class="container-fluid mt-5 pt-5">
         <div class="row">
             <div class="col-12 col-md-3 col-lg-3">
@@ -106,7 +108,7 @@
                 
                 contentArea.innerHTML += `
                 <div class="col-12 col-md-4 col-lg-3 mb-4">
-                    <div class="card rounded-4 h-100" style="cursor: pointer;" onclick="window.location.href='productView.html?id=${product["Product ID"]}'">
+                    <div class="card rounded-4 h-100" style="cursor: pointer;" onclick="window.location.href='productView.php?id=${product["Product ID"]}'">
                         <img class="img-fluid object-fit-contain p-3 justify-content-center align-items-center" style="height: 180px;"
                              src="${product.image}" alt="${product["Product Name"]}">
                         <div class="card-body mt-0 pt-0 d-block">
@@ -198,6 +200,9 @@
 
         displayProducts();
     </script>
+
+    <?php include './components/footer.php'; ?>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
