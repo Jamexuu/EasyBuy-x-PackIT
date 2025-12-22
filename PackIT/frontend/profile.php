@@ -7,6 +7,7 @@
     <title>Profile Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
     <style>
         :root {
@@ -85,7 +86,8 @@
         }
 
         .status-link:hover {
-            transform: translateY(-5px); /* Lift effect on hover */
+            transform: translateY(-5px);
+            /* Lift effect on hover */
             cursor: pointer;
         }
 
@@ -100,7 +102,7 @@
             margin-bottom: 8px;
             font-weight: bold;
             font-size: 1.2rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         .menu-outline {
@@ -142,6 +144,7 @@
 </head>
 
 <body>
+    <?php include("components/navbar.php"); ?>
 
     <div class="container my-5">
         <div class="row g-5">
@@ -247,45 +250,50 @@
 
                     <a href="#" class="menu-link mt-4 text-secondary">Logout</a>
                 </div>
+            </div>
+        </div>
+    </div>
 
-                <script>
-                    function previewImage(event) {
-                        const file = event.target.files[0];
-                        if (file) {
-                            const reader = new FileReader();
-                            reader.onload = function () {
-                                document.getElementById('profileDisplay').src = reader.result;
-                            };
-                            reader.readAsDataURL(file);
-                        }
-                    }
+    <?php include("components/footer.php"); ?>
 
-                    function toggleEdit() {
-                        const nameField = document.getElementById('userName');
-                        const editIcon = document.getElementById('editIcon');
-                        const isEditing = nameField.contentEditable === "true";
+    <script>
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function () {
+                    document.getElementById('profileDisplay').src = reader.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
 
-                        if (!isEditing) {
-                            nameField.contentEditable = "true";
-                            nameField.focus();
-                            editIcon.innerText = "✔";
-                            editIcon.style.color = "green";
-                        } else {
-                            nameField.contentEditable = "false";
-                            editIcon.innerText = "✎";
-                            editIcon.style.color = "black";
-                        }
-                    }
+        function toggleEdit() {
+            const nameField = document.getElementById('userName');
+            const editIcon = document.getElementById('editIcon');
+            const isEditing = nameField.contentEditable === "true";
 
-                    document.getElementById('userName').addEventListener('keydown', function (e) {
-                        if (e.key === 'Enter') {
-                            e.preventDefault();
-                            toggleEdit();
-                        }
-                    });
-                </script>
+            if (!isEditing) {
+                nameField.contentEditable = "true";
+                nameField.focus();
+                editIcon.innerText = "✔";
+                editIcon.style.color = "green";
+            } else {
+                nameField.contentEditable = "false";
+                editIcon.innerText = "✎";
+                editIcon.style.color = "black";
+            }
+        }
 
-                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+        document.getElementById('userName').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                toggleEdit();
+            }
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
