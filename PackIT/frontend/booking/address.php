@@ -267,18 +267,17 @@ if ($distanceAmount !== null) {
   </style>
 </head>
 
-
 <body>
-  <div class="container py-5">
-    <div class="row justify-content-center">
-      <div class="col-lg-9 col-md-11">
-        <div class="card shadow-sm border-0 rounded-4">
-          <div class="card-header p-4 rounded-top-4">
-            <h4 class="mb-0 fw-bold">Step 2: Pickup & Drop-off Address</h4>
-            <div class="muted-sm">
-              Package: <strong><?= h((string)($state["package_label"] ?? "--")) ?></strong>
-              · Vehicle: <strong><?= h((string)($state["vehicle_label"] ?? "--")) ?></strong>
-            </div>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-9 col-md-11">
+      <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-header p-4 rounded-top-4">
+          <h4 class="mb-0 fw-bold">Step 2: Pickup & Drop-off Address</h4>
+          <div class="muted-sm">
+            Package: <strong><?= h((string)($state["package_label"] ?? "--")) ?></strong>
+            · Vehicle: <strong><?= h((string)($state["vehicle_label"] ?? "--")) ?></strong>
           </div>
 
 
@@ -481,196 +480,13 @@ if ($distanceAmount !== null) {
         selectEl.appendChild(opt);
       });
     }
+    document.getElementById("pickup_house").value = p.house || "";
+    document.getElementById("pickup_barangay").value = p.barangay || "";
+    document.getElementById("pickup_municipality").value = p.municipality || "";
+    document.getElementById("pickup_province").value = p.province || "";
+  });
 
-
-    function reset(selectEl) {
-      selectEl.innerHTML = '<option value="">Select Option</option>';
-      selectEl.disabled = true;
-    }
-
-
-    function updateHiddenName(selectEl, hiddenEl) {
-      const opt = selectEl.options[selectEl.selectedIndex];
-      hiddenEl.value = (opt && opt.dataset && opt.dataset.name) ? opt.dataset.name : '';
-    }
-   
-    // ----- AUTO UPDATE FARE LOGIC -----
-    async function updateLiveFare() {
-        const pRegion = document.getElementById("pickup_region_code").value;
-        const dRegion = document.getElementById("drop_region_code").value;
-        const doorVal = document.getElementById("door_to_door").value;
-       
-        // If regions aren't ready, we can't calc distance
-        if (!pRegion || !dRegion) return;
-
-
-        // Call the PHP "API"
-        const params = new URLSearchParams({
-            action: "calculate_fare",
-            pickup_region: pRegion,
-            drop_region: dRegion,
-            door_to_door: doorVal
-        });
-
-
-        const data = await fetchData(params.toString());
-       
-        // Update DOM
-        if (data.valid) {
-            document.getElementById("disp_base").textContent = "₱" + data.base;
-            document.getElementById("disp_distance").textContent = "₱" + data.distance;
-            document.getElementById("disp_door").textContent = "₱" + data.door;
-            document.getElementById("disp_total").textContent = "₱" + data.total;
-           
-            // Enable Next button
-            document.getElementById("btnNext").disabled = false;
-        } else {
-            document.getElementById("disp_distance").textContent = "--";
-            document.getElementById("disp_total").textContent = "₱--";
-            document.getElementById("btnNext").disabled = true;
-        }
-    }
-   
-    // Attach listener to Door-to-Door dropdown
-    document.getElementById("door_to_door").addEventListener("change", updateLiveFare);
-
-
-    async function setupSelector(prefix, saved) {
-      const provinceEl = document.getElementById(prefix + "_province");
-      const cityEl = document.getElementById(prefix + "_city");
-      const barangayEl = document.getElementById(prefix + "_barangay");
-
-
-      const hiddenRegionCode = document.getElementById(prefix + "_region_code");
-      const hiddenRegionName = document.getElementById(prefix + "_region_name");
-      const hiddenProvince = document.getElementById(prefix + "_province_name");
-      const hiddenCity = document.getElementById(prefix + "_city_name");
-      const hiddenBarangay = document.getElementById(prefix + "_barangay_name");
-     
-      const provinces = await fetchData("action=get_provinces");
-     
-      populate(provinceEl, provinces, "province_code", "province_name", { regionCode: "region_code" });
-
-
-      if (saved.province_code) {
-        provinceEl.value = saved.province_code;
-        handleProvinceChange(provinceEl.value);
-      }
-
-
-      provinceEl.addEventListener("change", function() {
-        handleProvinceChange(this.value);
-      });
-
-
-      async function handleProvinceChange(provCode) {
-        reset(cityEl);
-        reset(barangayEl);
-        updateHiddenName(provinceEl, hiddenProvince);
-
-
-        if (!provCode) {
-            hiddenRegionCode.value = "";
-            hiddenRegionName.value = "";
-            return;
-        }
-
-
-        // AUTO-SELECT REGION (Hidden)
-        const selectedOpt = provinceEl.options[provinceEl.selectedIndex];
-        const regCode = selectedOpt.dataset.regionCode;
-
-
-        if (regCode) {
-            const regName = REGION_MAP[regCode] || regCode;
-            hiddenRegionCode.value = regCode;
-            hiddenRegionName.value = regName;
-        }
-       
-        // Trigger live fare update immediately after region is set
-        updateLiveFare();
-
-
-        const cities = await fetchData(`action=get_cities&province_code=${encodeURIComponent(provCode)}`);
-        populate(cityEl, cities, "city_code", "city_name");
-
-
-        if (saved.city_code && cities.some(c => c.city_code === saved.city_code)) {
-            cityEl.value = saved.city_code;
-            cityEl.dispatchEvent(new Event("change"));
-            saved.city_code = null;
-        }
-      }
-
-
-      cityEl.addEventListener("change", async function() {
-        const code = this.value;
-        reset(barangayEl);
-        updateHiddenName(this, hiddenCity);
-
-
-        if (!code) return;
-
-
-        const b = await fetchData(`action=get_barangays&city_code=${encodeURIComponent(code)}`);
-        populate(barangayEl, b, "brgy_code", "brgy_name");
-
-
-        if (saved.brgy_code) {
-          barangayEl.value = saved.brgy_code;
-          barangayEl.dispatchEvent(new Event("change"));
-        }
-      });
-
-
-      barangayEl.addEventListener("change", function() {
-        updateHiddenName(this, hiddenBarangay);
-      });
-    }
-
-
-    (async function init() {
-        const regionsData = await fetchData("action=get_regions");
-        regionsData.forEach(r => {
-            REGION_MAP[r.region_code] = r.region_name;
-        });
-
-
-        setupSelector("pickup", {
-          region_code: "<?= h((string)($pickup["region_code"] ?? "")) ?>",
-          province_code: "<?= h((string)($pickup["province_code"] ?? "")) ?>",
-          city_code: "<?= h((string)($pickup["city_code"] ?? "")) ?>",
-          brgy_code: "<?= h((string)($pickup["brgy_code"] ?? "")) ?>"
-        });
-
-
-        setupSelector("drop", {
-          region_code: "<?= h((string)($drop["region_code"] ?? "")) ?>",
-          province_code: "<?= h((string)($drop["province_code"] ?? "")) ?>",
-          city_code: "<?= h((string)($drop["city_code"] ?? "")) ?>",
-          brgy_code: "<?= h((string)($drop["brgy_code"] ?? "")) ?>"
-        });
-    })();
-
-
-    function getProfileAddress() {
-      try {
-        return JSON.parse(localStorage.getItem("packit_profile_address") || "null");
-      } catch (e) {
-        return null;
-      }
-    }
-
-
-    document.getElementById("useDefaultPickupBtn").addEventListener("click", () => {
-      const p = getProfileAddress();
-      if (!p) {
-        alert("No default profile address found. Open profile_seed.php first to create one.");
-        return;
-      }
-      document.getElementById("pickup_house").value = p.house || "";
-    });
-  </script>
+</script>
 </body>
 
 
