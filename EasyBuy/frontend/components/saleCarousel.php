@@ -1,7 +1,7 @@
 <div class="container py-3 pt-4 p-2 p-lg-5">
   <div class="row">
-    <div class="col mb-4 d-flex justify-content-center justify-content-lg-start">
-      <div class="h1 fw-bold text-md-center ps-3 text-lg-start" style="color:#6EC064">
+    <div class="col mb-4 d-flex justify-content-center justify-content-lg-start pt-4">
+      <div class="h1 fw-bold text-md-center ps-3 text-lg-start " style="color:#6EC064">
         Sale
       </div>
     </div>
@@ -35,11 +35,11 @@
         carouselItem.className = "carousel-item" + (slideIndex === 0 ? " active" : "");
 
         const row = document.createElement("div");
-        row.className = "row justify-content-center";
+        row.className = "row justify-content-center g-2 g-md-3";
 
         slideProducts.forEach(product => {
           const col = document.createElement("div");
-          col.className = "col-6 col-md-3 mb-4";
+          col.className = "col-6 col-lg-3 mb-2";
 
           const imgSrc = "/EasyBuy-x-PackIT/EasyBuy/Product Images/all/" +
             product.image.split("/").pop();
