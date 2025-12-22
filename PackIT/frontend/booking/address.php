@@ -107,7 +107,9 @@ function format_addr(array $a): string {
     .price-tag { font-size: 2rem; font-weight: 800; color: var(--brand-black); }
   </style>
 </head>
+
 <body>
+
 <div class="container py-5">
   <div class="row justify-content-center">
     <div class="col-lg-9 col-md-11">
@@ -290,6 +292,7 @@ function format_addr(array $a): string {
     document.getElementById("pickup_municipality").value = p.municipality || "";
     document.getElementById("pickup_province").value = p.province || "";
   });
+
 </script>
 </body>
 </html>
