@@ -3,6 +3,9 @@ declare(strict_types=1);
 require_once __DIR__ . "/booking_state.php";
 require_once __DIR__ . "/fare_rules.php";
 
+// FIX: Point to the config file in the api/paypal folder (Go up 2 levels)
+require_once __DIR__ . "/../../api/paypal/paypal_config.php"; 
+
 $state = get_booking_state();
 if (empty($state["package_key"])) { header("Location: package.php"); exit; }
 if (empty($state["pickup_address"]) || empty($state["drop_address"])) { header("Location: address.php"); exit; }
@@ -47,6 +50,8 @@ $dropText = format_addr((array)$state["drop_address"]);
     .price-tag { font-size: 2.2rem; font-weight: 900; color: var(--brand-black); }
     .muted-sm { font-size:.9rem; color:#6c757d; }
   </style>
+
+  <script src="https://www.paypal.com/sdk/js?client-id=<?= PAYPAL_CLIENT_ID ?>&currency=PHP"></script>
 </head>
 <body>
 <div class="container py-5">
@@ -55,7 +60,7 @@ $dropText = format_addr((array)$state["drop_address"]);
       <div class="card shadow-sm border-0 rounded-4">
         <div class="card-header p-4 rounded-top-4">
           <h4 class="mb-0 fw-bold">Step 3: Review Booking</h4>
-          <div class="muted-sm">Confirm details before payment (payment step next)</div>
+          <div class="muted-sm">Confirm details before payment</div>
         </div>
 
         <div class="card-body p-4">
@@ -105,11 +110,10 @@ $dropText = format_addr((array)$state["drop_address"]);
             </li>
           </ul>
 
-          <div class="d-flex gap-2">
-            <a class="btn btn-outline-secondary w-50" href="address.php">Back</a>
-            <button class="btn btn-success w-50" type="button" onclick="alert('Next: payment integration (PayPal) like your old step 3/4)')">
-              Proceed to Payment
-            </button>
+          <div class="d-flex gap-2 align-items-center flex-column">
+            <div id="paypal-button-container" class="w-100"></div>
+            
+            <a class="btn btn-outline-secondary btn-sm mt-2" href="address.php" style="width: 200px;">Back to Address</a>
           </div>
 
           <?php if ($pickupRegion === "MINDANAO" && $dropRegion === "MINDANAO"): ?>
@@ -123,5 +127,55 @@ $dropText = format_addr((array)$state["drop_address"]);
     </div>
   </div>
 </div>
+
+<script>
+  // PayPal Integration Script
+  paypal.Buttons({
+    // 1. Customer clicks PayPal button -> Call Backend to Create Order [cite: 117-120]
+    createOrder: function(data, actions) {
+      return fetch("../../api/paypal/paypal_api.php", { // Points to your API folder
+        method: "post",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "create_order" })
+      })
+      .then(res => res.json())
+      .then(orderData => {
+        if(orderData.error) {
+            console.error("Server Error:", orderData.error);
+            alert("Could not create order: " + orderData.error);
+            return;
+        }
+        return orderData.id; // Return the PayPal Order ID
+      });
+    },
+
+    // 2. Customer approves payment -> Call Backend to Capture Payment [cite: 121-128]
+    onApprove: function(data, actions) {
+      return fetch("../../api/paypal/paypal_api.php", {
+        method: "post",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+            action: "capture_order",
+            orderID: data.orderID 
+        })
+      })
+      .then(res => res.json())
+      .then(details => {
+        if(details.error) {
+            alert("Payment failed: " + details.error);
+            return;
+        }
+        // Success: Redirect to success page or show alert [cite: 127]
+        alert("Payment completed by " + details.payer.name.given_name);
+        window.location.href = "../../api/paypal/success.php";
+      });
+    },
+
+    onError: function(err) {
+        console.error(err);
+        alert("An error occurred during payment.");
+    }
+  }).render('#paypal-button-container'); // [cite: 128]
+</script>
 </body>
 </html>
