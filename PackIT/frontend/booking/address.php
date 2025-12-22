@@ -559,8 +559,6 @@ function format_addr(array $a): string
         return;
       }
       document.getElementById("pickup_house").value = p.house || "";
-      // NOTE: selecting region/province/city by name requires extra lookup.
-      // If you want that, tell me and I’ll add a name->code resolver using the loaded JSON.
     });
   </script>
 </body>
