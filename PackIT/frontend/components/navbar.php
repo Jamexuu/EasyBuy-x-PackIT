@@ -37,7 +37,7 @@ $base_path = file_exists('assets/LOGO.svg') ? '' : '../';
                     <button class="btn p-0 border-0 text-dark" aria-label="Notifications">
                         <i class="bi bi-bell fs-4"></i>
                     </button>
-                    <a href="<?php echo $base_path; ?>frontend/login.html"
+                    <a href="<?php echo $base_path; ?>frontend/login.php"
                        class="text-dark text-decoration-none fw-bold text-uppercase lh-1"
                        style="font-size: 0.9rem;">
                         Login/<br>Signup
@@ -72,7 +72,7 @@ $base_path = file_exists('assets/LOGO.svg') ? '' : '../';
                     </ul>
 
                     <div class="mt-3 border-top pt-3">
-                        <a href="<?php echo $base_path; ?>frontend/login.html"
+                        <a href="<?php echo $base_path; ?>frontend/login.php"
                            class="nav-link text-dark fw-bold text-uppercase">
                             Login / Signup
                         </a>
