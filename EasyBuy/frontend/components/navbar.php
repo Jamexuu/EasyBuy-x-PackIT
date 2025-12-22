@@ -79,7 +79,7 @@
     </div>
   </div>
 
-  <div class="navbar navbar-dark fixed-bottom d-flex d-lg-none py-0" style="background:#ffffff;">
+  <div class="navbar navbar-dark fixed-bottom d-flex d-lg-none py-0" style="background:#ffffff; box-shadow: 0 -8px 16px rgba(0, 0, 0, 0.11);">
     <div class="container-fluid justify-content-around py-0" style="padding-left:0;padding-right:0;">
       <a href="#"
         class="nav-link text-center active"
