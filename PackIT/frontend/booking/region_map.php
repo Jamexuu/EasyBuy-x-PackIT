@@ -17,10 +17,6 @@ function region_code_to_fare_region(string $region_code): ?string {
   return null;
 }
 
-/**
- * Backwards-compatible function name used by your old address.php.
- * We'll keep it, but you should prefer region_code_to_fare_region().
- */
 function resolve_region(string $municipality, string $province = ""): ?string {
   // If you still have old pages calling resolve_region by text,
   // you can keep a legacy mapping here.
