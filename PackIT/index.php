@@ -75,19 +75,11 @@
     </div>
   </main>
 
-  <div class="poc-chat-btn" onclick="goToChat()">
-    💬
-    <div class="poc-tooltip">Chat with POC</div>
-  </div>
-
   <?php include("frontend/components/footer.php"); ?>
 
+  <?php include("frontend/components/chat.php"); ?>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    function goToChat() {
-      window.location.href = "frontend/chatai.php";
-    }
-  </script>
 
 </body>
 
