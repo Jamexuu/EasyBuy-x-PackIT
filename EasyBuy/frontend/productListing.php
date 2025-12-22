@@ -28,6 +28,8 @@
 </head>
 
 <body>
+    <?php include './components/navbar.php'; ?>
+
     <div class="container-fluid mt-5 pt-5">
         <div class="row">
             <div class="col-12 col-md-3 col-lg-3">
@@ -106,7 +108,7 @@
                 
                 contentArea.innerHTML += `
                 <div class="col-12 col-md-4 col-lg-3 mb-4">
-                    <div class="card rounded-4 h-100">
+                    <div class="card rounded-4 h-100" style="cursor: pointer;" onclick="window.location.href='productView.php?id=${product["Product ID"]}'">
                         <img class="img-fluid object-fit-contain p-3 justify-content-center align-items-center" style="height: 180px;"
                              src="${product.image}" alt="${product["Product Name"]}">
                         <div class="card-body mt-0 pt-0 d-block">
@@ -117,7 +119,7 @@
                         <div class="p-3 d-flex justify-content-between align-items-center">
                             <span class="h6 d-none d-md-flex" style="color: #6EC064;">PHP ${product.Price}</span>
                             <span class="h4 d-md-none" style="color: #6EC064;">PHP ${product.Price}</span>
-                            <button type="button" class="btn rounded-3" id="addToCart">
+                            <button type="button" class="btn rounded-3" id="addToCart" onclick="event.stopPropagation()">
                                 <span class="material-symbols-rounded">shopping_cart</span>
                             </button>
                         </div>
@@ -198,6 +200,9 @@
 
         displayProducts();
     </script>
+
+    <?php include './components/footer.php'; ?>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
