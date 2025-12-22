@@ -50,6 +50,6 @@
 
 <script>
     function goToChat() {
-        window.location.href = "../frontend/chatai.php";
+        window.location.href = "/EasyBuy-x-PackIT/PackIT/frontend/chatai.php";
     }
 </script>
