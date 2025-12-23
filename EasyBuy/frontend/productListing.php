@@ -24,6 +24,10 @@
             border-radius: 5px;
             padding: 5px;
         }
+        
+        .badge {
+            background-color: #FFC107;
+        }
     </style>
 </head>
 
@@ -59,14 +63,18 @@
                             <option value="personal">Health and Personal Care</option>
                         </select>
                     </div>
+                    <div class="mb-2">
+                        <select class="form-select" id="salesOptions" aria-label="Filter by sales">
+                            <option value="" selected>Sales</option>
+                            <option value="all">All Sale items</option>
+                        </select>
+                    </div>
                 </div>
             </div>
             <div class="col-12 col-md-9 col-lg-9">
-                <div class="container p-3">
+                <div class="container p-3 justify-content-center">
                     <div class="row" id="productsArea"></div>
-                </div>
-                <div class="row justify-content-center" id="paginationArea">
-                    <div class="row">
+                    <div class="row" id="paginationArea">
                         <div class="col d-flex mb-5 justify-content-center">
                             <button class="btn me-2" id="prevBtn"
                                 onclick="prevPage(); window.scrollTo(0, 0);">Prev</button>
@@ -105,12 +113,14 @@
             const end = start + cardSize;
 
             filteredProducts.slice(start, end).forEach(product => {
+                const isSale = product.Price <= 50;
                 
                 contentArea.innerHTML += `
                 <div class="col-12 col-md-4 col-lg-3 mb-4">
                     <div class="card rounded-4 h-100" style="cursor: pointer;" onclick="window.location.href='productView.php?id=${product["Product ID"]}'">
                         <img class="img-fluid object-fit-contain p-3 justify-content-center align-items-center" style="height: 180px;"
                              src="${product.image}" alt="${product["Product Name"]}">
+                        ${isSale ? '<div class="card-img-overlay"><span class="badge position-absolute me-3 end-0">Sale</span></div>' : ''}
                         <div class="card-body mt-0 pt-0 d-block">
                             <h5 class="card-title d-none d-md-block text-center fw-bold">${product["Product Name"]}</h5>
                             <h3 class="card-title d-md-none text-center fw-bold">${product["Product Name"]}</h3>
@@ -136,6 +146,10 @@
         document.getElementById('categoryOptions').addEventListener('change', function () {
             const value = this.value;
             categoryFilter(value);
+        });
+        document.getElementById('salesOptions').addEventListener('change', function () {
+            const value = this.value;
+            salesFilter(value);
         });
 
         function priceFilter(value) {
@@ -181,6 +195,18 @@
                 filteredProducts = products.filter(product => product.Category === 'Personal');
             }
             getProducts();
+            paginationArea.style.display = filteredProducts.length > cardSize ? 'block' : 'none';
+        }
+
+        function salesFilter(value) {
+            page = 1;
+            
+            if (value === "") {
+                filteredProducts = products;
+            } else if (value === 'all') {
+                filteredProducts = products.filter(product => product.Price <= 50);
+            }      
+            getProducts(); 
             paginationArea.style.display = filteredProducts.length > cardSize ? 'block' : 'none';
         }
 
