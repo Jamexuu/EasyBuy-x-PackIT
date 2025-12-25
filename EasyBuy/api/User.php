@@ -9,16 +9,16 @@ class User {
         $this->db = new Database();
     }
 
-    function register($userData, $addressData){
-        $userId = $this->insertUser($userData);
+    function register($userData, $addressData, $role = 'user'){
+        $userId = $this->insertUser($userData, $role);
 
         $addressData['userId'] = $userId;
         $this->insertAddress($addressData);
     }
 
-    function insertUser($userData){
-        $sql = "INSERT INTO users (first_name, last_name, email, password, contact_number) 
-            VALUES (?, ?, ?, ?, ?)";
+    function insertUser($userData, $role = 'user'){
+        $sql = "INSERT INTO users (first_name, last_name, email, password, contact_number, role) 
+            VALUES (?, ?, ?, ?, ?, ?)";
 
         $hashPassword = md5($userData['password']);
 
@@ -27,7 +27,8 @@ class User {
             $userData['lastName'],
             $userData['email'],
             $hashPassword,
-            $userData['contactNumber']
+            $userData['contactNumber'],
+            $role
         ];
 
         $stmt = $this->db->executeQuery($sql, $params);
@@ -56,7 +57,7 @@ class User {
         mysqli_stmt_close($stmt);
     }
 
-    function login($email, $password){
+    function login($email, $password, $requiredRole = null){
         $sql = "SELECT * FROM users WHERE email = ? AND password = ?";
 
         $hashPassword = md5($password);
@@ -70,6 +71,12 @@ class User {
         $result = mysqli_stmt_get_result($stmt);
         $data = mysqli_fetch_assoc($result);
         mysqli_stmt_close($stmt);
+
+        if ($requiredRole !== null && $data) {
+            if (!isset($data['role']) || $data['role'] !== $requiredRole) {
+                return false;
+            }
+        }
 
         return $data;
     }
