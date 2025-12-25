@@ -1,0 +1,137 @@
+<?php 
+require_once '../api/Auth.php';
+Auth::requireAdmin();
+?>
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin Dashboard - EasyBuy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link href="../assets/css/style.css" rel="stylesheet">
+    <style>
+        .dashboard-card {
+            background-color: #d3d3d3;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            border: none;
+            height: 100%;
+        }
+
+        .dashboard-number {
+            font-size: 5rem;
+            font-weight: bold;
+            color: #4a4a4a;
+            line-height: 1;
+            margin: 1rem 0;
+        }
+
+        .dashboard-label {
+            font-size: 0.9rem;
+            color: #6a6a6a;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="navbar navbar-expand-lg" style="background: var(--gradient-color-adminNav);">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <img src="../assets/navbar_logo.svg" alt="EasyBuy" class="img-fluid px-lg-3 p-2 ms-5"
+                    style="max-height: 60px;">
+            </a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav ms-auto me-5 gap-5">
+                    <li class="nav-item">
+                        <a class="nav-link text-white fw-normal" href="#">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white fw-normal" href="#">Products</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white fw-normal" href="#">Orders</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white fw-normal" href="#">Email</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white fw-normal" href="#">SMS</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid px-5 py-4">
+        <div class="row g-4 mb-4">
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="dashboard-card">
+                    <div class="dashboard-label">All Products</div>
+                    <div class="dashboard-number" id="allProducts">0</div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="dashboard-card">
+                    <div class="dashboard-label">Placed Orders</div>
+                    <div class="dashboard-number" id="placedOrders">0</div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="dashboard-card">
+                    <div class="dashboard-label">Picked up</div>
+                    <div class="dashboard-number" id="pickedUp">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-12 col-lg-6">
+                <div class="dashboard-card">
+                    <div class="dashboard-label">Unread emails</div>
+                    <div class="dashboard-number" id="unreadEmails">0</div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="dashboard-card">
+                    <div class="dashboard-label">Unread messages</div>
+                    <div class="dashboard-number" id="unreadMessages">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"></script>
+    <script>
+        async function loadDashboardStats() {
+            try {
+                const response = await fetch('../api/dashboard_stats.php');
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('allProducts').textContent = data.allProducts || 0;
+                    document.getElementById('placedOrders').textContent = data.placedOrders || 0;
+                    document.getElementById('pickedUp').textContent = data.pickedUp || 0;
+                    document.getElementById('unreadEmails').textContent = data.unreadEmails || 0;
+                    document.getElementById('unreadMessages').textContent = data.unreadMessages || 0;
+                }
+            } catch (error) {
+                console.error('Error loading dashboard stats:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadDashboardStats);
+    </script>
+</body>
+
+</html>

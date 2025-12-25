@@ -1,3 +1,27 @@
+<?php
+    require_once '../api/Auth.php';
+    require_once '../api/User.php';
+
+    Auth::redirectIfLoggedIn();
+
+    if ($_SERVER['REQUEST_METHOD'] == 'POST'){
+        $email = $_POST['adminEmail'];
+        $password = $_POST['adminPassword'];
+
+        $user = new User();
+        $result = $user->login($email, $password, 'admin');
+
+        if($result){
+            Auth::login($result['id'], $result['email'], $result['first_name']);
+            header("Location: adminDashboard.php");
+            exit();
+        } else {
+            header("Location: index.php?error=invalid_credentials");
+            exit();
+        }
+    }
+?>
+
 <!doctype html>
 <html lang="en">
 
@@ -23,7 +47,7 @@
         </div>
         <div class="row justify-content-center">
             <div class="col-12 col-md-8 col-lg-6">
-                <form action="">
+                <form action="" method="POST">
                     <label for="adminEmail" class="form-label">Email</label>
                     <input type="text" class="form-control rounded-3 mb-3" placeholder="Email" name="adminEmail" id="adminEmail">
                     <label for="adminPassword" class="form-label">Password</label>
