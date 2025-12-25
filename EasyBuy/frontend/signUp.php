@@ -71,12 +71,6 @@
         .step-content {
             min-height: 400px;
         }
-        input:focus,
-        textarea:focus,
-        select:focus {
-            box-shadow: 0 0 0 0.05rem #6EC064 !important;
-            outline: none !important;
-        }
     </style>
 </head>
 
