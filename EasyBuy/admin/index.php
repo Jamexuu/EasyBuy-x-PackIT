@@ -1,6 +1,6 @@
 <?php
-    require_once '../api/Auth.php';
-    require_once '../api/User.php';
+    require_once '../api/classes/Auth.php';
+    require_once '../api/classes/User.php';
 
     Auth::redirectIfLoggedIn();
 

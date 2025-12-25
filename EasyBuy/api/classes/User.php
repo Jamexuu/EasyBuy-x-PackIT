@@ -80,4 +80,22 @@ class User {
 
         return $data;
     }
+
+    function getUserDetails($userId){
+        $sql = "SELECT u.id, u.first_name, u.last_name, u.email, u.contact_number, u.role,
+                       a.house_number, a.street, a.lot, a.block, a.barangay, 
+                       a.city, a.province, a.postal_code
+                FROM users u
+                LEFT JOIN addresses a ON u.id = a.user_id
+                WHERE u.id = ?";
+        
+        $params = [$userId];
+        
+        $stmt = $this->db->executeQuery($sql, $params);
+        $result = mysqli_stmt_get_result($stmt);
+        $data = mysqli_fetch_assoc($result);
+        mysqli_stmt_close($stmt);
+        
+        return $data;
+    }
 }
