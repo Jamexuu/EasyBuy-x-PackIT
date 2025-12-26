@@ -68,9 +68,10 @@ class User {
         ];
 
         $stmt = $this->db->executeQuery($sql, $params);
-        $result = mysqli_stmt_get_result($stmt);
-        $data = mysqli_fetch_assoc($result);
+        $result = $this->db->fetch($stmt);
         mysqli_stmt_close($stmt);
+        
+        $data = $result[0] ?? null;
 
         if ($requiredRole !== null && $data) {
             if (!isset($data['role']) || $data['role'] !== $requiredRole) {
@@ -92,10 +93,9 @@ class User {
         $params = [$userId];
         
         $stmt = $this->db->executeQuery($sql, $params);
-        $result = mysqli_stmt_get_result($stmt);
-        $data = mysqli_fetch_assoc($result);
+        $result = $this->db->fetch($stmt);
         mysqli_stmt_close($stmt);
         
-        return $data;
+        return $result[0] ?? null;
     }
 }

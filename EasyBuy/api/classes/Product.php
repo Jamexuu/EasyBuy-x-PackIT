@@ -13,8 +13,7 @@ class Product {
         $query = "SELECT * FROM products";
 
         $stmt = $this->db->executeQuery($query);
-        $result = mysqli_stmt_get_result($stmt);
-        $data = mysqli_fetch_all($result, MYSQLI_ASSOC);
+        $data = $this->db->fetch($stmt);
         mysqli_stmt_close($stmt);
 
         return $data;
@@ -23,7 +22,12 @@ class Product {
     function getProductById($productId) {
         $query = "SELECT * FROM products WHERE id = ?";
         $params = [$productId];
-        return $this->db->executeQuery($query, $params);
+        
+        $stmt = $this->db->executeQuery($query, $params);
+        $data = $this->db->fetch($stmt);
+        mysqli_stmt_close($stmt);
+        
+        return $data;
     }
 
     function searchProducts($keyword) {
@@ -32,8 +36,7 @@ class Product {
         $params = [$likeKeyword, $likeKeyword];
         
         $stmt = $this->db->executeQuery($query, $params);
-        $result = mysqli_stmt_get_result($stmt);
-        $data = mysqli_fetch_all($result, MYSQLI_ASSOC);
+        $data = $this->db->fetch($stmt);
         mysqli_stmt_close($stmt);
 
         return $data;
