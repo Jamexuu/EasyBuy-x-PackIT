@@ -4,7 +4,7 @@
       <div class="col-12 col-lg-3">
         <div class="row py-2">
           <div class="col">
-            <img src="assets/navbar_logo.svg" alt="" class="img-fluid">
+            <img src="/EasyBuy-x-PackIT/EasyBuy/assets/navbar_logo.svg" alt="" class="img-fluid">
           </div>
         </div>
         <div class="row my-2">
