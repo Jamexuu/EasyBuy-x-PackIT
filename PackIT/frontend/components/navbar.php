@@ -1,9 +1,29 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+    :root {
+      --brand-yellow: #f8e15b;
+      --brand-dark: #111;
+    }
+
+    .bg-brand { background-color: var(--brand-yellow) !important; }
+    
+    body { font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
+
+    .hover-scale { transition: transform 0.2s ease-in-out; }
+    .hover-scale:hover { transform: scale(1.15); }
+
+    .footer-curve {
+      height: 90px;
+      background: var(--brand-yellow);
+      clip-path: ellipse(85% 100% at 50% 100%);
+    }
+</style>
 <div class="container">
     <nav class="navbar navbar-expand-lg my-3 mx-auto rounded-pill shadow px-4 py-2 bg-brand" style="max-width: 95%;">
         <div class="container-fluid">
             
             <a class="navbar-brand d-flex align-items-center" href="index.php">
-                <img src="assets/LOGO.svg" alt="PackIT" height="40" class="object-fit-contain">
+                <img src="/EasyBuy-x-PackIT/PackIT/assets/LOGO.svg" alt="PackIT" height="40" class="object-fit-contain">
             </a>
 
             <div class="d-flex align-items-center gap-2 gap-lg-3 order-lg-3">
