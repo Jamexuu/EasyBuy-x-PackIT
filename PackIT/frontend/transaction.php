@@ -98,6 +98,7 @@
 </head>
 
 <body>
+    <?php include("components/navbar.php"); ?>
 
     <header class="custom-header container">
         <img src="assets/LOGO.svg" alt="Logo">
