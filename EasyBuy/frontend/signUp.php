@@ -26,6 +26,12 @@
         .step-content {
             min-height: 400px;
         }
+        input:focus,
+        textarea:focus,
+        select:focus {
+            box-shadow: 0 0 0 0.05rem #6EC064 !important;
+            outline: none !important;
+        }
     </style>
 </head>
 
@@ -154,43 +160,11 @@
                         </div>
                     </form>
                 </div>
-
-                <div id="step3" class="step-content" style="display: none;">
-                    <div class="mb-4">
-                        <h3 class="text-start mb-1">Credit Card</h3>
-                        <small class="text-muted fw-normal">To set up your Credit Card payment, please fill out this form</small>
-                    </div>
-                    <form>
-                        <div class="row mb-3">
-                            <div class="col-12">
-                                <label for="cardOwner" class="form-label">Card Owner</label>
-                                <input type="text" class="form-control" id="cardOwner" placeholder="">
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-12">
-                                <label for="cardNumber" class="form-label">Card Number</label>
-                                <input type="text" class="form-control" id="cardNumber" placeholder="xxxx - xxxx - xxxx - xxx">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-12 col-lg-6 mb-3 mb-lg-0">
-                                <label for="expirationDate" class="form-label">Expiration Date</label>
-                                <input type="text" class="form-control" id="expirationDate" placeholder="xx / xxxx">
-                            </div>
-                            <div class="col-12 col-lg-6">
-                                <label for="securityCode" class="form-label">Security Code</label>
-                                <input type="text" class="form-control" id="securityCode" placeholder="xxx">
-                            </div>
-                        </div>
-                    </form>
-                </div>
             </div>
 
             <div class="text-center my-4">
                 <span class="dot active" data-step="1"></span>
                 <span class="dot" data-step="2"></span>
-                <span class="dot" data-step="3"></span>
             </div>
 
             <div class="d-flex justify-content-between mx-3">
@@ -211,7 +185,7 @@
         const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 
         var currentStep = 1;
-        const totalSteps = 3;
+        const totalSteps = 2;
 
         function showStep(step) {
             document.querySelectorAll('.step-content').forEach(el => el.style.display = 'none');

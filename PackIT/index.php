@@ -1,94 +1,72 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pack IT</title>
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
   <style>
-    /* Chat Button Styles */
-    .poc-chat-btn {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      background: #facc15;
-      color: #1f2937;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      cursor: pointer;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-      transition: transform 0.2s, box-shadow 0.2s;
-      z-index: 1000;
+    :root {
+      --brand-yellow: #f8e15b;
+      --brand-dark: #111;
     }
 
-    .poc-chat-btn:hover {
-      transform: scale(1.08);
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
-    }
+    .bg-brand { background-color: var(--brand-yellow) !important; }
+    
+    body { font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
 
-    .poc-tooltip {
-      position: absolute;
-      bottom: 75px;
-      right: 0;
-      background: #111827;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 13px;
-      white-space: nowrap;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s;
-    }
+    .hover-scale { transition: transform 0.2s ease-in-out; }
+    .hover-scale:hover { transform: scale(1.15); }
 
-    .poc-chat-btn:hover .poc-tooltip {
-      opacity: 1;
+    .footer-curve {
+      height: 90px;
+      background: var(--brand-yellow);
+      clip-path: ellipse(85% 100% at 50% 100%);
     }
   </style>
 </head>
 
-<body class="d-flex flex-column min-vh-100" style="background-color: #fffef5;">
+<body id="top" class="min-vh-100 bg-white">
 
-  <?php include("frontend/components/navbar.php"); ?>
+<?php $page = basename($_SERVER['PHP_SELF']); ?>
+<?php include("frontend/components/navbar.php"); ?>
 
-  <main class="flex-grow-1 container py-5">
-    <div class="row align-items-center">
-      <div class="col-lg-6">
-        <h1 class="display-4 fw-bold mb-3">📦 Pack IT</h1>
-        <p class="lead mb-4">
-          We handle your packaging and delivery so your parcels arrive safe, fast, and hassle-free.
-        </p>
-        <button class="btn btn-dark btn-lg rounded-pill px-5">Get Started</button>
-      </div>
-      <div class="col-lg-6 text-center">
-      </div>
+<main class="container my-5 py-lg-5">
+  <div class="row align-items-center gy-5">
+    <div class="col-lg-6">
+      <h1 class="display-1 fw-black text-uppercase" style="font-weight: 900;">PACK IT</h1>
+      <p class="lead fw-semibold mt-4 text-secondary">
+        The gold standard of PH logistics. 🏆<br>
+        Bridging gaps and breaking records, one delivery at a time.
+      </p>
+      <a href="mobile.php" class="btn bg-brand btn-lg fw-bold rounded-pill px-4 mt-3 hover-scale">Get Started</a>
     </div>
-  </main>
 
-  <div class="poc-chat-btn" onclick="goToChat()">
-    💬
-    <div class="poc-tooltip">Chat with POC</div>
+    <div class="col-lg-6 text-center">
+      <img src="assets/mascot.png" class="img-fluid" alt="Mascot" style="max-height: 450px;">
+    </div>
   </div>
+</main>
 
-  <?php include("frontend/components/footer.php"); ?>
+<div class="floating-actions position-fixed top-50 end-0 translate-middle-y d-flex flex-column align-items-center gap-4 py-5 px-3 bg-brand rounded-start-pill shadow-lg" 
+     style="z-index: 1050;">
+     
+  <a href="orders.php" class="d-flex flex-column align-items-center text-decoration-none text-dark fw-bold small hover-scale">
+    <img src="assets/box.png" alt="Order" style="width: 35px; height: 35px;" class="mb-1">
+    <span>Order</span>
+  </a>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    function goToChat() {
-      window.location.href = "frontend/chatai.php";
-    }
-  </script>
+  <a href="frontend/tracking.php" class="d-flex flex-column align-items-center text-decoration-none text-dark fw-bold small hover-scale">
+    <img src="assets/tracking.png" alt="Tracking" style="width: 35px; height: 35px;" class="mb-1">
+    <span>Tracking</span>
+  </a>
+</div>
 
+<?php include("frontend/components/footer.php"); ?>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>

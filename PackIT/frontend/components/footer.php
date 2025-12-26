@@ -1,3 +1,11 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+    .footer-curve {
+      height: 90px;
+      background: var(--brand-yellow);
+      clip-path: ellipse(85% 100% at 50% 100%);
+    }
+</style>
 <footer class="pt-5 pb-4 text-dark mt-auto" style="background-color: #f8e15b;">
     <div class="container text-center text-md-start">
         <div class="row">
