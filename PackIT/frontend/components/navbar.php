@@ -6,17 +6,6 @@
     }
 
     .bg-brand { background-color: var(--brand-yellow) !important; }
-    
-    body { font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
-
-    .hover-scale { transition: transform 0.2s ease-in-out; }
-    .hover-scale:hover { transform: scale(1.15); }
-
-    .footer-curve {
-      height: 90px;
-      background: var(--brand-yellow);
-      clip-path: ellipse(85% 100% at 50% 100%);
-    }
 </style>
 <div class="container">
     <nav class="navbar navbar-expand-lg my-3 mx-auto rounded-pill shadow px-4 py-2 bg-brand" style="max-width: 95%;">
