@@ -1,36 +1,6 @@
 <?php
 session_start();
 
-// --- MOCK DATA: SIMULATING DATABASE ---
-$orders = [
-    '92472891' => [
-        'id' => '92472891',
-        'parcel_name' => 'PARCEL #1',
-        'price' => '1,234.00',
-        'items_count' => 1,
-        'est_delivery' => '20 DEC - 26 DEC',
-        'status' => 'TO RECEIVE',
-        'timeline' => [
-            ['date' => 'Dec 4', 'title' => 'PARCEL HAS BEEN DELIVERED', 'desc' => 'Package received by customer', 'active' => true],
-            ['date' => 'Dec 3', 'title' => 'ORDER HAS DEPARTED HUB', 'desc' => 'Manila Distribution Center', 'active' => false],
-            ['date' => 'Dec 2', 'title' => 'ORDER IS SHIPPED', 'desc' => '', 'active' => false],
-            ['date' => 'Dec 1', 'title' => 'ORDER PLACED', 'desc' => '', 'active' => false]
-        ]
-    ],
-    '92138184' => [
-        'id' => '92138184',
-        'parcel_name' => 'PARCEL #2',
-        'price' => '10,019.00',
-        'items_count' => 4,
-        'est_delivery' => '22 DEC - 29 DEC',
-        'status' => 'TO RECEIVE',
-        'timeline' => [
-            ['date' => 'Dec 5', 'title' => 'ORDER IS SHIPPED', 'desc' => 'Sorting Facility', 'active' => true],
-            ['date' => 'Dec 1', 'title' => 'ORDER PLACED', 'desc' => '', 'active' => false]
-        ]
-    ]
-];
-
 // Determine View: List or Detail?
 $view = 'list';
 $activeOrder = null;
@@ -146,7 +116,7 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
 
 <body>
 
-    <?php include 'navbar.php'; ?>
+    <?php include '../frontend/components/navbar.php'; ?>
 
     <div class="main-content">
         <div class="container">
@@ -252,7 +222,7 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
         </div>
     </div>
 
-    <?php include 'footer.php'; ?>
+    <?php include '../frontend/components/footer.php'; ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
