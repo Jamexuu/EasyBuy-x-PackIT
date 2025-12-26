@@ -30,6 +30,12 @@ class Product {
         $query = "SELECT * FROM products WHERE product_name LIKE ? OR category LIKE ?";
         $likeKeyword = '%' . $keyword . '%';
         $params = [$likeKeyword, $likeKeyword];
-        return $this->db->executeQuery($query, $params);
+        
+        $stmt = $this->db->executeQuery($query, $params);
+        $result = mysqli_stmt_get_result($stmt);
+        $data = mysqli_fetch_all($result, MYSQLI_ASSOC);
+        mysqli_stmt_close($stmt);
+
+        return $data;
     }
 }
