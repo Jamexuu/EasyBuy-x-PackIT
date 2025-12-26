@@ -59,7 +59,7 @@
     <span>Order</span>
   </a>
 
-  <a href="tracking.php" class="d-flex flex-column align-items-center text-decoration-none text-dark fw-bold small hover-scale">
+  <a href="frontend/tracking.php" class="d-flex flex-column align-items-center text-decoration-none text-dark fw-bold small hover-scale">
     <img src="assets/tracking.png" alt="Tracking" style="width: 35px; height: 35px;" class="mb-1">
     <span>Tracking</span>
   </a>
