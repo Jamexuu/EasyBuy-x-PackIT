@@ -9,16 +9,16 @@ class User {
         $this->db = new Database();
     }
 
-    function register($userData, $addressData){
-        $userId = $this->insertUser($userData);
+    function register($userData, $addressData, $role = 'user'){
+        $userId = $this->insertUser($userData, $role);
 
         $addressData['userId'] = $userId;
         $this->insertAddress($addressData);
     }
 
-    function insertUser($userData){
-        $sql = "INSERT INTO users (first_name, last_name, email, password, contact_number) 
-            VALUES (?, ?, ?, ?, ?)";
+    function insertUser($userData, $role = 'user'){
+        $sql = "INSERT INTO users (first_name, last_name, email, password, contact_number, role) 
+            VALUES (?, ?, ?, ?, ?, ?)";
 
         $hashPassword = md5($userData['password']);
 
@@ -27,7 +27,8 @@ class User {
             $userData['lastName'],
             $userData['email'],
             $hashPassword,
-            $userData['contactNumber']
+            $userData['contactNumber'],
+            $role
         ];
 
         $stmt = $this->db->executeQuery($sql, $params);
@@ -56,7 +57,7 @@ class User {
         mysqli_stmt_close($stmt);
     }
 
-    function login($email, $password){
+    function login($email, $password, $requiredRole = null){
         $sql = "SELECT * FROM users WHERE email = ? AND password = ?";
 
         $hashPassword = md5($password);
@@ -71,6 +72,30 @@ class User {
         $data = mysqli_fetch_assoc($result);
         mysqli_stmt_close($stmt);
 
+        if ($requiredRole !== null && $data) {
+            if (!isset($data['role']) || $data['role'] !== $requiredRole) {
+                return false;
+            }
+        }
+
+        return $data;
+    }
+
+    function getUserDetails($userId){
+        $sql = "SELECT u.id, u.first_name, u.last_name, u.email, u.contact_number, u.role,
+                       a.house_number, a.street, a.lot, a.block, a.barangay, 
+                       a.city, a.province, a.postal_code
+                FROM users u
+                LEFT JOIN addresses a ON u.id = a.user_id
+                WHERE u.id = ?";
+        
+        $params = [$userId];
+        
+        $stmt = $this->db->executeQuery($sql, $params);
+        $result = mysqli_stmt_get_result($stmt);
+        $data = mysqli_fetch_assoc($result);
+        mysqli_stmt_close($stmt);
+        
         return $data;
     }
 }
