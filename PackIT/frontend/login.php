@@ -97,7 +97,7 @@
                         </div>
 
                         <div class="text-center mt-4">
-                            <p class="mb-0 small text-muted">Don't have an account? <a href="signUp.html"
+                            <p class="mb-0 small text-muted">Don't have an account? <a href="signUp.php"
                                     class="text-dark fw-bold text-decoration-underline">Sign up</a></p>
                         </div>
 

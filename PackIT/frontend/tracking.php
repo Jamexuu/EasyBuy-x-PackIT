@@ -1,35 +1,9 @@
 <?php
 session_start();
 
-// --- MOCK DATA: SIMULATING DATABASE ---
-$orders = [
-    '92472891' => [
-        'id' => '92472891',
-        'parcel_name' => 'PARCEL #1',
-        'price' => '1,234.00',
-        'items_count' => 1,
-        'est_delivery' => '20 DEC - 26 DEC',
-        'status' => 'TO RECEIVE',
-        'timeline' => [
-            ['date' => 'Dec 4', 'title' => 'PARCEL HAS BEEN DELIVERED', 'desc' => 'Package received by customer', 'active' => true],
-            ['date' => 'Dec 3', 'title' => 'ORDER HAS DEPARTED HUB', 'desc' => 'Manila Distribution Center', 'active' => false],
-            ['date' => 'Dec 2', 'title' => 'ORDER IS SHIPPED', 'desc' => '', 'active' => false],
-            ['date' => 'Dec 1', 'title' => 'ORDER PLACED', 'desc' => '', 'active' => false]
-        ]
-    ],
-    '92138184' => [
-        'id' => '92138184',
-        'parcel_name' => 'PARCEL #2',
-        'price' => '10,019.00',
-        'items_count' => 4,
-        'est_delivery' => '22 DEC - 29 DEC',
-        'status' => 'TO RECEIVE',
-        'timeline' => [
-            ['date' => 'Dec 5', 'title' => 'ORDER IS SHIPPED', 'desc' => 'Sorting Facility', 'active' => true],
-            ['date' => 'Dec 1', 'title' => 'ORDER PLACED', 'desc' => '', 'active' => false]
-        ]
-    ]
-];
+// 1. INITIALIZE VARIABLES TO PREVENT ERRORS
+// We create an empty array for orders so the page doesn't crash if there is no data.
+$orders = []; 
 
 // Determine View: List or Detail?
 $view = 'list';
@@ -72,7 +46,6 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
             padding: 3rem 1rem;
         }
 
-        /* Container for both views */
         .main-container {
             background: #ffffff;
             border-radius: 15px;
@@ -82,7 +55,6 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
             min-height: 500px;
         }
 
-        /* --- LIST VIEW STYLES --- */
         .order-card-item {
             background-color: #f8f9fa;
             border-radius: 15px;
@@ -92,11 +64,6 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
         .order-card-item:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-        
-        .mystery-box-icon {
-            font-size: 4rem;
-            color: #495057;
         }
         
         .status-badge-green {
@@ -109,7 +76,19 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
             display: inline-block;
         }
 
-        /* --- DETAIL VIEW STYLES --- */
+        /* Empty State Styles */
+        .empty-state-container {
+            text-align: center;
+            padding: 4rem 1rem;
+            color: #6c757d;
+        }
+        .empty-state-img {
+            width: 150px;
+            margin-bottom: 1.5rem;
+            opacity: 0.8;
+        }
+
+        /* Detail View Styles */
         .timeline {
             position: relative;
             padding-left: 3.5rem;
@@ -146,7 +125,7 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
 
 <body>
 
-    <?php include 'navbar.php'; ?>
+    <?php include '../frontend/components/navbar.php'; ?>
 
     <div class="main-content">
         <div class="container">
@@ -155,94 +134,107 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
 
                     <div class="main-container p-4 p-md-5">
 
-                        <?php if ($view == 'list'): ?>
+                        <?php if (empty($orders)): ?>
                             
-                            <h4 class="fw-bold mb-4" style="color: var(--secondary-teal);">
-                                <span class="material-symbols-outlined align-middle me-2">list_alt</span>
-                                My Orders
-                            </h4>
-
-                            <?php foreach($orders as $order): ?>
-                                <div class="order-card-item p-4 mb-4">
-                                    <div class="row align-items-center">
-                                        
-                                        <div class="col-md-2 text-center mb-3 mb-md-0">
-                                            <div class="bg-white rounded p-3 d-inline-block shadow-sm">
-                                                <span class="material-symbols-outlined mystery-box-icon">
-                                                    deployed_code
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-7 mb-3 mb-md-0">
-                                            <div class="mb-2">
-                                                <span class="status-badge-green">
-                                                    EXPECTED DELIVERY <?php echo $order['est_delivery']; ?>
-                                                </span>
-                                            </div>
-                                            <h6 class="fw-bold mb-0 text-dark"><?php echo $order['parcel_name']; ?></h6>
-                                            <small class="text-muted">ORDER ID: <?php echo $order['id']; ?></small>
-                                        </div>
-
-                                        <div class="col-md-3 text-md-end text-start">
-                                            <span class="fw-bold text-warning small text-uppercase" style="letter-spacing: 1px;">
-                                                <?php echo $order['status']; ?>
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <hr class="my-3 text-muted opacity-25">
-
-                                    <div class="row align-items-center">
-                                        <div class="col-md-6 text-muted small">
-                                            TOTAL ITEM: <?php echo $order['items_count']; ?>
-                                        </div>
-                                        <div class="col-md-6 text-md-end">
-                                            <span class="me-3 small fw-bold">TOTAL PAYMENT: P <?php echo $order['price']; ?></span>
-                                            <a href="tracking.php?track_id=<?php echo $order['id']; ?>" class="btn btn-warning fw-bold px-4 shadow-sm">
-                                                TRACK
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-
-                        <?php else: ?>
-
-                            <div class="mb-4">
-                                <a href="tracking.php" class="text-decoration-none text-muted small fw-bold">
-                                    <i class="bi bi-arrow-left me-1"></i> BACK TO ORDERS
+                            <div class="empty-state-container">
+                                <img src="../assets/box.png" alt="No Orders" class="empty-state-img">
+                                <h4 class="fw-bold text-dark">No Active Orders</h4>
+                                <p class="mb-4">It looks like you haven't booked any deliveries yet.</p>
+                                <a href="index.php" class="btn btn-warning fw-bold px-4 py-2 shadow-sm text-uppercase">
+                                    Book Now
                                 </a>
                             </div>
 
-                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-2">
-                                <span class="status-badge-green fs-6 px-4 py-2">
-                                    EXPECTED DELIVERY: <?php echo $activeOrder['est_delivery']; ?>
-                                </span>
-                                <span class="fw-bold text-warning text-uppercase">
-                                    TO RECEIVE
-                                </span>
-                            </div>
+                        <?php else: ?>
 
-                            <div class="mb-5 border-bottom pb-4">
-                                <h2 class="fw-bold mb-1" style="color: var(--secondary-teal);">P <?php echo $activeOrder['price']; ?></h2>
-                                <p class="mb-0 fw-bold text-secondary fs-5"><?php echo $activeOrder['parcel_name']; ?></p>
-                                <small class="text-muted">ORDER ID: <?php echo $activeOrder['id']; ?></small>
-                            </div>
+                            <?php if ($view == 'list'): ?>
+                                
+                                <h4 class="fw-bold mb-4" style="color: var(--secondary-teal);">
+                                    <span class="material-symbols-outlined align-middle me-2">list_alt</span>
+                                    My Orders
+                                </h4>
 
-                            <div class="timeline">
-                                <?php foreach($activeOrder['timeline'] as $log): ?>
-                                    <div class="timeline-item <?php echo ($log['active']) ? 'active' : ''; ?>">
-                                        <span class="timeline-date"><?php echo $log['date']; ?></span>
-                                        <div class="timeline-dot"></div>
-                                        <h6 class="fw-bold mb-1" style="color: #0f2027;"><?php echo $log['title']; ?></h6>
-                                        <?php if(!empty($log['desc'])): ?>
-                                            <small class="text-muted"><?php echo $log['desc']; ?></small>
-                                        <?php endif; ?>
+                                <?php foreach($orders as $order): ?>
+                                    <div class="order-card-item p-4 mb-4">
+                                        <div class="row align-items-center">
+                                            
+                                            <div class="col-md-2 text-center mb-3 mb-md-0">
+                                                <div class="bg-white rounded p-3 d-inline-block shadow-sm">
+                                                    <img src="../assets/box.png" alt="Package" style="width: 40px; height: 40px;">
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-7 mb-3 mb-md-0">
+                                                <div class="mb-2">
+                                                    <span class="status-badge-green">
+                                                        EXPECTED DELIVERY <?php echo $order['est_delivery']; ?>
+                                                    </span>
+                                                </div>
+                                                <h6 class="fw-bold mb-0 text-dark"><?php echo $order['parcel_name']; ?></h6>
+                                                <small class="text-muted">ORDER ID: <?php echo $order['id']; ?></small>
+                                            </div>
+
+                                            <div class="col-md-3 text-md-end text-start">
+                                                <span class="fw-bold text-warning small text-uppercase" style="letter-spacing: 1px;">
+                                                    <?php echo $order['status']; ?>
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <hr class="my-3 text-muted opacity-25">
+
+                                        <div class="row align-items-center">
+                                            <div class="col-md-6 text-muted small">
+                                                TOTAL ITEM: <?php echo $order['items_count']; ?>
+                                            </div>
+                                            <div class="col-md-6 text-md-end">
+                                                <span class="me-3 small fw-bold">TOTAL PAYMENT: P <?php echo $order['price']; ?></span>
+                                                <a href="tracking.php?track_id=<?php echo $order['id']; ?>" class="btn btn-warning fw-bold px-4 shadow-sm">
+                                                    TRACK
+                                                </a>
+                                            </div>
+                                        </div>
                                     </div>
                                 <?php endforeach; ?>
-                            </div>
 
+                            <?php else: ?>
+
+                                <div class="mb-4">
+                                    <a href="tracking.php" class="text-decoration-none text-muted small fw-bold">
+                                        <i class="bi bi-arrow-left me-1"></i> BACK TO ORDERS
+                                    </a>
+                                </div>
+
+                                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-2">
+                                    <span class="status-badge-green fs-6 px-4 py-2">
+                                        EXPECTED DELIVERY: <?php echo $activeOrder['est_delivery']; ?>
+                                    </span>
+                                    <span class="fw-bold text-warning text-uppercase">
+                                        TO RECEIVE
+                                    </span>
+                                </div>
+
+                                <div class="mb-5 border-bottom pb-4">
+                                    <h2 class="fw-bold mb-1" style="color: var(--secondary-teal);">P <?php echo $activeOrder['price']; ?></h2>
+                                    <p class="mb-0 fw-bold text-secondary fs-5"><?php echo $activeOrder['parcel_name']; ?></p>
+                                    <small class="text-muted">ORDER ID: <?php echo $activeOrder['id']; ?></small>
+                                </div>
+
+                                <div class="timeline">
+                                    <?php foreach($activeOrder['timeline'] as $log): ?>
+                                        <div class="timeline-item <?php echo ($log['active']) ? 'active' : ''; ?>">
+                                            <span class="timeline-date"><?php echo $log['date']; ?></span>
+                                            <div class="timeline-dot"></div>
+                                            <h6 class="fw-bold mb-1" style="color: #0f2027;"><?php echo $log['title']; ?></h6>
+                                            <?php if(!empty($log['desc'])): ?>
+                                                <small class="text-muted"><?php echo $log['desc']; ?></small>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+
+                            <?php endif; ?>
+                        
                         <?php endif; ?>
 
                     </div>
@@ -252,7 +244,7 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
         </div>
     </div>
 
-    <?php include 'footer.php'; ?>
+    <?php include '../frontend/components/footer.php'; ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
