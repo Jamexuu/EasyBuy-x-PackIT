@@ -1,3 +1,8 @@
+<?php 
+require_once '../api/Auth.php';
+Auth::requireAdmin();
+?>
+
 <!doctype html>
 <html lang="en">
 

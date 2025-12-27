@@ -7,15 +7,16 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 
-CREATE TABLE IF NOT EXISTS `users` (
+DROP TABLE IF EXISTS `products`;
+CREATE TABLE IF NOT EXISTS `products` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `first_name` varchar(255) NOT NULL,
-  `last_name` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `contact_number` varchar(15) NOT NULL,
-  `role` enum('user','admin') NOT NULL DEFAULT 'user',
-  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `product_name` varchar(255) NOT NULL,
+  `category` varchar(255) NOT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `stocks` int(11) NOT NULL DEFAULT 0,
+  `weight_grams` int(11) NOT NULL,
+  `size` varchar(255) DEFAULT NULL,
+  `image` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 

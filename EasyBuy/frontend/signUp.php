@@ -1,3 +1,48 @@
+<?php
+    require_once '../api/classes/Auth.php';
+    require_once '../api/classes/User.php';
+
+    Auth::redirectIfLoggedIn();
+
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+
+        $userData = [
+            'firstName' => $_POST['firstName'],
+            'lastName' => $_POST['lastName'],
+            'email' => $_POST['email'],
+            'password' => $_POST['password'],
+            'contactNumber' => $_POST['contact']
+        ];
+
+        $addressData = [
+            'houseNumber' => $_POST['houseNumber'],
+            'street' => $_POST['street'],
+            'lot' => $_POST['lot'] ?? '',
+            'block' => $_POST['block'] ?? '',
+            'barangay' => $_POST['barangay'],
+            'city' => $_POST['city'],
+            'province' => $_POST['province'],
+            'postalCode' => $_POST['postal'] ?? ''
+        ];
+
+        try {
+            $user = new User();
+            $user->register($userData, $addressData);
+
+            //auto login after successful registration
+            $loginResult = $user->login($userData['email'], $userData['password']);
+            
+            if ($loginResult) {
+                Auth::login($loginResult['id'], $loginResult['email'], $loginResult['first_name']);
+                header("Location: ../index.php");
+                exit();
+            }
+        } catch (Exception $e) {
+            $error = "Registration failed. Please try again.";
+        }
+    }
+?>
+
 <!doctype html>
 <html lang="en">
 
@@ -26,12 +71,6 @@
         .step-content {
             min-height: 400px;
         }
-        input:focus,
-        textarea:focus,
-        select:focus {
-            box-shadow: 0 0 0 0.05rem #6EC064 !important;
-            outline: none !important;
-        }
     </style>
 </head>
 
@@ -52,6 +91,14 @@
             </div>
             <div class="col-12 col-lg-7 col-md-12 p-lg-5">
                 <h1 class="text-center fw-bold mt-5 mb-4">Sign Up</h1>
+                
+                <?php if (isset($error)): ?>
+                    <div class="alert alert-danger mx-3" role="alert">
+                        <?php echo htmlspecialchars($error); ?>
+                    </div>
+                <?php endif; ?>
+                
+                <form method="POST" action="" id="signupForm">
                 <div class="card mx-3 p-5 rounded-4">
                
                     <div id="step1" class="step-content">
@@ -59,33 +106,32 @@
                             <h3 class="text-start mb-0 me-2">Profile</h3>
                             <small class="text-muted fw-normal">*Required Fields have asterisks</small>
                         </div>
-                        <form>
                         <div class="row mb-3">
                             <div class="col-12 col-lg-6 mb-3 mb-lg-0">
                                 <label for="lastName" class="form-label">Last Name *</label>
-                                <input type="text" class="form-control" id="lastName" placeholder="Enter Last Name">
+                                <input type="text" class="form-control" id="lastName" name="lastName" placeholder="Enter Last Name" required>
                             </div>
                             <div class="col-12 col-lg-6">
                                 <label for="firstName" class="form-label">First Name *</label>
-                                <input type="text" class="form-control" id="firstName" placeholder="Enter First Name">
+                                <input type="text" class="form-control" id="firstName" name="firstName" placeholder="Enter First Name" required>
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-12 col-lg-6 mb-3 mb-lg-0">
                                 <label for="contact" class="form-label">Contact Number *</label>
-                                <input type="tel" class="form-control" id="contact" placeholder="Enter Contact Number">
+                                <input type="tel" class="form-control" id="contact" name="contact" placeholder="Enter Contact Number" required>
                             </div>
                             <div class="col-12 col-lg-6">
                                 <label for="email" class="form-label">Email *</label>
-                                <input type="email" class="form-control" id="email" placeholder="Enter Email">
+                                <input type="email" class="form-control" id="email" name="email" placeholder="Enter Email" required>
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-12">
                                 <label for="password" class="form-label">Password *</label>
                                 <div class="input-group">
-                                    <input type="password" class="form-control" id="password"
-                                        placeholder="Enter Password">
+                                    <input type="password" class="form-control" id="password" name="password"
+                                        placeholder="Enter Password" required>
                                     <button type="button" id="togglePassword" class="btn btn-outline-secondary">
                                         <i id="toggleIcon1" class="bi bi-eye-fill"></i>
                                     </button>
@@ -105,60 +151,57 @@
                                 </label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="confirm_password"
-                                        placeholder="Confirm Password">
+                                        placeholder="Confirm Password" required>
                                     <button type="button" id="toggleConfirmPassword" class="btn btn-outline-secondary">
                                         <i id="toggleIcon2" class="bi bi-eye-fill"></i>
                                     </button>
                                 </div>
                             </div>
                         </div>
-                    </form>
                 </div>
 
                 <div id="step2" class="step-content" style="display: none;">
                     <h3 class="text-start mb-4">Address</h3>
-                    <form>
                         <div class="row mb-3">
                             <div class="col-12 col-lg-6 mb-3 mb-lg-0">
                                 <label for="houseNumber" class="form-label">House Number *</label>
-                                <input type="text" class="form-control" id="houseNumber" placeholder="#7">
+                                <input type="text" class="form-control" id="houseNumber" name="houseNumber" placeholder="#7" required>
                             </div>
                             <div class="col-12 col-lg-6">
                                 <label for="street" class="form-label">Street *</label>
-                                <input type="text" class="form-control" id="street" placeholder="Zone - 1">
+                                <input type="text" class="form-control" id="street" name="street" placeholder="Zone - 1" required>
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-12 col-lg-6 mb-3 mb-lg-0">
                                 <label for="lot" class="form-label">Lot</label>
-                                <input type="text" class="form-control" id="lot" placeholder="">
+                                <input type="text" class="form-control" id="lot" name="lot" placeholder="">
                             </div>
                             <div class="col-12 col-lg-6">
                                 <label for="block" class="form-label">Block</label>
-                                <input type="text" class="form-control" id="block" placeholder="">
+                                <input type="text" class="form-control" id="block" name="block" placeholder="">
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-12 col-lg-6 mb-3 mb-lg-0">
                                 <label for="barangay" class="form-label">Barangay *</label>
-                                <input type="text" class="form-control" id="barangay" placeholder="Altura Bata">
+                                <input type="text" class="form-control" id="barangay" name="barangay" placeholder="Altura Bata" required>
                             </div>
                             <div class="col-12 col-lg-6">
                                 <label for="city" class="form-label">City *</label>
-                                <input type="text" class="form-control" id="city" placeholder="Tanauan City">
+                                <input type="text" class="form-control" id="city" name="city" placeholder="Tanauan City" required>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-12 col-lg-6 mb-3 mb-lg-0">
                                 <label for="province" class="form-label">Province *</label>
-                                <input type="text" class="form-control" id="province" placeholder="Batangas">
+                                <input type="text" class="form-control" id="province" name="province" placeholder="Batangas" required>
                             </div>
                             <div class="col-12 col-lg-6">
                                 <label for="postal" class="form-label">Postal</label>
-                                <input type="text" class="form-control" id="postal" placeholder="4232">
+                                <input type="text" class="form-control" id="postal" name="postal" placeholder="4232">
                             </div>
                         </div>
-                    </form>
                 </div>
             </div>
 
@@ -170,8 +213,9 @@
             <div class="d-flex justify-content-between mx-3">
                 <button type="button" id="backBtn" class="btn btn-success px-4 py-2" style="display: none;">BACK</button>
                 <button type="button" id="nextBtn" class="btn btn-success px-4 py-2 ms-auto">NEXT</button>
-                <button type="button" id="submitBtn" class="btn btn-success px-4 py-2 ms-auto" style="display: none;">SUBMIT</button>
+                <button type="submit" id="submitBtn" class="btn btn-success px-4 py-2 ms-auto" style="display: none;">SUBMIT</button>
             </div>
+            </form>
         </div>
     </div>
 
@@ -233,7 +277,17 @@
         });
 
         document.getElementById('submitBtn').addEventListener('click', function() {
-            alert('Form submitted!');
+            // Validate password match
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            
+            if (password !== confirmPassword) {
+                alert('Passwords do not match!');
+                return false;
+            }
+            
+            // Submit the form
+            document.getElementById('signupForm').submit();
         });
 
         document.getElementById('togglePassword').addEventListener('click', function () {
