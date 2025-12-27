@@ -227,33 +227,6 @@
             return '₱' + n.toFixed(2);
         }
 
-        function getItemPrice() {
-            const el = document.getElementById('item-price');
-            return el && el.dataset && el.dataset.price ? parseFloat(el.dataset.price) : 0;
-        }
-
-        function getShipping() {
-            const el = document.getElementById('shipping');
-            if (!el) return 0;
-            const ds = el.dataset && el.dataset.shipping;
-            if (ds) return parseFloat(ds);
-            return parseFloat(el.textContent.replace(/[^0-9.]/g, '')) || 0;
-        }
-
-        function updateTotals() {
-            const qtyEl = document.getElementById('qty');
-            const qty = Math.max(1, parseInt(qtyEl.value) || 1);
-            const price = getItemPrice();
-            const subtotal = price * qty;
-            const shipping = getShipping();
-            const total = subtotal + shipping;
-
-            const subtotalEl = document.getElementById('subtotal');
-            const orderTotalEl = document.getElementById('order-total');
-            if (subtotalEl) subtotalEl.textContent = formatPhp(subtotal);
-            if (orderTotalEl) orderTotalEl.textContent = formatPhp(total);
-        }
-
         function increaseQty() {
             const qtyEl = document.getElementById('qty');
             if (!qtyEl) return;
