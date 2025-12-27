@@ -45,4 +45,9 @@ class Database {
         $conn = $this->connect();
         return mysqli_insert_id($conn);
     }
+
+    function fetch($stmt) {
+        $result = mysqli_stmt_get_result($stmt);
+        return mysqli_fetch_all($result, MYSQLI_ASSOC);
+    }
 }
