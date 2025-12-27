@@ -1,13 +1,22 @@
 <?php
 session_start();
 
+
+
+
 // 1. INITIALIZE VARIABLES TO PREVENT ERRORS
 // We create an empty array for orders so the page doesn't crash if there is no data.
-$orders = []; 
+$orders = [];
+
+
+
 
 // Determine View: List or Detail?
 $view = 'list';
 $activeOrder = null;
+
+
+
 
 // Check if a specific track_id is requested AND if it exists in our data
 if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
@@ -15,6 +24,9 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
     $activeOrder = $orders[$_GET['track_id']];
 }
 ?>
+
+
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -26,12 +38,18 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
+
+
+
     <style>
         :root {
             --gradient-color: linear-gradient(90deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
             --secondary-teal: #203a43;
             --card-border: #203a43;
         }
+
+
+
 
         body {
             background-color: #f4f6f8;
@@ -41,10 +59,16 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
+
+
+
         .main-content {
             flex: 1;
             padding: 3rem 1rem;
         }
+
+
+
 
         .main-container {
             background: #ffffff;
@@ -54,6 +78,9 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
             overflow: hidden;
             min-height: 500px;
         }
+
+
+
 
         .order-card-item {
             background-color: #f8f9fa;
@@ -65,7 +92,7 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
-        
+       
         .status-badge-green {
             background-color: #c9f29d;
             color: #2c5206;
@@ -75,6 +102,9 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
             border-radius: 20px;
             display: inline-block;
         }
+
+
+
 
         /* Empty State Styles */
         .empty-state-container {
@@ -87,6 +117,9 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
             margin-bottom: 1.5rem;
             opacity: 0.8;
         }
+
+
+
 
         /* Detail View Styles */
         .timeline {
@@ -123,46 +156,73 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
     </style>
 </head>
 
+
+
+
 <body>
 
+
+
+
     <?php include '../frontend/components/navbar.php'; ?>
+
+
+
 
     <div class="main-content">
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-12 col-xl-10">
 
+
+
+
                     <div class="main-container p-4 p-md-5">
 
+
+
+
                         <?php if (empty($orders)): ?>
-                            
+                           
                             <div class="empty-state-container">
                                 <img src="../assets/box.png" alt="No Orders" class="empty-state-img">
                                 <h4 class="fw-bold text-dark">No Active Orders</h4>
                                 <p class="mb-4">It looks like you haven't booked any deliveries yet.</p>
-                                <a href="index.php" class="btn btn-warning fw-bold px-4 py-2 shadow-sm text-uppercase">
+                                <a href="../" class="btn btn-warning fw-bold px-4 py-2 shadow-sm text-uppercase">
                                     Book Now
                                 </a>
                             </div>
 
+
+
+
                         <?php else: ?>
 
+
+
+
                             <?php if ($view == 'list'): ?>
-                                
+                               
                                 <h4 class="fw-bold mb-4" style="color: var(--secondary-teal);">
                                     <span class="material-symbols-outlined align-middle me-2">list_alt</span>
                                     My Orders
                                 </h4>
 
+
+
+
                                 <?php foreach($orders as $order): ?>
                                     <div class="order-card-item p-4 mb-4">
                                         <div class="row align-items-center">
-                                            
+                                           
                                             <div class="col-md-2 text-center mb-3 mb-md-0">
                                                 <div class="bg-white rounded p-3 d-inline-block shadow-sm">
                                                     <img src="../assets/box.png" alt="Package" style="width: 40px; height: 40px;">
                                                 </div>
                                             </div>
+
+
+
 
                                             <div class="col-md-7 mb-3 mb-md-0">
                                                 <div class="mb-2">
@@ -174,6 +234,9 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
                                                 <small class="text-muted">ORDER ID: <?php echo $order['id']; ?></small>
                                             </div>
 
+
+
+
                                             <div class="col-md-3 text-md-end text-start">
                                                 <span class="fw-bold text-warning small text-uppercase" style="letter-spacing: 1px;">
                                                     <?php echo $order['status']; ?>
@@ -181,7 +244,13 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
                                             </div>
                                         </div>
 
+
+
+
                                         <hr class="my-3 text-muted opacity-25">
+
+
+
 
                                         <div class="row align-items-center">
                                             <div class="col-md-6 text-muted small">
@@ -197,13 +266,22 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
                                     </div>
                                 <?php endforeach; ?>
 
+
+
+
                             <?php else: ?>
+
+
+
 
                                 <div class="mb-4">
                                     <a href="tracking.php" class="text-decoration-none text-muted small fw-bold">
                                         <i class="bi bi-arrow-left me-1"></i> BACK TO ORDERS
                                     </a>
                                 </div>
+
+
+
 
                                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-2">
                                     <span class="status-badge-green fs-6 px-4 py-2">
@@ -214,11 +292,17 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
                                     </span>
                                 </div>
 
+
+
+
                                 <div class="mb-5 border-bottom pb-4">
                                     <h2 class="fw-bold mb-1" style="color: var(--secondary-teal);">P <?php echo $activeOrder['price']; ?></h2>
                                     <p class="mb-0 fw-bold text-secondary fs-5"><?php echo $activeOrder['parcel_name']; ?></p>
                                     <small class="text-muted">ORDER ID: <?php echo $activeOrder['id']; ?></small>
                                 </div>
+
+
+
 
                                 <div class="timeline">
                                     <?php foreach($activeOrder['timeline'] as $log): ?>
@@ -233,19 +317,39 @@ if (isset($_GET['track_id']) && isset($orders[$_GET['track_id']])) {
                                     <?php endforeach; ?>
                                 </div>
 
+
+
+
                             <?php endif; ?>
-                        
+                       
                         <?php endif; ?>
 
+
+
+
                     </div>
+
+
+
 
                 </div>
             </div>
         </div>
     </div>
 
+
+
+
     <?php include '../frontend/components/footer.php'; ?>
+
+
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+
+
+
+
