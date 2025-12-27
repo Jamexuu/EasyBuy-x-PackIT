@@ -9,13 +9,13 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="../assets/css/style.css" rel="stylesheet">
     <style>
-        #addToCart, .dropdown-item:active, .dropdown-item:focus, 
+        .addToCartBtn, .dropdown-item:active, .dropdown-item:focus, 
         #nextBtn, #prevBtn {
             background-color: #6EC064;
             color: #FFFFFF;
         }
 
-        #addToCart:hover, #nextBtn:hover, #prevBtn:hover {
+        .addToCartBtn:hover, #nextBtn:hover, #prevBtn:hover {
             background-color: lightgray;
             color: dimgray
         }
@@ -87,7 +87,8 @@
                 </div>
             </div>
         </div>
-    </div> 
+    </div>
+    <script src="../assets/js/addToCart.js"></script>
     <script>
         const contentArea = document.getElementById("productsArea");
         const pageText = document.getElementById("pageText");
@@ -129,13 +130,13 @@
                         <div class="p-3 d-flex justify-content-between align-items-center">
                             <span class="h6 d-none d-md-flex" style="color: #6EC064;">PHP ${product.price}</span>
                             <span class="h4 d-md-none" style="color: #6EC064;">PHP ${product.price}</span>
-                            <button type="button" class="btn rounded-3" id="addToCart" onclick="event.stopPropagation()">
+                            <button type="button" class="btn rounded-3 addToCartBtn" data-product-id="${product.id}" onclick="event.stopPropagation(); addToCart(${product.id});">
                                 <span class="material-symbols-rounded">shopping_cart</span>
                             </button>
                         </div>
                     </div>
                 </div>
-            `;
+                `;
             });
         }
 
