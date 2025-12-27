@@ -47,12 +47,12 @@
         </ul>
         <div class="d-flex flex-column flex-lg-row align-items-center gap-2 px-5">
           <div class="d-flex align-items-center gap-2 w-100 w-lg-auto">
-            <input type="text" placeholder="Search" class="form-control rounded-5">
-            <div class="btn">
+            <input type="text" placeholder="Search" id="searchInput" class="form-control rounded-5">
+            <a href="#" onclick="searchProduct()" class="btn" id="searchButton" style="border-radius:999px;">
               <span class="material-symbols-rounded text-white fs-2">
                 search
               </span>
-            </div>
+            </a>
           </div>
           <div class="d-flex gap-2 justify-content-center">
             <a href="/EasyBuy-x-PackIT/EasyBuy/frontend/login.php" class="btn">
@@ -125,11 +125,22 @@
     </div>
   </div>
 
+    <script>
+        const searchButton = document.getElementById('searchButton');
+        const searchInput = document.getElementById('searchInput');
 
+        function searchProduct(){
+            const query = searchInput.value;
+            window.location.href='/EasyBuy-x-PackIT/EasyBuy/frontend/search.php?q=' + encodeURIComponent(query || '');
+        }
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-    crossorigin="anonymous"></script>
+        searchInput.addEventListener('keydown', function(event){
+            if(event.key === 'Enter'){
+                event.preventDefault();
+                searchProduct();
+            }
+        });
+    </script>
 </body>
 
 </html>

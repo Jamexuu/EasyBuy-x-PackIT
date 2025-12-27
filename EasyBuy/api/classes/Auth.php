@@ -19,18 +19,30 @@ class Auth {
         }
     }
     
-    public static function redirectIfLoggedIn() {
-        if (self::isLoggedIn()) {
-            header("Location: /EasyBuy-x-PackIT/EasyBuy/frontend/account.php");
+    public static function requireAdmin() {
+        if (!self::isLoggedIn() || !self::isAdmin()) {
+            header("Location: /EasyBuy-x-PackIT/EasyBuy/admin/index.php");
             exit();
         }
     }
     
-    public static function login($userId, $email, $name) {
+    public static function redirectIfLoggedIn() {
+        if (self::isLoggedIn()) {
+            if (self::isAdmin()) {
+                header("Location: /EasyBuy-x-PackIT/EasyBuy/admin/adminDashboard.html");
+            } else {
+                header("Location: /EasyBuy-x-PackIT/EasyBuy/frontend/account.php");
+            }
+            exit();
+        }
+    }
+    
+    public static function login($userId, $email, $name, $role = 'user') {
         self::start();
         $_SESSION['user_id'] = $userId;
         $_SESSION['user_email'] = $email;
         $_SESSION['user_name'] = $name;
+        $_SESSION['user_role'] = $role;
     }
     
     public static function logout() {
@@ -46,7 +58,13 @@ class Auth {
         return [
             'id' => $_SESSION['user_id'],
             'email' => $_SESSION['user_email'] ?? '',
-            'name' => $_SESSION['user_name'] ?? 'User'
+            'name' => $_SESSION['user_name'] ?? 'User',
+            'role' => $_SESSION['user_role'] ?? 'user'
         ];
+    }
+    
+    public static function isAdmin() {
+        self::start();
+        return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
     }
 }
