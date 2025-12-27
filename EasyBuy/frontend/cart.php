@@ -117,7 +117,9 @@
                         <span>Order Total</span>
                         <span id="order-total">₱200.00</span>
                     </div>
-                    <button class="btn btn-secondary w-100">CHECKOUT</button>
+                    <form method="post" action="">
+                        <button type="submit" class="btn btn-secondary w-100">CHECKOUT</button>
+                    </form>
                 </div>
             </div>
 
@@ -148,9 +150,11 @@
     </div>
 
    <div class="container text-center my-5">
-    <button class="btn btn-success text-white fw-bold py-2 px-4">
-        PLACE ORDER
-    </button>
+    <form method="post" action="">
+        <button type="submit" class="btn btn-success text-white fw-bold py-2 px-4">
+            PLACE ORDER
+        </button>
+    </form>
 </div>
 
 
