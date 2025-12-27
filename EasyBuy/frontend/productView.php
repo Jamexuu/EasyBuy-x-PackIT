@@ -104,10 +104,14 @@
                 </div>
 
                 <div class="d-flex gap-2">
-                    <button id="addToCartBtn" class="btn" onclick="addToCart()">
-                        <span class="material-symbols-rounded">shopping_cart</span>
-                    </button>
-                    <button id="buyNowBtn" class="btn flex-grow-1" onclick="buyNow()">Buy Now</button>
+                    <form method="post" action="" class="d-inline">
+                        <button type="submit" id="addToCartBtn" class="btn" onclick="addToCart()">
+                            <span class="material-symbols-rounded">shopping_cart</span>
+                        </button>
+                    </form>
+                    <form method="post" action="" class="flex-grow-1">
+                        <button type="submit" id="buyNowBtn" class="btn w-100" onclick="buyNow()">Buy Now</button>
+                    </form>
                 </div>
             </div>
         </div>
