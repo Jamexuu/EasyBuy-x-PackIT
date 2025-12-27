@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,18 +10,30 @@
     <link href="../assets/css/style.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet" />
     <style>
-        .product-item:nth-child(even) { background-color: #d3d3d3; }
-        .action-btn:hover { opacity: 0.7; }
-        .btn-remove-image:hover { background-color: #dc3545; color: white; }
+        .product-item:nth-child(even) {
+            background-color: #d3d3d3;
+        }
+
+        .action-btn:hover {
+            opacity: 0.7;
+        }
+
+        .btn-remove-image:hover {
+            background-color: #dc3545;
+            color: white;
+        }
     </style>
 </head>
+
 <body>
     <div class="navbar navbar-expand-lg" style="background: var(--gradient-color-adminNav);">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">
-                <img src="../assets/navbar_logo.svg" alt="EasyBuy" class="img-fluid px-lg-3 p-2 ms-5" style="max-height: 60px;">
+                <img src="../assets/navbar_logo.svg" alt="EasyBuy" class="img-fluid px-lg-3 p-2 ms-5"
+                    style="max-height: 60px;">
             </a>
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
@@ -38,13 +51,15 @@
     <div class="container py-5" id="productListView">
         <div class="row align-items-center mb-4">
             <div class="col-12 col-md-6 mb-3 mb-md-0">
-                <button class="btn border-0 rounded-pill px-4 py-2" id="addProductBtn" style="background-color: #28a745; color: white;">
+                <button class="btn border-0 rounded-pill px-4 py-2" id="addProductBtn"
+                    style="background-color: #28a745; color: white;">
                     <span>+</span> Add Product
                 </button>
             </div>
             <div class="col-12 col-lg-4 ms-auto">
                 <div class="d-flex gap-2 align-items-center">
-                    <input type="text" id="searchInput" class="form-control border-0 rounded-pill flex-grow-1" style="background-color: #e0e0e0; padding: 0.5rem 1rem;" placeholder="Search">
+                    <input type="text" id="searchInput" class="form-control border-0 rounded-pill flex-grow-1"
+                        style="background-color: #e0e0e0; padding: 0.5rem 1rem;" placeholder="Search">
                     <span class="material-symbols-rounded text-success fs-2">search</span>
                 </div>
             </div>
@@ -55,7 +70,8 @@
     <div class="container py-5" id="productFormView" style="display: none;">
         <div class="row align-items-center mb-4">
             <div class="col-12">
-                <button class="btn border-0 rounded-pill px-4 py-2" id="backToListBtn" style="background-color: #6c757d; color: white;">
+                <button class="btn border-0 rounded-pill px-4 py-2" id="backToListBtn"
+                    style="background-color: #6c757d; color: white;">
                     <span>←</span> Back to Products
                 </button>
             </div>
@@ -68,12 +84,19 @@
             </div>
             <div class="row">
                 <div class="col-12 col-md-4 mb-4">
-                    <div class="d-flex align-items-center justify-content-center position-relative mb-3 w-100 rounded-3" id="uploadBox" style="background-color: #d3d3d3; height: 200px;">
-                        <button class="btn-remove-image position-absolute border-0 rounded-circle d-none align-items-center justify-content-center fw-bold text-danger" id="removeImageBtn" style="top: 10px; right: 10px; background-color: rgba(255, 255, 255, 0.9); width: 30px; height: 30px; z-index: 10; cursor: pointer;">✕</button>
-                        <img id="imagePreview" src="" alt="" style="width: 100%; height: 100%; object-fit: cover; border-radius: 15px; display: none;">
+                    <div class="d-flex align-items-center justify-content-center position-relative mb-3 w-100 rounded-3"
+                        id="uploadBox" style="background-color: #d3d3d3; height: 200px;">
+                        <button
+                            class="btn-remove-image position-absolute border-0 rounded-circle d-none align-items-center justify-content-center fw-bold text-danger"
+                            id="removeImageBtn"
+                            style="top: 10px; right: 10px; background-color: rgba(255, 255, 255, 0.9); width: 30px; height: 30px; z-index: 10; cursor: pointer;">✕</button>
+                        <img id="imagePreview" src="" alt=""
+                            style="width: 100%; height: 100%; object-fit: cover; border-radius: 15px; display: none;">
                     </div>
-                    <button id="fileUploadBtn" class="btn border-0 rounded-pill text-white" style="background-color: #28a745; padding: 0.6rem 1.5rem;">
-                        <span class="material-symbols-rounded align-middle" style="font-size: 1.2rem;">download</span> File Upload
+                    <button id="fileUploadBtn" class="btn border-0 rounded-pill text-white"
+                        style="background-color: #28a745; padding: 0.6rem 1.5rem;">
+                        <span class="material-symbols-rounded align-middle" style="font-size: 1.2rem;">download</span>
+                        File Upload
                     </button>
                     <input type="file" id="fileInput" accept="image/*" style="display: none;">
                 </div>
@@ -81,15 +104,19 @@
                     <div class="row">
                         <div class="col-12 col-lg-6 mb-3">
                             <label class="fw-medium mb-2" style="color: #6a6a6a;">Product Name *</label>
-                            <input type="text" id="productName" class="form-control border-0 rounded-pill" style="background-color: #f5f5f5; padding: 0.6rem 1rem;" placeholder="ARLA Milk Goodness Full Cream">
+                            <input type="text" id="productName" class="form-control border-0 rounded-pill"
+                                style="background-color: #f5f5f5; padding: 0.6rem 1rem;"
+                                placeholder="ARLA Milk Goodness Full Cream">
                         </div>
                         <div class="col-12 col-lg-6 mb-3">
                             <label class="fw-medium mb-2" style="color: #6a6a6a;">Size *</label>
-                            <input type="text" id="productSize" class="form-control border-0 rounded-pill" style="background-color: #f5f5f5; padding: 0.6rem 1rem;" placeholder="400 ml">
+                            <input type="text" id="productSize" class="form-control border-0 rounded-pill"
+                                style="background-color: #f5f5f5; padding: 0.6rem 1rem;" placeholder="400 ml">
                         </div>
                         <div class="col-12 col-lg-6 mb-3">
                             <label class="fw-medium mb-2" style="color: #6a6a6a;">Category *</label>
-                            <select id="productCategory" class="form-select border-0 rounded-pill" style="background-color: #f5f5f5; padding: 0.6rem 1rem;">
+                            <select id="productCategory" class="form-select border-0 rounded-pill"
+                                style="background-color: #f5f5f5; padding: 0.6rem 1rem;">
                                 <option value="all">All Products</option>
                                 <option value="produce">Produce</option>
                                 <option value="meat">Meat and Seafood</option>
@@ -103,13 +130,16 @@
                         </div>
                         <div class="col-12 col-lg-6 mb-3">
                             <label class="fw-medium mb-2" style="color: #6a6a6a;">Price *</label>
-                            <input type="text" id="productPrice" class="form-control border-0 rounded-pill" style="background-color: #f5f5f5; padding: 0.6rem 1rem;" placeholder="123.35">
+                            <input type="text" id="productPrice" class="form-control border-0 rounded-pill"
+                                style="background-color: #f5f5f5; padding: 0.6rem 1rem;" placeholder="123.35">
                         </div>
                     </div>
                     <div class="row mt-3">
                         <div class="col-12 d-flex justify-content-end gap-2">
-                            <button class="btn border-0 rounded-pill" id="cancelBtn" style="background-color: #6c757d; color: white; padding: 0.6rem 2rem;">Cancel</button>
-                            <button class="btn border-0 rounded-pill text-white" id="saveProductBtn" style="background-color: #28a745; padding: 0.6rem 2rem;">Add Product</button>
+                            <button class="btn border-0 rounded-pill" id="cancelBtn"
+                                style="background-color: #6c757d; color: white; padding: 0.6rem 2rem;">Cancel</button>
+                            <button class="btn border-0 rounded-pill text-white" id="saveProductBtn"
+                                style="background-color: #28a745; padding: 0.6rem 2rem;">Add Product</button>
                         </div>
                     </div>
                 </div>
@@ -117,7 +147,9 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"></script>
     <script>
         var products = [];
         var filteredProducts = [];
@@ -137,7 +169,7 @@
             document.getElementById('saveProductBtn').textContent = isEdit ? 'Update Product' : 'Add Product';
         }
 
-        document.getElementById('addProductBtn').addEventListener('click', function() {
+        document.getElementById('addProductBtn').addEventListener('click', function () {
             editingProductId = null;
             showProductForm(false);
         });
@@ -217,21 +249,10 @@
         });
 
         async function displayProducts() {
-            try {
-                const response = await fetch("../api/getAllProducts.php");
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-                console.log('Fetched products:', data);
-                products = Array.isArray(data) ? data : [];
-                filteredProducts = products;
-                getProducts();
-            } catch (error) {
-                console.error('Error fetching products:', error);
-                const productList = document.getElementById('productList');
-                productList.innerHTML = `<div class="alert alert-danger"><strong>Error loading products:</strong> ${error.message}<br><small>Please check the console for more details.</small></div>`;
-            }
+            const response = await fetch("../api/getAllProducts.php");
+            products = await response.json();
+            filteredProducts = products;
+            getProducts();
         }
 
         function getProducts() {
@@ -301,7 +322,7 @@
             editingProductId = null;
         }
 
-        document.getElementById('searchInput').addEventListener('input', function(e) {
+        document.getElementById('searchInput').addEventListener('input', function (e) {
             const searchTerm = e.target.value.toLowerCase();
             filteredProducts = products.filter(product => {
                 const productName = (product.name || product.product_name || '').toLowerCase();
@@ -313,4 +334,5 @@
         displayProducts();
     </script>
 </body>
+
 </html>
