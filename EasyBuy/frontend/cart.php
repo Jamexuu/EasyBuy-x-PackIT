@@ -79,48 +79,14 @@
                         <div class="col-3 text-end">SUBTOTAL</div>
                     </div>
 
-                    <div class="row align-items-center mb-4">
-                        <div class="col-5 d-flex align-items-center">
-                            <img src="" class="m-3 mx-4 img product-img" width="100" height="100" alt="Product Image">
-                            <div>
-                                <div class="mx-4">ARLA</div>
-                                <small class="text-muted ms-4">Milk</small>
-                            </div>
-                        </div>
-                        <div class="col-4 text-center">
-                            <button class="qty-btn" onclick="decreaseQty()">-</button>
-                            <input type="text" id="qty" class="qty-box" value="1" readonly>
-                            <button class="qty-btn" onclick="increaseQty()">+</button>
-                        </div>
-
-                        <div class="col-3 text-end">
-                            <span id="item-price" data-price="150">₱150.00</span>
-                        </div>
+                    <div class="row align-items-center mb-4" id="cartItemContainer">
+                       
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-4">
-                <div class="card-custom p-4 shadow-sm text-center text-muted">
-                    <h5 class="mb-3">Order Summary</h5>
-                    <hr>
-                    <div class="d-flex justify-content-between">
-                        <span>Subtotal</span>
-                        <span id="subtotal">₱150.00</span>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <span>Shipping Fee</span>
-                        <span id="shipping" data-shipping="50">₱50.00</span>
-                    </div>
-                    <hr>
-                    <div class="d-flex justify-content-between mb-4 fw-bold">
-                        <span>Order Total</span>
-                        <span id="order-total">₱200.00</span>
-                    </div>
-                    <form method="post" action="">
-                        <button type="submit" class="btn btn-secondary w-100">CHECKOUT</button>
-                    </form>
-                </div>
+            <div class="col-md-4" id="orderSummaryContainer">
+                
             </div>
 
         </div>
@@ -164,6 +130,99 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        var cartItemContainer = document.getElementById('cartItemContainer');
+        var orderSummaryContainer = document.getElementById('orderSummaryContainer');
+
+        async function getCartItems() {
+            try {
+                const response = await fetch('../api/getCartItems.php', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                
+                data.forEach(item => {
+                    cartItemContainer.innerHTML += `
+                         <div class="col-5 d-flex align-items-center">
+                            <img src="`+ item.image +`" class="m-3 mx-4 img product-img" width="100" height="100" alt="Product Image">
+                            <div>
+                                <div class="mx-4">`+ item.product_name +`</div>
+                                <small class="text-muted ms-4">`+ item.category +`</small>
+                            </div>
+                        </div>
+                        <div class="col-4 text-center">
+                            <button class="qty-btn" onclick="decreaseQty()">-</button>
+                            <input type="text" id="qty" class="qty-box" value="`+ item.quantity +`" readonly>
+                            <button class="qty-btn" onclick="increaseQty()">+</button>
+                        </div>
+
+                        <div class="col-3 text-end">
+                            <span id="item-price" data-price="150">`+ item.price * item.quantity +`</span>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                console.error('Error fetching cart items:', error);
+                return [];
+            }
+        }
+
+        getCartItems();
+
+        async function getOrderSummary(){
+            try {
+                const response = await fetch('../api/getCartSummary.php', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                
+                orderSummaryContainer.innerHTML = `
+                    <div class="card-custom p-4 shadow-sm text-center text-muted">
+                        <h5 class="mb-3">Order Summary</h5>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <span>Subtotal</span>
+                            <span id="subtotal">₱`+ data.subtotal +`</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Shipping Fee</span>
+                            <span id="shipping" data-shipping="50">₱`+ data.shipping +`</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-4 fw-bold">
+                            <span>Order Total</span>
+                            <span id="order-total">₱`+ data.total +`</span>
+                        </div>
+                        <form method="post" action="">
+                            <button type="submit" class="btn btn-secondary w-100">CHECKOUT</button>
+                        </form>
+                    </div>
+                `;
+
+                console.log(data);
+            } catch (error) {
+                console.error('Error fetching cart items:', error);
+                return [];
+            }
+        }
+
+        getOrderSummary();
+
         function formatPhp(n) {
             return '₱' + n.toFixed(2);
         }
