@@ -1,16 +1,18 @@
-# Ignore PayPal secrets
-/paypal_secrets.php
+# Ignore PayPal secrets (adjust to real location)
+api/paypal/paypal_secrets.php
 
 # Ignore vendor folder completely
-PackIT/vendor/
+/vendor/
 
-# Ignore Gmail API credentials and token
-PackIT/api/gmail/client.json
-PackIT/api/gmail/token.json
-PackIT/api/gmail/sendMail.php
+# Ignore Gmail API credentials/token + sendMail (contains app password)
+api/gmail/client.json
+api/gmail/token.json
+api/gmail/sendMail.php
 
 # Ignore users database
-PackIT/api/data/users.json
+api/data/users.json
 
-# Keep composer files tracked
-# (Do NOT ignore composer.json and composer.lock)
+# OS / editor junk (optional but recommended)
+.DS_Store
+Thumbs.db
+.vscode/
