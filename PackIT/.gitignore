@@ -1,2 +1,18 @@
-# Ignore PayPal secrets
-**/paypal_secrets.php
+# Ignore PayPal secrets (adjust to real location)
+api/paypal/paypal_secrets.php
+
+# Ignore vendor folder completely
+/vendor/
+
+# Ignore Gmail API credentials/token + sendMail (contains app password)
+api/gmail/client.json
+api/gmail/token.json
+api/gmail/sendMail.php
+
+# Ignore users database
+api/data/users.json
+
+# OS / editor junk (optional but recommended)
+.DS_Store
+Thumbs.db
+.vscode/
