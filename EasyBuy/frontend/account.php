@@ -1,6 +1,11 @@
 <?php
     require '../api/classes/Auth.php';
     Auth::requireAuth();
+
+    if (Auth::isAdmin()) {
+        header("Location: ../admin/adminDashboard.php");
+        exit();
+    }
 ?>
 
 <!doctype html>
