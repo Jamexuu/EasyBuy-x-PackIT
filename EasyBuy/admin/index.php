@@ -12,7 +12,7 @@
         $result = $user->login($email, $password, 'admin');
 
         if($result){
-            Auth::login($result['id'], $result['email'], $result['first_name']);
+            Auth::login($result['id'], $result['email'], $result['first_name'], 'admin');
             header("Location: adminDashboard.php");
             exit();
         } else {

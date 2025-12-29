@@ -29,7 +29,7 @@ class Auth {
     public static function redirectIfLoggedIn() {
         if (self::isLoggedIn()) {
             if (self::isAdmin()) {
-                header("Location: /EasyBuy-x-PackIT/EasyBuy/admin/adminDashboard.html");
+                header("Location: /EasyBuy-x-PackIT/EasyBuy/admin/adminDashboard.php");
             } else {
                 header("Location: /EasyBuy-x-PackIT/EasyBuy/frontend/account.php");
             }

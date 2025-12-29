@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="/EasyBuy-x-PackIT/EasyBuy/assets/css/style.css">
 </head>
 
 <body>
@@ -14,7 +14,7 @@
     <div class="navbar navbar-expand-lg" style="background: var(--gradient-color-adminNav);">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">
-                <img src="../../assets/navbar_logo.svg" alt="EasyBuy" class="img-fluid px-lg-3 p-2 ms-5"
+                <img src="/EasyBuy-x-PackIT/EasyBuy/assets/navbar_logo.svg" alt="EasyBuy" class="img-fluid px-lg-3 p-2 ms-5"
                     style="max-height: 60px;">
             </a>
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
