@@ -61,6 +61,12 @@ class Cart {
         return $this->db->fetch($this->db->executeQuery($itemsQuery, [$cartId]));
     }
 
+    function deleteCartItem($itemId) {
+        $deleteQuery = "DELETE FROM cart_items WHERE id = ?";
+        $this->db->executeQuery($deleteQuery, [$itemId]);
+        return true;
+    }
+
     function getCartSummary($userId) {
         $cartQuery = "SELECT id FROM cart WHERE user_id = ? ORDER BY created_at DESC LIMIT 1";
         $cart = $this->db->fetch($this->db->executeQuery($cartQuery, [$userId]));
