@@ -44,27 +44,8 @@
                                     <th scope="col" class="w-auto">Subtotal</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="row align-items-center text-start">
-                                            <div class="col-auto px-5 py-2">
-                                                <img src="../Product Images/all/1.webp" alt=""
-                                                    class="img-fluid border border-1 rounded border-dark"
-                                                    style="max-height: 100px;">
-                                            </div>
-                                            <div class="col">
-                                                <p class="mb-0">ARLA Milk Goodness Full Cream</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="align-middle text-center">
-                                        1
-                                    </td>
-                                    <td class="align-middle text-center">
-                                        140
-                                    </td>
-                                </tr>
+                            <tbody id="checkoutItems">
+                                
                             </tbody>
                         </table>
                     </div>
@@ -139,6 +120,62 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
+
+    <script>
+
+        var checkoutItems = document.getElementById('checkoutItems');
+
+        async function getUserCartItems(){
+
+            try{    
+
+                const response = await fetch('../api/getCheckoutItems.php', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+
+                data.forEach(item => {
+                    checkoutItems.innerHTML += `
+                        <tr>
+                            <td>
+                                <div class="row align-items-center text-start">
+                                    <div class="col-auto px-5 py-2">
+                                        <img src="`+ item.image +`" alt=""
+                                            class="img-fluid border border-1 rounded border-dark"
+                                            style="max-height: 100px;">
+                                    </div>
+                                    <div class="col">
+                                        <p class="mb-0">`+ item.product_name +`</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="align-middle text-center">
+                                `+ item.quantity + `
+                            </td>
+                            <td class="align-middle text-center">
+                                ₱`+ (item.price * item.quantity).toFixed(2) + `
+                            </td>
+                        </tr>
+                    `;
+                });
+
+            }catch(error){
+                console.error('Error fetching cart items:', error);
+            }
+
+        }
+
+        getUserCartItems();
+
+    </script>
 </body>
 
 </html>

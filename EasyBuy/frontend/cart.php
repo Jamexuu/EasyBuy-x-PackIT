@@ -6,12 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Cart</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
     <link rel="stylesheet" href="../assets/css/style.css">
-    
+
     <style>
         body {
             font-family: 'Poppins';
             background-color: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body > .container,
+        body > .container-fluid {
+            flex: 1;
         }
 
         .card-custom {
@@ -58,11 +67,16 @@
             object-fit: cover;
             border-radius: 8px;
         }
+
+        .form-check-input:checked {
+            background-color: #6EC064;
+            border-color: #6EC064;
+        }
     </style>
 </head>
 
 <body>
-    <?php include 'components/navbar.php'; ?> 
+    <?php include 'components/navbar.php'; ?>
 
     <div class="container mt-4 text-strong fw-bold">
         <h3>Your Shopping Cart</h3>
@@ -71,67 +85,44 @@
 
     <div class="container mt-3">
         <div class="row g-4">
-            <div class="col-md-8">
-                <div class="card-custom p-4 shadow-sm">
-                    <div class="row fw-bold mb-3 text-muted">
-                        <div class="col-5 text-center">ITEM</div>
-                        <div class="col-4 text-center">QUANTITY</div>
-                        <div class="col-3 text-end">SUBTOTAL</div>
+            <div class="col-12">
+                <div class="card rounded-4 overflow-hidden shadow-sm border-0">
+                    <!-- Desktop Table View -->
+                    <table class="table mb-0 d-none d-md-table">
+                        <thead>
+                            <tr class="table-secondary text-center">
+                                <th scope="col" class="w-25">ITEM</th>
+                                <th scope="col" class="w-auto">QUANTITY</th>
+                                <th scope="col" class="w-auto">SUBTOTAL</th>
+                                <th scope="col" class="w-auto"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="cartItemContainer">
+
+                        </tbody>
+                    </table>
+                    
+                    <!-- Mobile Card View -->
+                    <div class="d-md-none" id="cartItemContainerMobile">
+                        
                     </div>
-
-                    <div class="row align-items-center mb-4" id="cartItemContainer">
-                       
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-4" id="orderSummaryContainer">
-                
-            </div>
-
-        </div>
-    </div>
-
-
-    <div class="container mt-5">
-        <div class="payment-box shadow-sm">
-            <div class="row text-center">
-                <div class="col-md-6">
-                    <input type="radio" name="payment">
-                    <strong> CASH ON DELIVERY</strong>
-                    <p class="small text-muted mb-0">
-                        Your order will be delivered to your default address
-                    </p>
-                </div>
-
-                <div class="col-md-6">
-                    <input type="radio" name="payment">
-                    <strong> E - WALLET</strong>
-                    <p class="small text-muted mb-0">
-                        Paypal, Maya, Gcash,
-                    </p>
                 </div>
             </div>
         </div>
     </div>
 
-   <div class="container text-center my-5">
-    <form method="post" action="">
-        <button type="submit" class="btn btn-success text-white fw-bold py-2 px-4">
-            PLACE ORDER
-        </button>
-    </form>
-</div>
-
-
+    <div class="container my-5 d-flex justify-content-end align-items-center gap-4" id="checkoutSection">
+        
     </div>
+
 
     <?php include "components/footer.php"; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         var cartItemContainer = document.getElementById('cartItemContainer');
-        var orderSummaryContainer = document.getElementById('orderSummaryContainer');
+        var cartItemContainerMobile = document.getElementById('cartItemContainerMobile');
+        var checkoutSection = document.getElementById('checkoutSection');
 
         async function getCartItems() {
             try {
@@ -147,24 +138,63 @@
                 }
 
                 const data = await response.json();
-                
-                data.forEach(item => {
-                    cartItemContainer.innerHTML += `
-                         <div class="col-5 d-flex align-items-center">
-                            <img src="`+ item.image +`" class="m-3 mx-4 img product-img" width="100" height="100" alt="Product Image">
-                            <div>
-                                <div class="mx-4">`+ item.product_name +`</div>
-                                <small class="text-muted ms-4">`+ item.category +`</small>
-                            </div>
-                        </div>
-                        <div class="col-4 text-center">
-                            <button class="qty-btn" onclick="decreaseQty()">-</button>
-                            <input type="text" id="qty" class="qty-box" value="`+ item.quantity +`" readonly>
-                            <button class="qty-btn" onclick="increaseQty()">+</button>
-                        </div>
 
-                        <div class="col-3 text-end">
-                            <span id="item-price" data-price="150">`+ item.price * item.quantity +`</span>
+                data.forEach(item => {
+                    // desktop table row
+                    cartItemContainer.innerHTML += `
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <input type="checkbox" class="form-check-input cart-checkbox me-3" value="`+ item.cart_id + `" data-price="`+ item.price + `" data-quantity="`+ item.quantity + `" onchange="handleCheckboxChange()" style="width: 20px; height: 20px;">
+                                    <img src="`+ item.image + `" class="border border-1 rounded border-dark me-3" style="width: 80px; height: 80px; object-fit: cover;" alt="Product Image">
+                                    <div>
+                                        <div class="fw-semibold">`+ item.product_name + `</div>
+                                        <small class="text-muted">`+ item.category + `</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="align-middle text-center">
+                                <button class="qty-btn" onclick="decreaseQty()">-</button>
+                                <input type="text" id="qty" class="qty-box" value="`+ item.quantity + `" readonly>
+                                <button class="qty-btn" onclick="increaseQty()">+</button>
+                            </td>
+                            <td class="align-middle text-center">
+                                `+ formatPhp((item.price * item.quantity)) + `
+                            </td>
+                            <td class="align-middle text-center">
+                                <button class="btn" onclick="deleteItem(`+ item.id + `)">
+                                    <span class="material-symbols-outlined">
+                                        delete
+                                    </span>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    
+                    // mobile card layout
+                    cartItemContainerMobile.innerHTML += `
+                        <div class="border-bottom p-3">
+                            <div class="d-flex mb-3">
+                                <input type="checkbox" class="form-check-input cart-checkbox me-2 mt-2" value="`+ item.cart_id + `" data-price="`+ item.price + `" data-quantity="`+ item.quantity + `" onchange="handleCheckboxChange()" style="width: 20px; height: 20px;">
+                                <img src="`+ item.image + `" class="border border-1 rounded border-dark me-3" style="width: 100px; height: 100px; object-fit: cover;" alt="Product Image">
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold mb-1">`+ item.product_name + `</div>
+                                    <small class="text-muted d-block mb-2">`+ item.category + `</small>
+                                    <div class="fw-bold text-danger fs-5">`+ formatPhp((item.price * item.quantity)) + `</div>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center gap-2">
+                                    <button class="qty-btn" onclick="decreaseQty()">-</button>
+                                    <input type="text" class="qty-box" value="`+ item.quantity + `" readonly>
+                                    <button class="qty-btn" onclick="increaseQty()">+</button>
+                                </div>
+                                <button class="btn" onclick="deleteItem(`+ item.id + `)">
+                                    <span class="material-symbols-outlined">
+                                        delete
+                                    </span>
+                                </button>
+                            </div>
                         </div>
                     `;
                 });
@@ -176,7 +206,7 @@
 
         getCartItems();
 
-        async function getOrderSummary(){
+        async function getCartSummary(){
             try {
                 const response = await fetch('../api/getCartSummary.php', {
                     method: 'GET',
@@ -191,28 +221,37 @@
 
                 const data = await response.json();
                 
-                orderSummaryContainer.innerHTML = `
-                    <div class="card-custom p-4 shadow-sm text-center text-muted">
-                        <h5 class="mb-3">Order Summary</h5>
-                        <hr>
-                        <div class="d-flex justify-content-between">
-                            <span>Subtotal</span>
-                            <span id="subtotal">₱`+ data.subtotal +`</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Shipping Fee</span>
-                            <span id="shipping" data-shipping="50">₱`+ data.shipping +`</span>
-                        </div>
-                        <hr>
-                        <div class="d-flex justify-content-between mb-4 fw-bold">
-                            <span>Order Total</span>
-                            <span id="order-total">₱`+ data.total +`</span>
-                        </div>
-                        <form method="post" action="">
-                            <button type="submit" class="btn btn-secondary w-100">CHECKOUT</button>
-                        </form>
-                    </div>
+                checkoutSection.innerHTML = `
+                    <p class="fw-normal" id="totalDisplay">
+                        <strong style="color: #6EC064;">Subtotal: ₱<span id="selectedSubtotal">0.00</span></strong>
+                        <br>
+                        Shipping: ₱<span id="selectedShipping">0.00</span>
+                        <br>
+                        <strong style="color: #6EC064;">Total: ₱<span id="selectedTotal">0.00</span></strong>
+                    </p>
+                    <form method="post" action="checkout.php">
+                        <button type="submit" id="checkoutBtn" class="btn text-white fw-bold py-2 px-4" style="background-color: #6EC064;" disabled>
+                            CHECKOUT
+                        </button>
+                    </form>
                 `;
+
+                // Add event listener AFTER form is created
+                const form = document.querySelector('form');
+                if (form) {
+                    form.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        const checkedItems = getCheckedItems();
+                        
+                        await fetch('../api/saveCheckoutItems.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ cart_ids: checkedItems })
+                        });
+                        
+                        window.location.href = 'checkout.php';
+                    });
+                }
 
                 console.log(data);
             } catch (error) {
@@ -221,7 +260,7 @@
             }
         }
 
-        getOrderSummary();
+        getCartSummary();
 
         function formatPhp(n) {
             return '₱' + n.toFixed(2);
@@ -246,6 +285,93 @@
         }
 
         document.addEventListener('DOMContentLoaded', updateTotals);
+
+        async function deleteItem(cartItemId) {
+            if (!confirm('Are you sure you want to delete this item?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('../api/deleteCartItem.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ cart_item_id: cartItemId })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to delete item');
+                }
+
+                const data = await response.json();
+                console.log(data.message);
+                
+                location.reload();
+            } catch (error) {
+                console.error('Error deleting item:', error);
+                alert('Failed to delete item. Please try again.');
+            }
+        }
+
+        function getCheckedItems() {
+            const checkboxes = document.querySelectorAll('.cart-checkbox:checked');
+            const checkedIds = [];
+            checkboxes.forEach(checkbox => {
+                checkedIds.push(checkbox.value);
+            });
+            return checkedIds;
+        }
+
+        function calculateSelectedTotal() {
+            const checkboxes = document.querySelectorAll('.cart-checkbox:checked');
+            let subtotal = 0;
+            
+            checkboxes.forEach(checkbox => {
+                const price = parseFloat(checkbox.dataset.price);
+                const quantity = parseInt(checkbox.dataset.quantity);
+                subtotal += (price * quantity);
+            });
+            
+            const shipping = checkboxes.length > 0 ? 50 : 0; // based sa calculation nila cj
+            const total = subtotal + shipping;
+            
+            return {
+                subtotal: subtotal.toFixed(2),
+                shipping: shipping.toFixed(2),
+                total: total.toFixed(2),
+                itemCount: checkboxes.length
+            };
+        }
+
+        function handleCheckboxChange() {
+            const checkedItems = getCheckedItems();
+            console.log('Checked items:', checkedItems);
+            
+            // Calculate totals for selected items
+            const totals = calculateSelectedTotal();
+            
+            // Update display
+            const subtotalEl = document.getElementById('selectedSubtotal');
+            const shippingEl = document.getElementById('selectedShipping');
+            const totalEl = document.getElementById('selectedTotal');
+            const checkoutBtn = document.getElementById('checkoutBtn');
+            
+            if (subtotalEl) subtotalEl.textContent = totals.subtotal;
+            if (shippingEl) shippingEl.textContent = totals.shipping;
+            if (totalEl) totalEl.textContent = totals.total;
+            
+            // Enable/disable checkout button
+            if (checkoutBtn) {
+                if (totals.itemCount > 0) {
+                    checkoutBtn.disabled = false;
+                    checkoutBtn.style.opacity = '1';
+                } else {
+                    checkoutBtn.disabled = true;
+                    checkoutBtn.style.opacity = '0.5';
+                }
+            }
+        }
     </script>
 </body>
 
