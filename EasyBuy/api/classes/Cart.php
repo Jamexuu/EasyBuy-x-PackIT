@@ -1,5 +1,5 @@
 <?php
-include 'Database.php';
+require_once 'Database.php';
 
 class Cart {
     private $db;
@@ -65,6 +65,12 @@ class Cart {
     function deleteCartItem($itemId) {
         $deleteQuery = "DELETE FROM cart_items WHERE id = ?";
         $this->db->executeQuery($deleteQuery, [$itemId]);
+        return true;
+    }
+
+    function deleteCart($userId){
+        $deleteQuery = "DELETE FROM cart WHERE user_id = ?";
+        $this->db->executeQuery($deleteQuery, [$userId]);
         return true;
     }
 
