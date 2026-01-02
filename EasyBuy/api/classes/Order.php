@@ -44,4 +44,18 @@ class Order{
         $result = $this->db->executeQuery($query, [$orderId]);
         return $this->db->fetch($result);
     }
+
+    function getPlacedOrderCount(){
+        $query = "SELECT COUNT(*) as count FROM orders WHERE status = 'order placed'";
+        $result = $this->db->executeQuery($query);
+        $data = $this->db->fetch($result);
+        return $data[0]['count'];
+    }
+
+    function getPickedUpOrderCount(){
+        $query = "SELECT COUNT(*) as count FROM orders WHERE status = 'in transit'";
+        $result = $this->db->executeQuery($query);
+        $data = $this->db->fetch($result);
+        return $data[0]['count'];
+    }
 }
