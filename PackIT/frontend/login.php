@@ -1,64 +1,57 @@
 <?php
 session_start();
 
-// Path to your JSON file
-$usersFile = __DIR__ . '/../api/data/users.json';
+// Include the User and Auth classes
+require_once __DIR__ .'/../api/classes/User.php';
+require_once __DIR__ .'/../api/classes/Auth.php';
 
+// Redirect if already logged in
+Auth::redirectIfLoggedIn();
 
-// Make sure the file exists
-if (!file_exists($usersFile)) {
-    die("User database not found.");
-}
-
-// Read the users data
-$users = json_decode(file_get_contents($usersFile), true);
+$error = '';
 
 // Check if form is submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim($_POST['email']);
-    $password = $_POST['password'];
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
 
-    $found = false;
+    if (empty($email) || empty($password)) {
+        $error = "Please fill in all fields.";
+    } else {
+        // Initialize User class
+        $userObj = new User();
+        
+        // Attempt login (returns user data or false)
+        $user = $userObj->login($email, $password);
 
-    // Loop through users to find matching email
-    foreach ($users as $user) {
-        if (strtolower($user['email']) === strtolower($email)) {
-            $found = true;
+        if ($user) {
+            // Login successful - set session using Auth class
+            $fullName = $user['first_name'] .' ' .$user['last_name'];
+            Auth::login($user['id'], $user['email'], $fullName, $user['role']);
 
-            // Verify password
-            if (password_verify($password, $user['password'])) {
-                // Password correct, start session
-                $_SESSION['user'] = [
-                    'firstName'   => $user['firstName'] ?? '',
-                    'lastName'    => $user['lastName'] ?? '',
-                    'contact'     => $user['contact'] ?? '',
-                    'email'       => $user['email'],
-                    'houseNumber' => $user['houseNumber'] ?? '',
-                    'street'      => $user['street'] ?? '',
-                    'subdivision' => $user['subdivision'] ?? '',
-                    'landmark'    => $user['landmark'] ?? '',
-                    'province'    => $user['province'] ?? '',
-                    'city'        => $user['city'] ?? '',
-                    'barangay'    => $user['barangay'] ?? '',
-                    'postal'      => $user['postal'] ?? '',
-                    'created_at'  => $user['created_at'] ?? '',
-                ];
+            // Store user details in session
+            $_SESSION['user'] = [
+                'id'          => $user['id'],
+                'firstName'   => $user['first_name'],
+                'lastName'    => $user['last_name'],
+                'email'       => $user['email'],
+                'contact'     => $user['contact_number'],
+                'role'        => $user['role'],
+                'created_at'  => $user['created_at']
+            ];
 
-                // Optional: Gmail login notification
-                // require 'gmail_notify.php'; // Your Gmail API code here
-
-                // Redirect to dashboard or home
-                header('Location: dashboard.php');
-                exit();
+            // Redirect based on role
+            if ($user['role'] === 'admin') {
+                header('Location: ../admin/dashboard.php');
+            } elseif ($user['role'] === 'driver') {
+                header('Location:  ../driver/dashboard.php');
             } else {
-                $error = "Incorrect password.";
+                header('Location: dashboard.php');
             }
-            break;
+            exit();
+        } else {
+            $error = "Invalid email or password.";
         }
-    }
-
-    if (!$found) {
-        $error = "Email not registered.";
     }
 }
 ?>
@@ -71,13 +64,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>PackIT - Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="d-flex align-items-center min-vh-100" style="background-color: #fffef5;">
+<body class="d-flex align-items-center min-vh-100" style="background-color:  #fffef5;">
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-5 col-lg-4">
             <div class="card border-0 shadow-lg rounded-4 p-4">
                 <div class="card-body">
                     <h1 class="h3 fw-bold mb-3 text-center">Welcome Back</h1>
+
+                    <?php if (! empty($_SESSION['success'])) : ?>
+                        <div class="alert alert-success small"><?= htmlspecialchars($_SESSION['success']) ?></div>
+                        <?php unset($_SESSION['success']); ?>
+                    <?php endif; ?>
 
                     <?php if (!empty($error)) : ?>
                         <div class="alert alert-danger small"><?= htmlspecialchars($error) ?></div>
