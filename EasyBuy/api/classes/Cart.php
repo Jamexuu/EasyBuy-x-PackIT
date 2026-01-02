@@ -53,6 +53,7 @@ class Cart {
                 products.price,
                 products.image,
                 products.size,
+                products.weight_grams,
                 products.category
             FROM cart_items 
             INNER JOIN products ON cart_items.product_id = products.id 
