@@ -41,4 +41,14 @@ class Product {
 
         return $data;
     }
+
+    function getProductCount() {
+        $query = "SELECT COUNT(*) as count FROM products";
+
+        $stmt = $this->db->executeQuery($query);
+        $data = $this->db->fetch($stmt);
+        mysqli_stmt_close($stmt);
+
+        return $data[0]['count'];
+    }
 }
