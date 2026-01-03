@@ -6,151 +6,209 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Join PackIT - Delivery Solutions</title>
 
-  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-  <!-- Hover Overlay Styles -->
   <style>
-    .category-card {
-      position: relative;
-      cursor: pointer;
+    #categoriesContainer {
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      scroll-behavior: smooth;
     }
 
-    .category-overlay {
+    #categoriesContainer::-webkit-scrollbar {
+      display: none;
+    }
+
+    .vehicle-wrapper {
+      flex: 0 0 auto;
+      width: 85vw;
+    }
+
+    @media (min-width: 768px) {
+      .vehicle-wrapper {
+        flex: 0 0 auto;
+        width: min(85vw, 300px);
+      }
+    }
+
+    .vehicle-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: 2px solid transparent;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .vehicle-card:hover {
+      transform: translateY(-5px);
+      border-color: #f8e14b;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .vehicle-card img {
+      max-height: 160px;
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      max-width: 100%;
+      height: 160px;
+    }
+
+    .scroll-btn {
       position: absolute;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.75);
-      color: #fff;
-      opacity: 0;
-      transition: opacity 0.3s ease;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 10;
+      width: clamp(36px, 4vw, 45px);
+      height: clamp(36px, 4vw, 45px);
+      border-radius: 50%;
+      background-color: #fff;
+      border: 1px solid #eee;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       display: flex;
       align-items: center;
       justify-content: center;
-      text-align: center;
-      padding: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
 
-    .category-card:hover .category-overlay {
-      opacity: 1;
+    .scroll-btn:hover {
+      background-color: #f8e14b;
+      border-color: #f8e14b;
+      color: #000;
+    }
+
+    .scroll-btn:active {
+      transform: translateY(-50%) scale(0.95);
+    }
+
+    .scroll-btn-left {
+      left: clamp(4px, 1vw, 16px);
+    }
+
+    .scroll-btn-right {
+      right: clamp(4px, 1vw, 16px);
+    }
+
+    @media (max-width: 768px) {
+      .scroll-btn {
+        display: none;
+      }
+
+      .scroll-container-wrapper {
+        padding: 0 !important;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .vehicle-card img {
+        height: 120px;
+      }
     }
   </style>
 </head>
 
 <body>
 
-  <!-- CATEGORIES SECTION -->
-  <div class="container py-5 p-lg-5">
+  <div class="container-fluid py-5 p-lg-5">
     <div class="row">
-      <div class="col mb-4 d-flex justify-content-center justify-content-lg-start pt-4">
-        <div class="h1 fw-bold ps-3" style="color:#6EC064">
-          Categories
-        </div>
+      <div class="col mb-4 pt-4">
+        <h1 class="fw-bold ps-2 border-start border-5 border-warning text-dark">
+          Vehicle Type
+        </h1>
       </div>
     </div>
 
-    <div class="row g-3 g-md-4 justify-content-center" id="categoriesContainer"></div>
+    <div class="position-relative scroll-container-wrapper">
+      <button class="scroll-btn scroll-btn-left" onclick="scrollContainer('left')" aria-label="Scroll Left">
+        <i class="bi bi-chevron-left fs-5"></i>
+      </button>
+
+      <div class="d-flex flex-nowrap py-3 gap-3" id="categoriesContainer"></div>
+
+      <button class="scroll-btn scroll-btn-right" onclick="scrollContainer('right')" aria-label="Scroll Right">
+        <i class="bi bi-chevron-right fs-5"></i>
+      </button>
+    </div>
   </div>
 
-  <!-- Categories Script -->
   <script>
-    const vehicles = [
-      {
-        vehicle: "motorcycle",
+    var categories = [{
         name: "Motorcycle",
         image: "motorcycle.png",
-        base_price_php: 100,
-        max_weight_kg: 20,
-        max_size_m: { l: 0.5, w: 0.4, h: 0.5 },
-        can_carry: ["small bags", "envelopes"]
+        description: `<small class="text-muted">Type:</small> <strong>Envelope</strong><br><small class="text-muted">Price:</small> <strong>₱100</strong><br><small class="text-muted">Max:</small> <strong>20 kg</strong><br><small class="text-muted">Size:</small> <strong>0.5 x 0.4 x 0.5 Meter</strong>`
       },
       {
-        vehicle: "tricycle",
         name: "Tricycle",
         image: "tricycle.png",
-        base_price_php: 150,
-        max_weight_kg: 50,
-        max_size_m: { l: 0.7, w: 0.5, h: 0.5 },
-        can_carry: ["small boxes", "bags"]
+        description: `<small class="text-muted">Type:</small> <strong>Small Box</strong><br><small class="text-muted">Price:</small> <strong>₱150</strong><br><small class="text-muted">Max:</small> <strong>50 kg</strong><br><small class="text-muted">Size:</small> <strong>0.7 x 0.5 x 0.5 Meter</strong>`
       },
       {
-        vehicle: "sedan",
         name: "Sedan",
         image: "sedan.png",
-        base_price_php: 200,
-        max_weight_kg: 200,
-        max_size_m: { l: 1.0, w: 0.6, h: 0.7 },
-        can_carry: ["medium boxes", "multiple parcels"]
+        description: `<small class="text-muted">Type:</small> <strong>Med Box</strong><br><small class="text-muted">Price:</small> <strong>₱200</strong><br><small class="text-muted">Max:</small> <strong>200 kg</strong><br><small class="text-muted">Size:</small> <strong>1.0 x 0.6 x 0.7 Meter</strong>`
       },
       {
-        vehicle: "pickup_truck",
         name: "Pick-up Truck",
         image: "pickup.png",
-        base_price_php: 250,
-        max_weight_kg: 800,
-        max_size_m: { l: 2.7, w: 1.5, h: 0.5 },
-        can_carry: ["big boxes", "bulky items"]
+        description: `<small class="text-muted">Type:</small> <strong>Big Box</strong><br><small class="text-muted">Price:</small> <strong>₱250</strong><br><small class="text-muted">Max:</small> <strong>800 kg</strong><br><small class="text-muted">Size:</small> <strong>2.7 x 1.5 x 0.5 Meter</strong>`
       },
       {
-        vehicle: "closed_van",
         name: "Closed Van",
         image: "van.png",
-        base_price_php: 300,
-        max_weight_kg: 1000,
-        max_size_m: { l: 2.1, w: 1.3, h: 1.3 },
-        can_carry: ["pallets", "boxed goods", "perishables (depends on packaging)"]
+        description: `<small class="text-muted">Type:</small> <strong>Pallet (Perishable)</strong><br><small class="text-muted">Price:</small> <strong>₱300</strong><br><small class="text-muted">Max:</small> <strong>1000 kg</strong><br><small class="text-muted">Size:</small> <strong>2.1 x 1.3 x 1.3 Meter</strong>`
       },
       {
-        vehicle: "forward_truck",
         name: "Forward Truck",
-        image: "forward-truck.png",
-        base_price_php: 350,
-        max_weight_kg: 1200,
-        max_size_m: { l: 10.0, w: 2.4, h: 2.3 },
-        can_carry: ["pallets", "bulk items", "non-perishables (depends on packaging)"]
+        image: "forward truck.png",
+        description: `<small class="text-muted">Type:</small> <strong>Pallet (Non Perishable)</strong><br><small class="text-muted">Price:</small> <strong>₱350</strong><br><small class="text-muted">Max:</small> <strong>1200 kg</strong><br><small class="text-muted">Size:</small> <strong>10.0 x 2.4 x 2.3 Meter</strong>`
       }
     ];
 
-    const container = document.getElementById("categoriesContainer");
+    var container = document.getElementById("categoriesContainer");
+    var contentHTML = "";
 
-    vehicles.forEach(v => {
-      const sizeText = `${v.max_size_m.l} x ${v.max_size_m.w} x ${v.max_size_m.h} m`;
-      const carryText = (v.can_carry && v.can_carry.length) ? v.can_carry.join(", ") : "—";
-
-      container.innerHTML += `
-        <div class="col-6 col-lg-3">
-          <div class="card h-100 rounded-4 shadow-sm overflow-hidden category-card">
-
-            <img class="card-img-top p-3"
-              src="/EASYBUY-X-PACKIT/PackIT/assets/${v.image}"
-              style="height:160px; object-fit:contain;"
-              alt="${v.name}">
-
-            <div class="card-body text-center p-2" style="background-color:#DCDCDC;">
-              <h6 class="fw-bold mb-0">${v.name}</h6>
-            </div>
-
-            <div class="category-overlay">
-              <div>
-                <div><b>Vehicle:</b> ${v.vehicle}</div>
-                <div><b>Base Price:</b> ₱${v.base_price_php}</div>
-                <div><b>Max Weight:</b> ${v.max_weight_kg} kg</div>
-                <div><b>Max Size:</b> ${sizeText}</div>
-                <div><b>Can Carry (examples):</b> ${carryText}</div>
-                <div class="mt-2" style="font-size:0.9em; opacity:0.9;">
-                  Final acceptance depends on actual package size & weight.
-                </div>
+    categories.forEach(cat => {
+      contentHTML += `
+        <div class="vehicle-wrapper">
+          <div class="card rounded-4 shadow-sm vehicle-card">
+            <img class="card-img-top p-3 img-fluid"
+                 src="/EASYBUY-X-PACKIT/PackIT/assets/${cat.image}"
+                 style="height:160px; object-fit:contain;"
+                 alt="${cat.name}">
+            <div class="card-body border-top d-flex flex-column">
+              <h5 class="fw-bold mb-3 text-center" style="color:#333">${cat.name}</h5>
+              <div class="p-3 rounded-3 mt-auto" style="background-color:#f8f9fa;">
+                <p class="card-text small mb-0" style="line-height: 1.6;">
+                  ${cat.description}
+                </p>
               </div>
             </div>
-
           </div>
         </div>
       `;
     });
+
+    container.innerHTML = contentHTML;
+
+    function scrollContainer(direction) {
+      const firstCard = container.querySelector('.vehicle-wrapper');
+      if (!firstCard) return;
+
+      const style = window.getComputedStyle(container);
+      const gap = parseInt(style.gap) || 0;
+      const scrollAmount = firstCard.offsetWidth + gap;
+
+      container.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
   </script>
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 
