@@ -112,6 +112,8 @@
 
 <body>
 
+  <?php include 'components/navbar.php'; ?>
+
   <div class="container-fluid py-5 p-lg-5">
     <div class="row">
       <div class="col mb-4 pt-4">
@@ -133,6 +135,8 @@
       </button>
     </div>
   </div>
+
+  <?php include 'components/footer.php'; ?>
 
   <script>
     var categories = [{
