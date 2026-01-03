@@ -25,7 +25,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $userObj->login($email, $password);
 
         if ($user) {
-            // Login successful - set session using Auth class
+            // Login successful - regenerate session id and set session using Auth class
+            session_regenerate_id(true);
+
             $fullName = $user['first_name'] .' ' .$user['last_name'];
             Auth::login($user['id'], $user['email'], $fullName, $user['role']);
 
@@ -44,9 +46,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($user['role'] === 'admin') {
                 header('Location: ../admin/dashboard.php');
             } elseif ($user['role'] === 'driver') {
-                header('Location:  ../driver/dashboard.php');
+                header('Location: ../driver/dashboard.php');
             } else {
-                header('Location: dashboard.php');
+                // Regular users go to their profile page
+                header('Location: profile.php');
             }
             exit();
         } else {
