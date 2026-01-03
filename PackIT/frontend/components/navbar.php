@@ -36,7 +36,7 @@
                         $navItems = [
                             'payment.php' => 'Payment',
                             'transactions.php' => 'Transactions',
-                            'vehicles.php' => 'Vehicles',
+                            'frontend/vehicle.php' => 'Vehicles',
                             'records.php' => 'Records'
                         ];
                         foreach ($navItems as $url => $label):
