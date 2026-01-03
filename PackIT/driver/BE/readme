@@ -1,0 +1,12 @@
+For Edgar and Paul
+
+Backend
+
+kailangan naka connect yung orders ng users sa part ng driver
+dpende sa driver yung magiging status ng tracking ng users
+like: 
+- Booking accepted by driver
+- rider on route to destination
+- package has been delivered
+
+should be connected to the tracking.php of the user side.

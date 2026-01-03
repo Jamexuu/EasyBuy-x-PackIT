@@ -9,13 +9,13 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="../assets/css/style.css" rel="stylesheet">
     <style>
-        #addToCart, .dropdown-item:active, .dropdown-item:focus, 
+        .addToCartBtn, .dropdown-item:active, .dropdown-item:focus, 
         #nextBtn, #prevBtn {
             background-color: #6EC064;
             color: #FFFFFF;
         }
 
-        #addToCart:hover, #nextBtn:hover, #prevBtn:hover {
+        .addToCartBtn:hover, #nextBtn:hover, #prevBtn:hover {
             background-color: lightgray;
             color: dimgray
         }
@@ -87,7 +87,8 @@
                 </div>
             </div>
         </div>
-    </div> 
+    </div>
+    <script src="../assets/js/addToCart.js"></script>
     <script>
         const contentArea = document.getElementById("productsArea");
         const pageText = document.getElementById("pageText");
@@ -99,7 +100,7 @@
         const cardSize = 16;
 
         async function displayProducts() {
-            const response = await fetch("../assets/products.json");
+            const response = await fetch("../api/getAllProducts.php");
             products = await response.json();
             filteredProducts = products;
             getProducts();
@@ -117,25 +118,25 @@
                 
                 contentArea.innerHTML += `
                 <div class="col-12 col-md-4 col-lg-3 mb-4">
-                    <div class="card rounded-4 h-100" style="cursor: pointer;" onclick="window.location.href='productView.php?id=${product["Product ID"]}'">
+                    <div class="card rounded-4 h-100" style="cursor: pointer;" onclick="window.location.href='productView.php?id=${product.id}'">
                         <img class="img-fluid object-fit-contain p-3 justify-content-center align-items-center" style="height: 180px;"
-                             src="${product.image}" alt="${product["Product Name"]}">
+                             src="${product.image}" alt="${product.product_name}">
                         ${isSale ? '<div class="card-img-overlay"><span class="badge position-absolute me-3 end-0">Sale</span></div>' : ''}
                         <div class="card-body mt-0 pt-0 d-block">
-                            <h5 class="card-title d-none d-md-block text-center fw-bold">${product["Product Name"]}</h5>
-                            <h3 class="card-title d-md-none text-center fw-bold">${product["Product Name"]}</h3>
-                            <p class="card-text text-center text-secondary">${product.Size}</p>
+                            <h5 class="card-title d-none d-md-block text-center fw-bold">${product.product_name}</h5>
+                            <h3 class="card-title d-md-none text-center fw-bold">${product.product_name}</h3>
+                            <p class="card-text text-center text-secondary">${product.size}</p>
                         </div>
                         <div class="p-3 d-flex justify-content-between align-items-center">
-                            <span class="h6 d-none d-md-flex" style="color: #6EC064;">PHP ${product.Price}</span>
-                            <span class="h4 d-md-none" style="color: #6EC064;">PHP ${product.Price}</span>
-                            <button type="button" class="btn rounded-3" id="addToCart" onclick="event.stopPropagation()">
+                            <span class="h6 d-none d-md-flex" style="color: #6EC064;">PHP ${product.price}</span>
+                            <span class="h4 d-md-none" style="color: #6EC064;">PHP ${product.price}</span>
+                            <button type="button" class="btn rounded-3 addToCartBtn" data-product-id="${product.id}" onclick="event.stopPropagation(); addToCart(${product.id});">
                                 <span class="material-symbols-rounded">shopping_cart</span>
                             </button>
                         </div>
                     </div>
                 </div>
-            `;
+                `;
             });
         }
 

@@ -33,56 +33,53 @@
                     style="max-height: 60px;">
             </a>
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
-                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
-                aria-label="Toggle navigation">
+                data-bs-target="#navbarSupportedContent">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav ms-auto me-5 gap-5">
-                    <li class="nav-item">
-                        <a class="nav-link text-white fw-normal" href="#">Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white fw-normal" href="#">Products</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white fw-normal" href="#">Orders</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white fw-normal" href="#">Email</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white fw-normal" href="#">SMS</a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link text-white fw-normal" href="#">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link text-white fw-normal" href="#">Products</a></li>
+                    <li class="nav-item"><a class="nav-link text-white fw-normal" href="#">Orders</a></li>
+                    <li class="nav-item"><a class="nav-link text-white fw-normal" href="#">Email</a></li>
+                    <li class="nav-item"><a class="nav-link text-white fw-normal" href="#">SMS</a></li>
                 </ul>
             </div>
         </div>
     </div>
 
-    <div class="container py-5">
+    <div class="container py-5" id="productListView">
         <div class="row align-items-center mb-4">
             <div class="col-12 col-md-6 mb-3 mb-md-0">
-                <button class="btn border-0 rounded-pill px-3 py-2" style="background-color: #d3d3d3; color: #6a6a6a;">
+                <button class="btn border-0 rounded-pill px-4 py-2" id="addProductBtn"
+                    style="background-color: #28a745; color: white;">
                     <span>+</span> Add Product
                 </button>
             </div>
             <div class="col-12 col-lg-4 ms-auto">
                 <div class="d-flex gap-2 align-items-center">
-                    <input type="text" class="form-control border-0 rounded-pill flex-grow-1"
+                    <input type="text" id="searchInput" class="form-control border-0 rounded-pill flex-grow-1"
                         style="background-color: #e0e0e0; padding: 0.5rem 1rem;" placeholder="Search">
-                    <span class="material-symbols-rounded text-success fs-2">
-                        search
-                    </span>
+                    <span class="material-symbols-rounded text-success fs-2">search</span>
                 </div>
             </div>
         </div>
+        <div id="productList"></div>
     </div>
 
-    <div class="container">
+    <div class="container py-5" id="productFormView" style="display: none;">
+        <div class="row align-items-center mb-4">
+            <div class="col-12">
+                <button class="btn border-0 rounded-pill px-4 py-2" id="backToListBtn"
+                    style="background-color: #6c757d; color: white;">
+                    <span>←</span> Back to Products
+                </button>
+            </div>
+        </div>
         <div class="card border-0 shadow-sm p-4" style="background-color: #e8e8e8;">
             <div class="row mb-3">
                 <div class="col-12">
-                    <h5 class="mb-4 fw-bold">New Product</h5>
+                    <h5 class="mb-4 fw-bold" id="formTitle">New Product</h5>
                 </div>
             </div>
             <div class="row">
@@ -138,8 +135,10 @@
                         </div>
                     </div>
                     <div class="row mt-3">
-                        <div class="col-12 d-flex justify-content-end">
-                            <button class="btn border-0 rounded-pill text-white"
+                        <div class="col-12 d-flex justify-content-end gap-2">
+                            <button class="btn border-0 rounded-pill" id="cancelBtn"
+                                style="background-color: #6c757d; color: white; padding: 0.6rem 2rem;">Cancel</button>
+                            <button class="btn border-0 rounded-pill text-white" id="saveProductBtn"
                                 style="background-color: #28a745; padding: 0.6rem 2rem;">Add Product</button>
                         </div>
                     </div>
@@ -148,15 +147,36 @@
         </div>
     </div>
 
-    <div class="container py-4">
-        <div id="productList">
-        </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
     <script>
+        var products = [];
+        var filteredProducts = [];
+        var currentImageData = '';
+        var editingProductId = null;
+
+        function showProductList() {
+            document.getElementById('productListView').style.display = 'block';
+            document.getElementById('productFormView').style.display = 'none';
+            clearForm();
+        }
+
+        function showProductForm(isEdit = false) {
+            document.getElementById('productListView').style.display = 'none';
+            document.getElementById('productFormView').style.display = 'block';
+            document.getElementById('formTitle').textContent = isEdit ? 'Edit Product' : 'New Product';
+            document.getElementById('saveProductBtn').textContent = isEdit ? 'Update Product' : 'Add Product';
+        }
+
+        document.getElementById('addProductBtn').addEventListener('click', function () {
+            editingProductId = null;
+            showProductForm(false);
+        });
+
+        document.getElementById('backToListBtn').addEventListener('click', showProductList);
+        document.getElementById('cancelBtn').addEventListener('click', showProductList);
+
         document.getElementById('fileUploadBtn').addEventListener('click', function () {
             document.getElementById('fileInput').click();
         });
@@ -181,7 +201,6 @@
             const img = document.getElementById('imagePreview');
             const removeBtn = document.getElementById('removeImageBtn');
             const fileInput = document.getElementById('fileInput');
-
             currentImageData = '';
             img.src = '';
             img.style.display = 'none';
@@ -189,10 +208,7 @@
             fileInput.value = '';
         });
 
-        let products = [];
-        let currentImageData = '';
-
-        document.querySelector('.btn.text-white[style*="background-color: #28a745; padding: 0.6rem 2rem"]').addEventListener('click', function () {
+        document.getElementById('saveProductBtn').addEventListener('click', function () {
             const productName = document.getElementById('productName').value;
             const productSize = document.getElementById('productSize').value;
             const productCategory = document.getElementById('productCategory').value;
@@ -203,35 +219,60 @@
                 return;
             }
 
-            const product = {
-                id: Date.now(),
-                name: productName,
-                size: productSize,
-                category: productCategory,
-                price: productPrice,
-                image: currentImageData
-            };
+            if (editingProductId !== null) {
+                const productIndex = products.findIndex(p => p.id === editingProductId);
+                if (productIndex !== -1) {
+                    products[productIndex] = {
+                        id: editingProductId,
+                        name: productName,
+                        size: productSize,
+                        category: productCategory,
+                        price: productPrice,
+                        image: currentImageData
+                    };
+                }
+                editingProductId = null;
+            } else {
+                const product = {
+                    id: Date.now(),
+                    name: productName,
+                    size: productSize,
+                    category: productCategory,
+                    price: productPrice,
+                    image: currentImageData
+                };
+                products.push(product);
+            }
 
-            products.push(product);
             displayProducts();
-            clearForm();
+            showProductList();
         });
 
-        function displayProducts() {
+        async function displayProducts() {
+            const response = await fetch("../api/getAllProducts.php");
+            products = await response.json();
+            filteredProducts = products;
+            getProducts();
+        }
+
+        function getProducts() {
             const productList = document.getElementById('productList');
             productList.innerHTML = '';
-
-            products.forEach(product => {
+            if (filteredProducts.length === 0) {
+                productList.innerHTML = '<div class="text-center text-muted py-5"><p>No products yet. Click "Add Product" to get started.</p></div>';
+                return;
+            }
+            filteredProducts.forEach(product => {
                 const productItem = document.createElement('div');
                 productItem.className = 'product-item d-flex justify-content-between align-items-center rounded-3 mb-3';
                 productItem.style.cssText = 'background-color: #e8e8e8; padding: 1.25rem 1.5rem;';
                 productItem.innerHTML = `
-                    <span>${product.name}</span>
+                    <span>${product.name || product.product_name}</span>
                     <div class="d-flex gap-2">
-                        <button class="action-btn btn border-0 bg-transparent p-1" style="cursor: pointer;" onclick="editProduct(${product.id})">
+                        <button class="action-btn btn border-0 bg-transparent p-1" style="cursor: pointer;" onclick="editProduct(${product.id || product.product_id})">
                             <span class="material-symbols-rounded">edit</span>
                         </button>
-                        <button class="action-btn btn border-0 bg-transparent p-1" style="cursor: pointer;" onclick="deleteProduct(${product.id})">
+                        <button class="action-btn btn border-0 bg-transparent p-1" style="cursor: pointer;" onclick="deleteProduct(${product.id || product.product_id})">
                             <span class="material-symbols-rounded text-danger">delete</span>
                         </button>
                     </div>
@@ -241,28 +282,30 @@
         }
 
         function deleteProduct(id) {
-            products = products.filter(p => p.id !== id);
-            displayProducts();
+            if (confirm('Are you sure you want to delete this product?')) {
+                products = products.filter(p => (p.id || p.product_id) !== id);
+                filteredProducts = products;
+                getProducts();
+            }
         }
 
         function editProduct(id) {
-            const product = products.find(p => p.id === id);
+            const product = products.find(p => (p.id || p.product_id) === id);
             if (product) {
-                document.getElementById('productName').value = product.name;
-                document.getElementById('productSize').value = product.size;
-                document.getElementById('productCategory').value = product.category;
-                document.getElementById('productPrice').value = product.price;
-
-                if (product.image) {
+                editingProductId = product.id || product.product_id;
+                document.getElementById('productName').value = product.name || product.product_name || '';
+                document.getElementById('productSize').value = product.size || product.product_size || '';
+                document.getElementById('productCategory').value = product.category || product.product_category || 'all';
+                document.getElementById('productPrice').value = product.price || product.product_price || '';
+                if (product.image || product.product_image) {
                     const img = document.getElementById('imagePreview');
                     const removeBtn = document.getElementById('removeImageBtn');
-                    currentImageData = product.image;
-                    img.src = product.image;
+                    currentImageData = product.image || product.product_image;
+                    img.src = currentImageData;
                     img.style.display = 'block';
                     removeBtn.style.display = 'flex';
                 }
-
-                deleteProduct(id);
+                showProductForm(true);
             }
         }
 
@@ -276,7 +319,19 @@
             document.getElementById('imagePreview').style.display = 'none';
             document.getElementById('removeImageBtn').style.display = 'none';
             document.getElementById('fileInput').value = '';
+            editingProductId = null;
         }
+
+        document.getElementById('searchInput').addEventListener('input', function (e) {
+            const searchTerm = e.target.value.toLowerCase();
+            filteredProducts = products.filter(product => {
+                const productName = (product.name || product.product_name || '').toLowerCase();
+                return productName.includes(searchTerm);
+            });
+            getProducts();
+        });
+
+        displayProducts();
     </script>
 </body>
 

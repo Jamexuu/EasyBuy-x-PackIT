@@ -104,21 +104,28 @@
                 </div>
 
                 <div class="d-flex gap-2">
-                    <button id="addToCartBtn" class="btn" onclick="addToCart()">
-                        <span class="material-symbols-rounded">shopping_cart</span>
-                    </button>
-                    <button id="buyNowBtn" class="btn flex-grow-1" onclick="buyNow()">Buy Now</button>
+                    <form method="post" action="" class="d-inline">
+                        <button type="submit" id="addToCartBtn" class="btn" onclick="addToCart(productId, getQuantity());">
+                            <span class="material-symbols-rounded">shopping_cart</span>
+                        </button>
+                    </form>
+                    <form method="post" action="" class="flex-grow-1">
+                        <button type="submit" id="buyNowBtn" class="btn w-100" onclick="buyNow()">Buy Now</button>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 
+    <script src="../assets/js/addToCart.js"></script>
     <script>
         let currentProduct = null;
+        var urlParams = new URLSearchParams(window.location.search);
+        var productId = urlParams.get('id');
+        var qtyInput = document.getElementById('quantity');
 
         async function loadProduct() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const productId = urlParams.get('id');
+            
 
             if (!productId) {
                 alert('No product selected!');
@@ -152,20 +159,17 @@
         }
 
         function increaseQty() {
-            let qtyInput = document.getElementById('quantity');
             qtyInput.value = parseInt(qtyInput.value) + 1;
         }
 
         function decreaseQty() {
-            let qtyInput = document.getElementById('quantity');
             if (parseInt(qtyInput.value) > 1) {
                 qtyInput.value = parseInt(qtyInput.value) - 1;
             }
         }
 
-        function addToCart() {
-            const qty = document.getElementById('quantity').value;
-            alert(`Added ${qty} x ${currentProduct["Product Name"]} to cart!`);
+        function getQuantity() {
+            return parseInt(qtyInput.value);
         }
 
         function buyNow() {
