@@ -2,6 +2,14 @@
     require_once '../api/classes/Auth.php';
     require_once '../api/classes/User.php';
 
+    if (isset($_GET['check_email'])) {
+        header('Content-Type: application/json');
+        $user = new User();
+        $exists = $user->emailExists($_GET['check_email']);
+        echo json_encode(['exists' => $exists]);
+        exit();
+    }
+
     Auth::redirectIfLoggedIn();
 
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -262,7 +270,24 @@
             }
         }
 
-        document.getElementById('nextBtn').addEventListener('click', function() {
+        document.getElementById('nextBtn').addEventListener('click', async function() {
+            if (currentStep === 1) {
+                const email = document.getElementById('email').value;
+                
+                if (!email) {
+                    alert('Please enter an email');
+                    return;
+                }
+                
+                const response = await fetch(`signUp.php?check_email=${encodeURIComponent(email)}`);
+                const data = await response.json();
+                
+                if (data.exists) {
+                    alert('Email already exists');
+                    return;
+                }
+            }
+            
             if (currentStep < totalSteps) {
                 currentStep++;
                 showStep(currentStep);
