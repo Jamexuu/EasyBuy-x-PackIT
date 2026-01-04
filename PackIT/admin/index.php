@@ -2,7 +2,7 @@
 require_once '../api/classes/Auth.php';
 require_once '../api/classes/User.php';
 
-Auth::redirectIfLoggedIn();
+Auth::redirectIfAdminLoggedIn();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['adminEmail'] ?? '';
