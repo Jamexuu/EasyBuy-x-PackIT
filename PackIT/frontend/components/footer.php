@@ -1,9 +1,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <style>
     .footer-curve {
-      height: 90px;
-      background: var(--brand-yellow);
-      clip-path: ellipse(85% 100% at 50% 100%);
+        height: 90px;
+        background: var(--brand-yellow);
+        clip-path: ellipse(85% 100% at 50% 100%);
     }
 </style>
 <footer class="pt-5 pb-4 text-dark mt-auto" style="background-color: #f8e15b;">
@@ -24,8 +24,7 @@
                     <a href="#!"
                         class="text-dark text-decoration-none fw-medium link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover">Tracking</a>
                     <a href="#!"
-                        class="text-dark text-decoration-none fw-medium link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover">Fleet
-                        Management</a>
+                        class="text-dark text-decoration-none fw-medium link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover">About Us</a>
                 </div>
             </div>
 
