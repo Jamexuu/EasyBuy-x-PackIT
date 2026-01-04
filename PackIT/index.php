@@ -247,7 +247,7 @@
           The gold standard of PH logistics. 🏆<br>
           Bridging gaps and breaking records, one delivery at a time.
         </p>
-        <a href="..." class="btn bg-brand btn-lg fw-bold rounded-pill px-4 mt-3 hover-scale">Get Started</a>
+        <a href="../PackIT/frontend/aboutUs.php" class="btn bg-brand btn-lg fw-bold rounded-pill px-4 mt-3 hover-scale">Get Started</a>
       </div>
 
 
