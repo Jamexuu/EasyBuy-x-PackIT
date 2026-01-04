@@ -1,7 +1,6 @@
 <?php
-
 $activePage = $activePage ?? 'dashboard';
-$basePath   = $basePath ?? '../';         
+$basePath   = $basePath ?? '../';
 ?>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -100,9 +99,12 @@ $basePath   = $basePath ?? '../';
                 <a href="dbTables.php?view=drivers" class="admin-nav-card shadow-sm <?= $activePage === 'drivers' ? 'active' : '' ?>">
                     Drivers
                 </a>
-                <a href="dbTables.php?view=vehicles" class="admin-nav-card shadow-sm <?= $activePage === 'vehicles' ? 'active' : '' ?>">
+
+                <!-- ✅ Vehicles now goes to editable admin page -->
+                <a href="vehicles.php" class="admin-nav-card shadow-sm <?= $activePage === 'vehicles' ? 'active' : '' ?>">
                     Vehicles
                 </a>
+
                 <a href="dbTables.php?view=payments" class="admin-nav-card shadow-sm <?= $activePage === 'payments' ? 'active' : '' ?>">
                     Payments
                 </a>

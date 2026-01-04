@@ -10,6 +10,7 @@ $viewToTable = [
     'users'     => 'users',
     'addresses' => 'addresses',
     'drivers'   => 'drivers',
+    'vehicles'  => 'vehicles',
     'payments'  => 'payments',
     'bookings'  => 'bookings',
 ];
@@ -20,6 +21,7 @@ $activePage = array_key_exists($view, $viewToTable) ? $view : 'users';
 $db = new Database();
 $conn = $db->connect();
 
+// list actual tables (strict whitelist)
 $tables = [];
 $res = $conn->query("SHOW TABLES");
 if ($res) {
@@ -61,6 +63,7 @@ function prettyTitle(string $key): string {
         'users' => 'Users',
         'addresses' => 'Addresses',
         'drivers' => 'Drivers',
+        'vehicles' => 'Vehicles',
         'payments' => 'Payments',
         'bookings' => 'Bookings',
         default => ucfirst($key),
@@ -78,9 +81,7 @@ $activePageTitle = prettyTitle($activePage);
 </head>
 <body>
 
-<?php
-include __DIR__ . '/../frontend/components/adminNavbar.php';
-?>
+<?php include __DIR__ . '/../frontend/components/adminNavbar.php'; ?>
 
         <div class="col-lg-9 col-md-8">
             <div class="content-area shadow-sm p-5">
@@ -143,8 +144,8 @@ include __DIR__ . '/../frontend/components/adminNavbar.php';
             </div>
         </div>
 
-    </div>
-</div>
+    </div><!-- row -->
+</div><!-- container -->
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
