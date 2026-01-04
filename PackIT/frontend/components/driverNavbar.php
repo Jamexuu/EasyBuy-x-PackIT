@@ -5,8 +5,11 @@
         --brand-yellow: #f8e15b;
         --brand-dark: #111;
     }
-    .bg-brand { background-color: var(--brand-yellow) !important; }
-    
+
+    .bg-brand {
+        background-color: var(--brand-yellow) !important;
+    }
+
     /* Custom pill shape to match your image */
     .navbar-pill {
         border-radius: 50px;
@@ -25,7 +28,7 @@
 <div class="container">
     <nav class="navbar navbar-expand-lg my-3 mx-auto shadow px-4 py-2 bg-brand navbar-pill">
         <div class="container-fluid">
-            
+
             <a class="navbar-brand d-flex align-items-center" href="index.php">
                 <img src="/EasyBuy-x-PackIT/PackIT/assets/LOGO.svg" alt="PackIT" height="40" class="object-fit-contain">
             </a>
@@ -40,10 +43,10 @@
                         <a class="nav-link" href="home.php">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="deliveries.php">Deliveries</a>
+                        <a class="nav-link" href="bookings.php">Bookings</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="tracking.php">Tracking</a>
+                        <a class="nav-link" href="dashboard.php">Dashboard</a>
                     </li>
                 </ul>
             </div>
