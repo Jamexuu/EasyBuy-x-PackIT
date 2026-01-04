@@ -1,72 +1,472 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pack IT</title>
 
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
 
   <style>
     :root {
       --brand-yellow: #f8e15b;
       --brand-dark: #111;
+      --brand-gray: #555;
     }
 
-    .bg-brand { background-color: var(--brand-yellow) !important; }
-    
-    body { font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
 
-    .hover-scale { transition: transform 0.2s ease-in-out; }
-    .hover-scale:hover { transform: scale(1.15); }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      overflow-x: hidden;
+      background: #fff;
+      color: var(--brand-dark);
+    }
+
+
+    .bg-brand {
+      background-color: var(--brand-yellow) !important;
+    }
+
+
+    .hover-scale {
+      transition: transform 0.2s ease-in-out;
+    }
+
+    .hover-scale:hover {
+      transform: scale(1.15);
+    }
+
 
     .footer-curve {
       height: 90px;
       background: var(--brand-yellow);
       clip-path: ellipse(85% 100% at 50% 100%);
     }
+
+
+    .floating-actions {
+      position: fixed;
+      top: 50%;
+      right: 20px;
+      transform: translateY(-50%);
+      background: #f8e15b;
+      border-radius: 10px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 25px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+      z-index: 1050;
+      width: 120px;
+    }
+
+
+    .floating-actions button {
+      width: 100%;
+      border-radius: 5px;
+    }
+
+
+    .floating-actions a {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+      color: var(--brand-dark);
+      font-size: 0.9rem;
+      transition: transform 0.2s;
+    }
+
+
+    .floating-actions a img {
+      width: 45px;
+      height: 45px;
+      margin-bottom: 5px;
+    }
+
+
+    .floating-actions a:hover {
+      transform: scale(1.1);
+    }
+
+
+    @media (max-width: 991px) {
+      h1.display-1 {
+        font-size: 3rem;
+      }
+
+      .floating-actions {
+        top: auto;
+        bottom: 80px;
+        right: 20px;
+        flex-direction: row;
+        border-radius: 12px;
+        padding: 10px 15px;
+        gap: 15px;
+      }
+
+      .floating-actions a img {
+        width: 35px;
+        height: 35px;
+      }
+    }
+
+    /* Chat modal / widget styles */
+    .chat-widget .modal-dialog {
+      max-width: 420px;
+      margin: 0;
+      position: fixed;
+      right: 20px;
+      bottom: 90px;
+      transform: translateZ(0);
+    }
+
+    .chat-window {
+      height: 520px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-messages {
+      flex: 1 1 auto;
+      padding: 12px;
+      overflow-y: auto;
+      background: linear-gradient(180deg, #f8f9fa, #fff);
+    }
+
+    .chat-input {
+      border-top: 1px solid #e9ecef;
+      padding: 10px;
+      background: #fff;
+    }
+
+    .chat-msg {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+      align-items: flex-end;
+    }
+
+    .chat-msg .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex: 0 0 36px;
+      background: #e9ecef;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .chat-bubble {
+      max-width: 78%;
+      padding: 9px 12px;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      line-height: 1.3;
+      white-space: pre-wrap;
+    }
+
+    .chat-msg.user {
+      justify-content: flex-end;
+    }
+
+    .chat-msg.user .chat-bubble {
+      background: #0d6efd;
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .chat-msg.bot .chat-bubble {
+      background: #f1f3ff;
+      color: #111;
+      border-bottom-left-radius: 4px;
+    }
+
+    .chat-typing {
+      display: inline-block;
+      width: 36px;
+      height: 12px;
+      background: linear-gradient(90deg, #e1e4ff, #c6d0ff);
+      border-radius: 6px;
+      animation: blink 1.2s infinite;
+    }
+
+    @keyframes blink {
+      0% {
+        opacity: .25;
+        transform: translateY(0);
+      }
+
+      50% {
+        opacity: 1;
+        transform: translateY(-2px);
+      }
+
+      100% {
+        opacity: .25;
+        transform: translateY(0);
+      }
+    }
+
+    .chat-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .chat-controls textarea {
+      resize: none;
+      height: 46px;
+    }
   </style>
 </head>
 
-<body id="top" class="min-vh-100 bg-white">
 
-<?php $page = basename($_SERVER['PHP_SELF']); ?>
-<?php include("frontend/components/navbar.php"); ?>
+<body id="top" class="min-vh-100">
 
-<main class="container my-5 py-lg-5">
-  <div class="row align-items-center gy-5">
-    <div class="col-lg-6">
-      <h1 class="display-1 fw-black text-uppercase" style="font-weight: 900;">PACK IT</h1>
-      <p class="lead fw-semibold mt-4 text-secondary">
-        The gold standard of PH logistics. 🏆<br>
-        Bridging gaps and breaking records, one delivery at a time.
-      </p>
-      <a href="mobile.php" class="btn bg-brand btn-lg fw-bold rounded-pill px-4 mt-3 hover-scale">Get Started</a>
+
+  <?php $page = basename($_SERVER['PHP_SELF']); ?>
+  <?php include("frontend/components/navbar.php"); ?>
+
+
+  <main class="container my-5 py-lg-5">
+    <div class="row align-items-center gy-5">
+      <div class="col-lg-6 text-center text-lg-start">
+        <h1 class="display-1 fw-black text-uppercase">PACK IT</h1>
+        <p class="lead mt-4" style="color: var(--brand-gray);">
+          The gold standard of PH logistics. 🏆<br>
+          Bridging gaps and breaking records, one delivery at a time.
+        </p>
+        <a href="../PackIT/frontend/aboutUs.php" class="btn bg-brand btn-lg fw-bold rounded-pill px-4 mt-3 hover-scale">Get Started</a>
+      </div>
+
+
+      <div class="col-lg-6 text-center">
+        <img src="assets/mascot.png" class="img-fluid" alt="Mascot" style="max-height: 450px;">
+      </div>
     </div>
+  </main>
 
-    <div class="col-lg-6 text-center">
-      <img src="assets/mascot.png" class="img-fluid" alt="Mascot" style="max-height: 450px;">
+
+  <div class="floating-actions">
+    <a href="../PackIT/frontend/booking/package.php">
+      <img src="assets/box.png" alt="book">
+      <span>Book</span>
+    </a>
+    <a href="../PackIT/frontend/tracking.php">
+      <img src="assets/tracking.png" alt="tracking">
+      <span>Tracking</span>
+    </a>
+    <a href="../PackIT/frontend/chatai.php" id="chatbotLauncher">
+      <img src="assets/chatbot.png" alt="Chatbot">
+      <span>Chatbot</span>
+    </a>
+  </div>
+
+
+
+
+  <?php include("frontend/components/footer.php"); ?>
+
+
+  <!-- Chat Modal (widget) -->
+  <div class="modal fade chat-widget" id="chatModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="false">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="d-flex align-items-center gap-2">
+            <img src="assets/chatbot.png" alt="bot" style="width:36px;height:36px;">
+            <div>
+              <div class="fw-bold">Pack IT Assistant</div>
+              <div class="muted-sm" style="font-size:0.85rem;color:#6c757d">Ask about bookings, tracking, and packaging</div>
+            </div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-0">
+          <div class="chat-window">
+            <div class="chat-messages" id="chatMessages" aria-live="polite" aria-atomic="false">
+              <!-- messages will be appended here -->
+            </div>
+
+            <div class="chat-input">
+              <form id="chatForm" onsubmit="return false;">
+                <div class="chat-controls">
+                  <textarea id="chatInput" class="form-control" placeholder="Type your message and press Enter to send" aria-label="Chat message"></textarea>
+                  <button id="sendBtn" class="btn btn-primary" type="button"><i class="bi bi-send"></i></button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-</main>
 
-<div class="floating-actions position-fixed top-50 end-0 translate-middle-y d-flex flex-column align-items-center gap-4 py-5 px-3 bg-brand rounded-start-pill shadow-lg" 
-     style="z-index: 1050;">
-     
-  <a href="orders.php" class="d-flex flex-column align-items-center text-decoration-none text-dark fw-bold small hover-scale">
-    <img src="assets/box.png" alt="Order" style="width: 35px; height: 35px;" class="mb-1">
-    <span>Order</span>
-  </a>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-  <a href="tracking.php" class="d-flex flex-column align-items-center text-decoration-none text-dark fw-bold small hover-scale">
-    <img src="assets/tracking.png" alt="Tracking" style="width: 35px; height: 35px;" class="mb-1">
-    <span>Tracking</span>
-  </a>
-</div>
+  <script>
+    (function() {
+      // Keep the original markup intact. We'll intercept the chatbot anchor click and open a modal chat widget instead.
+      const launcher = document.getElementById('chatbotLauncher');
+      const chatModalEl = document.getElementById('chatModal');
+      const chatMessages = document.getElementById('chatMessages');
+      const chatInput = document.getElementById('chatInput');
+      const sendBtn = document.getElementById('sendBtn');
+      const chatForm = document.getElementById('chatForm');
 
-<?php include("frontend/components/footer.php"); ?>
+      // Resolve the backend endpoint from the anchor's href so we don't hardcode a path change.
+      const chatEndpoint = launcher.getAttribute('href') || 'frontend/chatai.php';
+      let modal;
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+      // Helper: append message
+      function appendMessage(text, who = 'bot') {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'chat-msg ' + (who === 'user' ? 'user' : 'bot');
+
+        if (who === 'user') {
+          wrapper.innerHTML = `<div class="chat-bubble">${escapeHtml(text)}</div><div class="avatar">U</div>`;
+        } else {
+          wrapper.innerHTML = `<div class="avatar">AI</div><div class="chat-bubble">${escapeHtml(text)}</div>`;
+        }
+
+        chatMessages.appendChild(wrapper);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      function appendTypingIndicator() {
+        const wrap = document.createElement('div');
+        wrap.className = 'chat-msg bot typing';
+        wrap.innerHTML = `<div class="avatar">AI</div><div class="chat-bubble"><div class="chat-typing" aria-hidden="true"></div></div>`;
+        chatMessages.appendChild(wrap);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return wrap;
+      }
+
+      function removeNode(node) {
+        if (node && node.parentNode) node.parentNode.removeChild(node);
+      }
+
+      function escapeHtml(s) {
+        return (s + '').replace(/[&<>"']/g, function(m) {
+          return ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+          })[m];
+        });
+      }
+
+      function setSendingState(isSending) {
+        chatInput.disabled = isSending;
+        sendBtn.disabled = isSending;
+        if (!isSending) chatInput.focus();
+      }
+
+      // Intercept link navigation and open modal
+      launcher.addEventListener('click', function(ev) {
+        ev.preventDefault();
+        // show bootstrap modal positioned at bottom-right
+        if (!modal) modal = new bootstrap.Modal(chatModalEl, {
+          keyboard: true
+        });
+        modal.show();
+        // focus input
+        setTimeout(() => chatInput.focus(), 220);
+      });
+
+      // Send message to backend
+      async function sendMessage(text) {
+        if (!text || !text.trim()) return;
+        const message = text.trim();
+        // append user message
+        appendMessage(message, 'user');
+        chatInput.value = '';
+        setSendingState(true);
+
+        // show typing
+        const typingNode = appendTypingIndicator();
+
+        try {
+          // POST form data (chatai.php expects 'prompt' via POST)
+          const fd = new FormData();
+          fd.append('prompt', message);
+
+          const res = await fetch(chatEndpoint, {
+            method: 'POST',
+            body: fd,
+            credentials: 'same-origin'
+          });
+
+          const textResp = await res.text();
+
+          // remove typing indicator
+          removeNode(typingNode);
+
+          if (!res.ok) {
+            appendMessage('Sorry, I could not reach the assistant. Try again later.', 'bot');
+          } else {
+            // chatai.php returns HTML-escaped content (echo htmlspecialchars),
+            // so it's safe to insert as text. We already escaped above.
+            appendMessage(textResp, 'bot');
+          }
+        } catch (err) {
+          removeNode(typingNode);
+          appendMessage('Network error. Please check your connection and try again.', 'bot');
+          console.error('Chat error:', err);
+        } finally {
+          setSendingState(false);
+        }
+      }
+
+      // UI handlers
+      sendBtn.addEventListener('click', () => {
+        const v = chatInput.value;
+        sendMessage(v);
+      });
+
+      chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendBtn.click();
+        }
+      });
+
+      // Optionally handle modal hide to clear chat or keep history
+      chatModalEl.addEventListener('hidden.bs.modal', function() {
+        // Keep conversation by default. If you want to clear on close, uncomment:
+        // chatMessages.innerHTML = '';
+      });
+
+      // Accessibility: allow opening chat with keyboard when focused
+      launcher.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          launcher.click();
+        }
+      });
+
+      // Prepopulate a welcome message when the modal is opened first time
+      chatModalEl.addEventListener('shown.bs.modal', function() {
+        if (chatMessages.children.length === 0) {
+          appendMessage('Hi! I am Pack IT Assistant. How can I help you today?', 'bot');
+        }
+      });
+
+    })();
+  </script>
 </body>
+
 </html>

@@ -60,38 +60,38 @@ if (isset($_GET["action"])) {
   } elseif ($action === "get_barangays") {
     $code = (string)($_GET["city_code"] ?? "");
     $response = array_values(array_filter($barangays, fn($i) => (string)($i["city_code"] ?? "") === $code));
- 
-  // NEW: Calculate Fare via AJAX for live updates
+
+    // NEW: Calculate Fare via AJAX for live updates
   } elseif ($action === "calculate_fare") {
-      $pRegion = (string)($_GET["pickup_region"] ?? "");
-      $dRegion = (string)($_GET["drop_region"] ?? "");
-      $isDoor = ((string)($_GET["door_to_door"] ?? "yes") === "yes");
+    $pRegion = (string)($_GET["pickup_region"] ?? "");
+    $dRegion = (string)($_GET["drop_region"] ?? "");
+    $isDoor = ((string)($_GET["door_to_door"] ?? "yes") === "yes");
 
 
-      $pickupFareRegion = region_code_to_fare_region($pRegion);
-      $dropFareRegion = region_code_to_fare_region($dRegion);
+    $pickupFareRegion = region_code_to_fare_region($pRegion);
+    $dropFareRegion = region_code_to_fare_region($dRegion);
 
 
-      $base = (int)($state["base_amount"] ?? 0);
-      $dist = compute_distance_fare($pickupFareRegion, $dropFareRegion);
-      $door = get_door_to_door_amount($isDoor);
-     
-      $total = 0;
-      $valid = false;
-     
-      if ($dist !== null) {
-          $total = compute_total_fare($base, $dist, $door);
-          $valid = true;
-      }
+    $base = (int)($state["base_amount"] ?? 0);
+    $dist = compute_distance_fare($pickupFareRegion, $dropFareRegion);
+    $door = get_door_to_door_amount($isDoor);
+
+    $total = 0;
+    $valid = false;
+
+    if ($dist !== null) {
+      $total = compute_total_fare($base, $dist, $door);
+      $valid = true;
+    }
 
 
-      $response = [
-          "valid" => $valid,
-          "base" => number_format($base, 0),
-          "distance" => ($dist !== null) ? number_format($dist, 0) : "--",
-          "door" => number_format($door, 0),
-          "total" => ($valid) ? number_format($total, 2) : "--"
-      ];
+    $response = [
+      "valid" => $valid,
+      "base" => number_format($base, 0),
+      "distance" => ($dist !== null) ? number_format($dist, 0) : "--",
+      "door" => number_format($door, 0),
+      "total" => ($valid) ? number_format($total, 2) : "--"
+    ];
   }
 
 
@@ -247,9 +247,9 @@ if ($distanceAmount !== null) {
       background-color: var(--brand-yellow-dark);
       border-color: var(--brand-yellow-dark);
     }
-   
+
     .btn-success {
-        font-weight: 600;
+      font-weight: 600;
     }
 
 
@@ -267,17 +267,19 @@ if ($distanceAmount !== null) {
   </style>
 </head>
 
-<body>
 
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-lg-9 col-md-11">
-      <div class="card shadow-sm border-0 rounded-4">
-        <div class="card-header p-4 rounded-top-4">
-          <h4 class="mb-0 fw-bold">Step 2: Pickup & Drop-off Address</h4>
-          <div class="muted-sm">
-            Package: <strong><?= h((string)($state["package_label"] ?? "--")) ?></strong>
-            · Vehicle: <strong><?= h((string)($state["vehicle_label"] ?? "--")) ?></strong>
+<body>
+  <?php include("../components/navbar.php"); ?>
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-9 col-md-11">
+        <div class="card shadow-sm border-0 rounded-4">
+          <div class="card-header p-4 rounded-top-4">
+            <h4 class="mb-0 fw-bold">Step 2: Pickup & Drop-off Address</h4>
+            <div class="muted-sm">
+              Package: <strong><?= h((string)($state["package_label"] ?? "--")) ?></strong>
+              · Vehicle: <strong><?= h((string)($state["vehicle_label"] ?? "--")) ?></strong>
+            </div>
           </div>
 
 
@@ -384,59 +386,59 @@ if ($distanceAmount !== null) {
                     <option value="no" <?= ($state["door_to_door"] ?? true) ? "" : "selected" ?>>No (+₱0)</option>
                   </select>
                 </div>
-               
-                </div>
-           
 
-
-            <hr class="my-4">
-
-
-            <div class="row g-3">
-              <div class="col-md-7">
-                <div class="small text-muted">Fare breakdown</div>
-                <ul class="list-group">
-                  <li class="list-group-item d-flex justify-content-between">
-                    <span>Package base</span>
-                    <strong id="disp_base">₱<?= number_format($baseAmount, 0) ?></strong>
-                  </li>
-                  <li class="list-group-item d-flex justify-content-between">
-                    <span>Distance fare</span>
-                    <strong id="disp_distance">
-                      <?php if ($distanceAmount === null): ?>
-                        --
-                      <?php else: ?>
-                        ₱<?= number_format($distanceAmount, 0) ?>
-                      <?php endif; ?>
-                    </strong>
-                  </li>
-                  <li class="list-group-item d-flex justify-content-between">
-                    <span>Door-to-door</span>
-                    <strong id="disp_door">₱<?= number_format($doorToDoorAmount, 0) ?></strong>
-                  </li>
-                </ul>
               </div>
 
 
-              <div class="col-md-5 text-center">
-                <div class="small text-muted text-uppercase">Total</div>
-                <div class="price-tag" id="disp_total">
-                  <?php if ($totalAmount === null): ?>
-                    ₱--
-                  <?php else: ?>
-                    ₱<?= number_format($totalAmount, 2) ?>
-                  <?php endif; ?>
+
+              <hr class="my-4">
+
+
+              <div class="row g-3">
+                <div class="col-md-7">
+                  <div class="small text-muted">Fare breakdown</div>
+                  <ul class="list-group">
+                    <li class="list-group-item d-flex justify-content-between">
+                      <span>Package base</span>
+                      <strong id="disp_base">₱<?= number_format($baseAmount, 0) ?></strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                      <span>Distance fare</span>
+                      <strong id="disp_distance">
+                        <?php if ($distanceAmount === null): ?>
+                          --
+                        <?php else: ?>
+                          ₱<?= number_format($distanceAmount, 0) ?>
+                        <?php endif; ?>
+                      </strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                      <span>Door-to-door</span>
+                      <strong id="disp_door">₱<?= number_format($doorToDoorAmount, 0) ?></strong>
+                    </li>
+                  </ul>
                 </div>
 
 
-                <div class="d-flex gap-2 mt-3">
-                  <a class="btn btn-outline-secondary w-50" href="package.php">Back</a>
-                  <button type="submit" class="btn btn-success w-50" <?= ($totalAmount === null ? "disabled" : "") ?> id="btnNext">
-                    Next
-                  </button>
+                <div class="col-md-5 text-center">
+                  <div class="small text-muted text-uppercase">Total</div>
+                  <div class="price-tag" id="disp_total">
+                    <?php if ($totalAmount === null): ?>
+                      ₱--
+                    <?php else: ?>
+                      ₱<?= number_format($totalAmount, 2) ?>
+                    <?php endif; ?>
+                  </div>
+
+
+                  <div class="d-flex gap-2 mt-3">
+                    <a class="btn btn-outline-secondary w-50" href="package.php">Back</a>
+                    <button type="submit" class="btn btn-success w-50" <?= ($totalAmount === null ? "disabled" : "") ?> id="btnNext">
+                      Next
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
             </form>
 
 
@@ -446,6 +448,7 @@ if ($distanceAmount !== null) {
     </div>
   </div>
 
+  <?php include("../components/footer.php"); ?>
 
   <script>
     let REGION_MAP = {};
@@ -465,7 +468,7 @@ if ($distanceAmount !== null) {
     function populate(selectEl, data, codeKey, nameKey, datasetAttrs = {}) {
       selectEl.innerHTML = '<option value="">Select Option</option>';
       selectEl.disabled = false;
-     
+
       data.sort((a, b) => (a[nameKey] || '').localeCompare((b[nameKey] || '')));
 
 
@@ -475,18 +478,203 @@ if ($distanceAmount !== null) {
         opt.textContent = item[nameKey];
         opt.dataset.name = item[nameKey] || '';
         for (const [key, field] of Object.entries(datasetAttrs)) {
-            opt.dataset[key] = item[field] || '';
+          opt.dataset[key] = item[field] || '';
         }
         selectEl.appendChild(opt);
       });
     }
-    document.getElementById("pickup_house").value = p.house || "";
-    document.getElementById("pickup_barangay").value = p.barangay || "";
-    document.getElementById("pickup_municipality").value = p.municipality || "";
-    document.getElementById("pickup_province").value = p.province || "";
-  });
 
-</script>
+
+    function reset(selectEl) {
+      selectEl.innerHTML = '<option value="">Select Option</option>';
+      selectEl.disabled = true;
+    }
+
+
+    function updateHiddenName(selectEl, hiddenEl) {
+      const opt = selectEl.options[selectEl.selectedIndex];
+      hiddenEl.value = (opt && opt.dataset && opt.dataset.name) ? opt.dataset.name : '';
+    }
+
+    // ----- AUTO UPDATE FARE LOGIC -----
+    async function updateLiveFare() {
+      const pRegion = document.getElementById("pickup_region_code").value;
+      const dRegion = document.getElementById("drop_region_code").value;
+      const doorVal = document.getElementById("door_to_door").value;
+
+      // If regions aren't ready, we can't calc distance
+      if (!pRegion || !dRegion) return;
+
+
+      // Call the PHP "API"
+      const params = new URLSearchParams({
+        action: "calculate_fare",
+        pickup_region: pRegion,
+        drop_region: dRegion,
+        door_to_door: doorVal
+      });
+
+
+      const data = await fetchData(params.toString());
+
+      // Update DOM
+      if (data.valid) {
+        document.getElementById("disp_base").textContent = "₱" + data.base;
+        document.getElementById("disp_distance").textContent = "₱" + data.distance;
+        document.getElementById("disp_door").textContent = "₱" + data.door;
+        document.getElementById("disp_total").textContent = "₱" + data.total;
+
+        // Enable Next button
+        document.getElementById("btnNext").disabled = false;
+      } else {
+        document.getElementById("disp_distance").textContent = "--";
+        document.getElementById("disp_total").textContent = "₱--";
+        document.getElementById("btnNext").disabled = true;
+      }
+    }
+
+    // Attach listener to Door-to-Door dropdown
+    document.getElementById("door_to_door").addEventListener("change", updateLiveFare);
+
+
+    async function setupSelector(prefix, saved) {
+      const provinceEl = document.getElementById(prefix + "_province");
+      const cityEl = document.getElementById(prefix + "_city");
+      const barangayEl = document.getElementById(prefix + "_barangay");
+
+
+      const hiddenRegionCode = document.getElementById(prefix + "_region_code");
+      const hiddenRegionName = document.getElementById(prefix + "_region_name");
+      const hiddenProvince = document.getElementById(prefix + "_province_name");
+      const hiddenCity = document.getElementById(prefix + "_city_name");
+      const hiddenBarangay = document.getElementById(prefix + "_barangay_name");
+
+      const provinces = await fetchData("action=get_provinces");
+
+      populate(provinceEl, provinces, "province_code", "province_name", {
+        regionCode: "region_code"
+      });
+
+
+      if (saved.province_code) {
+        provinceEl.value = saved.province_code;
+        handleProvinceChange(provinceEl.value);
+      }
+
+
+      provinceEl.addEventListener("change", function() {
+        handleProvinceChange(this.value);
+      });
+
+
+      async function handleProvinceChange(provCode) {
+        reset(cityEl);
+        reset(barangayEl);
+        updateHiddenName(provinceEl, hiddenProvince);
+
+
+        if (!provCode) {
+          hiddenRegionCode.value = "";
+          hiddenRegionName.value = "";
+          return;
+        }
+
+
+        // AUTO-SELECT REGION (Hidden)
+        const selectedOpt = provinceEl.options[provinceEl.selectedIndex];
+        const regCode = selectedOpt.dataset.regionCode;
+
+
+        if (regCode) {
+          const regName = REGION_MAP[regCode] || regCode;
+          hiddenRegionCode.value = regCode;
+          hiddenRegionName.value = regName;
+        }
+
+        // Trigger live fare update immediately after region is set
+        updateLiveFare();
+
+
+        const cities = await fetchData(`action=get_cities&province_code=${encodeURIComponent(provCode)}`);
+        populate(cityEl, cities, "city_code", "city_name");
+
+
+        if (saved.city_code && cities.some(c => c.city_code === saved.city_code)) {
+          cityEl.value = saved.city_code;
+          cityEl.dispatchEvent(new Event("change"));
+          saved.city_code = null;
+        }
+      }
+
+
+      cityEl.addEventListener("change", async function() {
+        const code = this.value;
+        reset(barangayEl);
+        updateHiddenName(this, hiddenCity);
+
+
+        if (!code) return;
+
+
+        const b = await fetchData(`action=get_barangays&city_code=${encodeURIComponent(code)}`);
+        populate(barangayEl, b, "brgy_code", "brgy_name");
+
+
+        if (saved.brgy_code) {
+          barangayEl.value = saved.brgy_code;
+          barangayEl.dispatchEvent(new Event("change"));
+        }
+      });
+
+
+      barangayEl.addEventListener("change", function() {
+        updateHiddenName(this, hiddenBarangay);
+      });
+    }
+
+
+    (async function init() {
+      const regionsData = await fetchData("action=get_regions");
+      regionsData.forEach(r => {
+        REGION_MAP[r.region_code] = r.region_name;
+      });
+
+
+      setupSelector("pickup", {
+        region_code: "<?= h((string)($pickup["region_code"] ?? "")) ?>",
+        province_code: "<?= h((string)($pickup["province_code"] ?? "")) ?>",
+        city_code: "<?= h((string)($pickup["city_code"] ?? "")) ?>",
+        brgy_code: "<?= h((string)($pickup["brgy_code"] ?? "")) ?>"
+      });
+
+
+      setupSelector("drop", {
+        region_code: "<?= h((string)($drop["region_code"] ?? "")) ?>",
+        province_code: "<?= h((string)($drop["province_code"] ?? "")) ?>",
+        city_code: "<?= h((string)($drop["city_code"] ?? "")) ?>",
+        brgy_code: "<?= h((string)($drop["brgy_code"] ?? "")) ?>"
+      });
+    })();
+
+
+    function getProfileAddress() {
+      try {
+        return JSON.parse(localStorage.getItem("packit_profile_address") || "null");
+      } catch (e) {
+        return null;
+      }
+    }
+
+
+    document.getElementById("useDefaultPickupBtn").addEventListener("click", () => {
+      const p = getProfileAddress();
+      if (!p) {
+        alert("No default profile address found. Open profile_seed.php first to create one.");
+        return;
+      }
+      document.getElementById("pickup_house").value = p.house || "";
+    });
+  </script>
 </body>
 
 

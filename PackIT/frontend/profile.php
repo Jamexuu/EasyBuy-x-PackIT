@@ -1,3 +1,59 @@
+<?php
+session_start();
+
+// If user is not logged in, redirect to login
+if (!isset($_SESSION['user']) || empty($_SESSION['user']['id'])) {
+    header('Location: login.php');
+    exit;
+}
+
+// User data from session (set at login)
+$user = $_SESSION['user'];
+$displayName = trim(($user['firstName'] ?? '') . ' ' . ($user['lastName'] ?? ''));
+$email = $user['email'] ?? '';
+$contact = $user['contact'] ?? '';
+
+// Database connection settings (adjust to your environment if needed)
+// Preferably set these in a central config file and include that instead.
+$DB_HOST = getenv('DB_HOST') ?: '127.0.0.1';
+$DB_NAME = getenv('DB_NAME') ?: 'packit';
+$DB_USER = getenv('DB_USER') ?: 'root';
+$DB_PASS = getenv('DB_PASS') ?: '';
+
+$address = null;
+try {
+    $pdo = new PDO("mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4", $DB_USER, $DB_PASS, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    ]);
+
+    // Fetch the latest address for this user (if any)
+    $stmt = $pdo->prepare('SELECT * FROM addresses WHERE user_id = :uid ORDER BY id DESC LIMIT 1');
+    $stmt->execute([':uid' => $user['id']]);
+    $address = $stmt->fetch();
+
+} catch (Exception $e) {
+    // If DB is unavailable, we'll still render the profile with session info
+    error_log('Profile DB error: ' . $e->getMessage());
+    $address = null;
+}
+
+// Helper to format address for display
+function formatAddress($addr) {
+    if (!$addr) return '--';
+    $parts = [];
+    if (!empty($addr['house_number'])) $parts[] = $addr['house_number'];
+    if (!empty($addr['street'])) $parts[] = $addr['street'];
+    if (!empty($addr['subdivision'])) $parts[] = $addr['subdivision'];
+    if (!empty($addr['barangay'])) $parts[] = $addr['barangay'];
+    if (!empty($addr['city'])) $parts[] = $addr['city'];
+    if (!empty($addr['province'])) $parts[] = $addr['province'];
+    if (!empty($addr['postal_code'])) $parts[] = $addr['postal_code'];
+    return $parts ? implode(", ", $parts) : '--';
+}
+
+$displayAddress = formatAddress($address);
+?>
 <!doctype html>
 <html lang="en">
 
@@ -26,6 +82,7 @@
             border-radius: 40px;
             padding: 50px 20px;
             text-align: center;
+            position: relative;
         }
 
         .profile-img-container {
@@ -60,6 +117,11 @@
             border: 2px solid var(--brand-yellow);
             transition: transform 0.2s;
             z-index: 10;
+        }
+
+        /* small spacing for menu items inside the outline */
+        .menu-outline .logout-item {
+            margin-top: 12px;
         }
 
         #userName[contenteditable="true"] {
@@ -152,6 +214,7 @@
                 <div class="profile-card shadow-sm">
                     <div class="position-relative mx-auto" style="width: 180px;">
                         <div class="profile-img-container shadow-sm">
+                            <!-- Keep placeholder; you can later replace with uploaded avatar path -->
                             <img id="profileDisplay" src="https://via.placeholder.com/200" alt="Profile">
                         </div>
                         <div class="camera-icon-button shadow" onclick="document.getElementById('fileInput').click();">
@@ -163,18 +226,19 @@
                         onchange="previewImage(event)">
 
                     <div class="d-flex align-items-center justify-content-center mt-3 mb-1">
-                        <h2 id="userName" class="fw-bold mb-0" contenteditable="false" spellcheck="false"></h2>
+                        <!-- Display user name from session -->
+                        <h2 id="userName" class="fw-bold mb-0" contenteditable="false" spellcheck="false"><?php echo htmlspecialchars($displayName ?: ''); ?></h2>
                         <button class="btn btn-link btn-sm text-dark p-0 ms-2 text-decoration-none"
                             onclick="toggleEdit()">
                             <span id="editIcon">✎</span>
                         </button>
                     </div>
 
-                    <p id="userEmail" class="text-muted small mb-4">MIEL.GANDA@GMAIL.COM</p>
+                    <p id="userEmail" class="text-muted small mb-4"><?php echo htmlspecialchars($email); ?></p>
 
                     <div class="mt-4">
-                        <h4 class="mb-1 fw-normal">+63 01823918</h4>
-                        <h4 class="fw-normal">SAN JUAN BATS</h4>
+                        <h4 class="mb-1 fw-normal"><?php echo htmlspecialchars($contact ?: '--'); ?></h4>
+                        <h4 class="fw-normal"><?php echo htmlspecialchars($displayAddress); ?></h4>
                     </div>
                 </div>
             </div>
@@ -248,7 +312,10 @@
                         </ul>
                     </div>
 
-                    <a href="#" class="menu-link mt-4 text-secondary">Logout</a>
+                    <!-- Logout placed inside the square, below the About section -->
+                    <div class="logout-item">
+                        <a class="btn btn-outline-dark w-100 mt-3" href="logout.php" role="button">Logout</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -283,6 +350,9 @@
                 nameField.contentEditable = "false";
                 editIcon.innerText = "✎";
                 editIcon.style.color = "black";
+
+                // Optional: send AJAX to save the edited name to the server
+                // (Not implemented here - let me know if you want this)
             }
         }
 
