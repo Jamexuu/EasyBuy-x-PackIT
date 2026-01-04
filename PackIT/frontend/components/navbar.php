@@ -2,10 +2,6 @@
 // Frontend navbar for PackIT
 // Place at: frontend/components/navbar.php
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 // Base URL for your project on localhost — update if your folder/location changes
 $BASE_URL = '/EasyBuy-x-PackIT/PackIT';
 
@@ -13,7 +9,8 @@ $BASE_URL = '/EasyBuy-x-PackIT/PackIT';
 $page = basename($_SERVER['PHP_SELF']);
 
 // Helper to build full URL
-function u($path) {
+function u($path)
+{
     global $BASE_URL;
     return rtrim($BASE_URL, '/') . '/' . ltrim($path, '/');
 }
@@ -25,10 +22,13 @@ $userName = $loggedIn ? trim(($_SESSION['user']['firstName'] ?? '') . ' ' . ($_S
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <style>
     :root {
-      --brand-yellow: #f8e15b;
-      --brand-dark: #111;
+        --brand-yellow: #f8e15b;
+        --brand-dark: #111;
     }
-    .bg-brand { background-color: var(--brand-yellow) !important; }
+
+    .bg-brand {
+        background-color: var(--brand-yellow) !important;
+    }
 </style>
 
 <div class="container">
