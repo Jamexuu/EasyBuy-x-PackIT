@@ -1,7 +1,7 @@
 <?php
-// Variables expected from the page that includes this file:
-$activePage = $activePage ?? 'dashboard'; // dashboard | users | addresses | drivers | vehicles | payments | bookings
-$basePath   = $basePath ?? '../';         // from /admin/* to project root
+
+$activePage = $activePage ?? 'dashboard';
+$basePath   = $basePath ?? '../';         
 ?>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">

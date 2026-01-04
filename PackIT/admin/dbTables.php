@@ -6,7 +6,6 @@ Auth::requireAdmin();
 
 $basePath = '../';
 
-// ✅ Match your real PackIT DB table names (from image)
 $viewToTable = [
     'users'     => 'users',
     'addresses' => 'addresses',
@@ -21,7 +20,6 @@ $activePage = array_key_exists($view, $viewToTable) ? $view : 'users';
 $db = new Database();
 $conn = $db->connect();
 
-// Strict whitelist from DB
 $tables = [];
 $res = $conn->query("SHOW TABLES");
 if ($res) {
@@ -81,7 +79,6 @@ $activePageTitle = prettyTitle($activePage);
 <body>
 
 <?php
-// Must be included after Auth::requireAdmin() so redirects still work
 include __DIR__ . '/../frontend/components/adminNavbar.php';
 ?>
 
@@ -146,8 +143,8 @@ include __DIR__ . '/../frontend/components/adminNavbar.php';
             </div>
         </div>
 
-    </div><!-- row -->
-</div><!-- container -->
+    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
