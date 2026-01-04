@@ -35,69 +35,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Driver Login - PackIT</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PackIT - Driver Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="bg-zinc-900 min-h-screen flex items-center justify-center p-6">
 
-    <div class="bg-yellow-50 w-full max-w-sm rounded-[2.5rem] border-[10px] border-yellow-400 p-10 shadow-2xl">
+<body class="d-flex align-items-center min-vh-100" style="background-color:  #fffef5;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5 col-lg-4">
+                <div class="card border-0 shadow-lg rounded-4 p-4">
+                    <div class="card-body">
+                        <h1 class="h3 fw-bold mb-3 text-center">Welcome Back</h1>
 
-        <div class="text-center mb-8">
-            <div class="inline-block bg-black p-3 rounded-2xl mb-4">
-                <i class="fas fa-motorcycle text-yellow-400 text-3xl"></i>
+                        <?php if (! empty($_SESSION['success'])) : ?>
+                            <div class="alert alert-success small"><?= htmlspecialchars($_SESSION['success']) ?></div>
+                            <?php unset($_SESSION['success']); ?>
+                        <?php endif; ?>
+
+                        <?php if (!empty($error)) : ?>
+                            <div class="alert alert-danger small"><?= htmlspecialchars($error) ?></div>
+                        <?php endif; ?>
+
+                        <form action="" method="POST">
+                            <div class="mb-3">
+                                <label for="email" class="form-label small fw-bold">Email address</label>
+                                <input type="email" class="form-control bg-light" name="email" id="email"
+                                    placeholder="driver@example.com" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="password" class="form-label small fw-bold">Password</label>
+                                <input type="password" class="form-control bg-light" name="password" id="password"
+                                    placeholder="Enter your password" required>
+                            </div>
+
+                            <div class="d-grid mb-3">
+                                <button type="submit" class="btn btn-warning btn-lg rounded-pill">Sign In</button>
+                            </div>
+                        </form>
+
+                        <div class="text-center mt-3">
+                            <p class="small text-muted">Don't have an account?
+                                <a href="signup.php" class="text-dark fw-bold">Sign up</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                    <a href="../index.php" class="text-decoration-none text-muted small">&larr; Back to Home</a>
+                </div>
             </div>
-            <h2 class="text-2xl font-black text-gray-800 uppercase tracking-tight">Driver Login</h2>
-            <p class="text-gray-600 text-sm">Welcome back, Partner!</p>
         </div>
-
-        <?php if ($error): ?>
-            <div class="mb-4 p-3 rounded-xl bg-red-100 text-red-700 text-sm font-bold">
-                <?php echo htmlspecialchars($error); ?>
-            </div>
-        <?php endif; ?>
-
-        <form method="POST" class="space-y-5">
-            <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase ml-2 mb-1">Email Address</label>
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                        <i class="fas fa-envelope"></i>
-                    </span>
-                    <input type="email" name="email" placeholder="driver@packit.com" required
-                        value="<?php echo htmlspecialchars($_POST['email'] ?? '') ?>"
-                        class="w-full pl-10 p-3 rounded-xl border-none shadow-inner bg-white focus:ring-2 focus:ring-yellow-400 outline-none">
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase ml-2 mb-1">Password</label>
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                        <i class="fas fa-lock"></i>
-                    </span>
-                    <input type="password" name="password" placeholder="••••••••" required
-                        class="w-full pl-10 p-3 rounded-xl border-none shadow-inner bg-white focus:ring-2 focus:ring-yellow-400 outline-none">
-                </div>
-            </div>
-
-            <button type="submit" class="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-black py-4 rounded-2xl shadow-lg transition-transform active:scale-95 uppercase mt-2">
-               Log In
-            </button>
-
-            <div class="text-center pt-4 border-t border-yellow-200">
-                <p class="text-sm text-gray-600">
-                    Don't have a driver account? <br>
-                    <a href="signup.php" class="font-bold text-yellow-600 underline">Register Now</a>
-                </p>
-            </div>
-        </form>
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
