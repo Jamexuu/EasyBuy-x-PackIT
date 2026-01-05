@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 session_start(); // Start session to access user ID
@@ -52,73 +53,72 @@ if (isset($_GET["action"])) {
   } elseif ($action === "get_barangays") {
     $code = (string)($_GET["city_code"] ?? "");
     $response = array_values(array_filter($barangays, fn($i) => (string)($i["city_code"] ?? "") === $code));
-  
   } elseif ($action === "calculate_fare") {
-      $pRegion = (string)($_GET["pickup_region"] ?? "");
-      $dRegion = (string)($_GET["drop_region"] ?? "");
-      $isDoor = ((string)($_GET["door_to_door"] ?? "yes") === "yes");
+    $pRegion = (string)($_GET["pickup_region"] ?? "");
+    $dRegion = (string)($_GET["drop_region"] ?? "");
+    $isDoor = ((string)($_GET["door_to_door"] ?? "yes") === "yes");
 
-      $pickupFareRegion = region_code_to_fare_region($pRegion);
-      $dropFareRegion = region_code_to_fare_region($dRegion);
+    $pickupFareRegion = region_code_to_fare_region($pRegion);
+    $dropFareRegion = region_code_to_fare_region($dRegion);
 
-      $base = (int)($state["base_amount"] ?? 0);
-      $dist = compute_distance_fare($pickupFareRegion, $dropFareRegion);
-      $door = get_door_to_door_amount($isDoor);
-      
-      $total = 0;
-      $valid = false;
-      
-      if ($dist !== null) {
-          $total = compute_total_fare($base, $dist, $door);
-          $valid = true;
-      }
+    $base = (int)($state["base_amount"] ?? 0);
+    $dist = compute_distance_fare($pickupFareRegion, $dropFareRegion);
+    $door = get_door_to_door_amount($isDoor);
 
-      $response = [
-          "valid" => $valid,
-          "base" => number_format($base, 0),
-          "distance" => ($dist !== null) ? number_format($dist, 0) : "--",
-          "door" => number_format($door, 0),
-          "total" => ($valid) ? number_format($total, 2) : "--"
-      ];
+    $total = 0;
+    $valid = false;
 
-  // -------------------------------------------------------------
-  // NEW ACTION: Fetch User Address from DB (Same as Profile.php)
-  // -------------------------------------------------------------
+    if ($dist !== null) {
+      $total = compute_total_fare($base, $dist, $door);
+      $valid = true;
+    }
+
+    $response = [
+      "valid" => $valid,
+      "base" => number_format($base, 0),
+      "distance" => ($dist !== null) ? number_format($dist, 0) : "--",
+      "door" => number_format($door, 0),
+      "total" => ($valid) ? number_format($total, 2) : "--"
+    ];
+
+    // -------------------------------------------------------------
+    // NEW ACTION: Fetch User Address from DB (Same as Profile.php)
+    // -------------------------------------------------------------
   } elseif ($action === "get_user_address") {
-      if (!isset($_SESSION['user']['id'])) {
-          echo json_encode(null); 
-          exit;
+    if (!isset($_SESSION['user']['id'])) {
+      echo json_encode(null);
+      exit;
+    }
+
+    $DB_HOST = getenv('DB_HOST') ?: '127.0.0.1';
+    $DB_NAME = getenv('DB_NAME') ?: 'packit';
+    $DB_USER = getenv('DB_USER') ?: 'root';
+    $DB_PASS = getenv('DB_PASS') ?: '';
+
+    try {
+      $pdo = new PDO("mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4", $DB_USER, $DB_PASS, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+      ]);
+
+      $stmt = $pdo->prepare('SELECT * FROM addresses WHERE user_id = :uid ORDER BY id DESC LIMIT 1');
+      $stmt->execute([':uid' => $_SESSION['user']['id']]);
+      $addr = $stmt->fetch();
+
+      if ($addr) {
+        // Map DB columns to the keys JS expects
+        $response = [
+          'house' => trim(($addr['house_number'] ?? '') . ' ' . ($addr['street'] ?? '') . ' ' . ($addr['subdivision'] ?? '')),
+          'barangay' => $addr['barangay'] ?? '',
+          'municipality' => $addr['city'] ?? '',
+          'province' => $addr['province'] ?? ''
+        ];
+      } else {
+        $response = null;
       }
-
-      $DB_HOST = getenv('DB_HOST') ?: '127.0.0.1';
-      $DB_NAME = getenv('DB_NAME') ?: 'packit';
-      $DB_USER = getenv('DB_USER') ?: 'root';
-      $DB_PASS = getenv('DB_PASS') ?: '';
-
-      try {
-          $pdo = new PDO("mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4", $DB_USER, $DB_PASS, [
-              PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-              PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-          ]);
-
-          $stmt = $pdo->prepare('SELECT * FROM addresses WHERE user_id = :uid ORDER BY id DESC LIMIT 1');
-          $stmt->execute([':uid' => $_SESSION['user']['id']]);
-          $addr = $stmt->fetch();
-
-          if ($addr) {
-              // Map DB columns to the keys JS expects
-              $response = [
-                  'house' => trim(($addr['house_number'] ?? '') . ' ' . ($addr['street'] ?? '') . ' ' . ($addr['subdivision'] ?? '')),
-                  'barangay' => $addr['barangay'] ?? '',
-                  'municipality' => $addr['city'] ?? '',
-                  'province' => $addr['province'] ?? ''
-              ];
-          } else {
-              $response = null;
-          }
-      } catch (Exception $e) {
-          $response = null;
-      }
+    } catch (Exception $e) {
+      $response = null;
+    }
   }
 
   echo json_encode($response, JSON_UNESCAPED_UNICODE);
@@ -229,13 +229,42 @@ if ($distanceAmount !== null) {
       --brand-yellow-dark: #e6cc32;
       --brand-black: #1c1c1c;
     }
-    body { background: #f8f9fa; }
-    .card-header { background: var(--brand-yellow) !important; color: var(--brand-black) !important; }
-    .btn-primary { background-color: var(--brand-yellow); border-color: var(--brand-yellow); color: var(--brand-black); font-weight: 600; }
-    .btn-primary:hover { background-color: var(--brand-yellow-dark); border-color: var(--brand-yellow-dark); }
-    .btn-success { font-weight: 600; }
-    .muted-sm { font-size: .9rem; color: #6c757d; }
-    .price-tag { font-size: 2rem; font-weight: 800; color: var(--brand-black); }
+
+    body {
+      background: #f8f9fa;
+    }
+
+    .card-header {
+      background: var(--brand-yellow) !important;
+      color: var(--brand-black) !important;
+    }
+
+    .btn-primary {
+      background-color: var(--brand-yellow);
+      border-color: var(--brand-yellow);
+      color: var(--brand-black);
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--brand-yellow-dark);
+      border-color: var(--brand-yellow-dark);
+    }
+
+    .btn-success {
+      font-weight: 600;
+    }
+
+    .muted-sm {
+      font-size: .9rem;
+      color: #6c757d;
+    }
+
+    .price-tag {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--brand-black);
+    }
   </style>
 </head>
 
@@ -286,13 +315,19 @@ if ($distanceAmount !== null) {
                     <input class="form-control" name="pickup_house" id="pickup_house" value="<?= h((string)($pickup["house"] ?? "")) ?>">
 
                     <label class="form-label small text-muted mt-2">Province</label>
-                    <select class="form-select" id="pickup_province" name="pickup_province_code" required><option value="">Select Province</option></select>
+                    <select class="form-select" id="pickup_province" name="pickup_province_code" required>
+                      <option value="">Select Province</option>
+                    </select>
 
                     <label class="form-label small text-muted mt-2">City / Municipality</label>
-                    <select class="form-select" id="pickup_city" name="pickup_city_code" disabled required><option value="">Select City</option></select>
+                    <select class="form-select" id="pickup_city" name="pickup_city_code" disabled required>
+                      <option value="">Select City</option>
+                    </select>
 
                     <label class="form-label small text-muted mt-2">Barangay</label>
-                    <select class="form-select" id="pickup_barangay" name="pickup_brgy_code" disabled><option value="">Select Barangay (optional)</option></select>
+                    <select class="form-select" id="pickup_barangay" name="pickup_brgy_code" disabled>
+                      <option value="">Select Barangay (optional)</option>
+                    </select>
                   </div>
                 </div>
 
@@ -303,13 +338,19 @@ if ($distanceAmount !== null) {
                     <input class="form-control" name="drop_house" id="drop_house" value="<?= h((string)($drop["house"] ?? "")) ?>">
 
                     <label class="form-label small text-muted mt-2">Province</label>
-                    <select class="form-select" id="drop_province" name="drop_province_code" required><option value="">Select Province</option></select>
+                    <select class="form-select" id="drop_province" name="drop_province_code" required>
+                      <option value="">Select Province</option>
+                    </select>
 
                     <label class="form-label small text-muted mt-2">City / Municipality</label>
-                    <select class="form-select" id="drop_city" name="drop_city_code" disabled required><option value="">Select City</option></select>
+                    <select class="form-select" id="drop_city" name="drop_city_code" disabled required>
+                      <option value="">Select City</option>
+                    </select>
 
                     <label class="form-label small text-muted mt-2">Barangay</label>
-                    <select class="form-select" id="drop_barangay" name="drop_brgy_code" disabled><option value="">Select Barangay (optional)</option></select>
+                    <select class="form-select" id="drop_barangay" name="drop_brgy_code" disabled>
+                      <option value="">Select Barangay (optional)</option>
+                    </select>
                   </div>
                 </div>
               </div>
@@ -337,7 +378,7 @@ if ($distanceAmount !== null) {
                     </li>
                     <li class="list-group-item d-flex justify-content-between">
                       <span>Distance fare</span>
-                      <strong id="disp_distance"><?= ($distanceAmount === null) ? "--" : "₱".number_format($distanceAmount, 0) ?></strong>
+                      <strong id="disp_distance"><?= ($distanceAmount === null) ? "--" : "₱" . number_format($distanceAmount, 0) ?></strong>
                     </li>
                     <li class="list-group-item d-flex justify-content-between">
                       <span>Door-to-door</span><strong id="disp_door">₱<?= number_format($doorToDoorAmount, 0) ?></strong>
@@ -346,10 +387,10 @@ if ($distanceAmount !== null) {
                 </div>
                 <div class="col-md-5 text-center">
                   <div class="small text-muted text-uppercase">Total</div>
-                  <div class="price-tag" id="disp_total"><?= ($totalAmount === null) ? "₱--" : "₱".number_format($totalAmount, 2) ?></div>
+                  <div class="price-tag" id="disp_total"><?= ($totalAmount === null) ? "₱--" : "₱" . number_format($totalAmount, 2) ?></div>
                   <div class="d-flex gap-2 mt-3">
                     <a class="btn btn-outline-secondary w-50" href="package.php">Back</a>
-                    <button type="submit" class="btn btn-success w-50" <?= ($totalAmount === null ? "disabled" : "") ?> id="btnNext">Next</button>
+                    <button type="submit" class="btn btn-warning w-50" <?= ($totalAmount === null ? "disabled" : "") ?> id="btnNext">Next</button>
                   </div>
                 </div>
               </div>
@@ -383,7 +424,7 @@ if ($distanceAmount !== null) {
         opt.textContent = item[nameKey];
         opt.dataset.name = item[nameKey] || '';
         for (const [key, field] of Object.entries(datasetAttrs)) {
-            opt.dataset[key] = item[field] || '';
+          opt.dataset[key] = item[field] || '';
         }
         selectEl.appendChild(opt);
       });
@@ -398,33 +439,33 @@ if ($distanceAmount !== null) {
       const opt = selectEl.options[selectEl.selectedIndex];
       hiddenEl.value = (opt && opt.dataset && opt.dataset.name) ? opt.dataset.name : '';
     }
-    
+
     // --- LIVE FARE LOGIC ---
     async function updateLiveFare() {
-        const pRegion = document.getElementById("pickup_region_code").value;
-        const dRegion = document.getElementById("drop_region_code").value;
-        const doorVal = document.getElementById("door_to_door").value;
-        if (!pRegion || !dRegion) return;
+      const pRegion = document.getElementById("pickup_region_code").value;
+      const dRegion = document.getElementById("drop_region_code").value;
+      const doorVal = document.getElementById("door_to_door").value;
+      if (!pRegion || !dRegion) return;
 
-        const params = new URLSearchParams({
-            action: "calculate_fare",
-            pickup_region: pRegion,
-            drop_region: dRegion,
-            door_to_door: doorVal
-        });
+      const params = new URLSearchParams({
+        action: "calculate_fare",
+        pickup_region: pRegion,
+        drop_region: dRegion,
+        door_to_door: doorVal
+      });
 
-        const data = await fetchData(params.toString());
-        if (data.valid) {
-            document.getElementById("disp_base").textContent = "₱" + data.base;
-            document.getElementById("disp_distance").textContent = "₱" + data.distance;
-            document.getElementById("disp_door").textContent = "₱" + data.door;
-            document.getElementById("disp_total").textContent = "₱" + data.total;
-            document.getElementById("btnNext").disabled = false;
-        } else {
-            document.getElementById("disp_distance").textContent = "--";
-            document.getElementById("disp_total").textContent = "₱--";
-            document.getElementById("btnNext").disabled = true;
-        }
+      const data = await fetchData(params.toString());
+      if (data.valid) {
+        document.getElementById("disp_base").textContent = "₱" + data.base;
+        document.getElementById("disp_distance").textContent = "₱" + data.distance;
+        document.getElementById("disp_door").textContent = "₱" + data.door;
+        document.getElementById("disp_total").textContent = "₱" + data.total;
+        document.getElementById("btnNext").disabled = false;
+      } else {
+        document.getElementById("disp_distance").textContent = "--";
+        document.getElementById("disp_total").textContent = "₱--";
+        document.getElementById("btnNext").disabled = true;
+      }
     }
     document.getElementById("door_to_door").addEventListener("change", updateLiveFare);
 
@@ -439,16 +480,20 @@ if ($distanceAmount !== null) {
       const hiddenProvince = document.getElementById(prefix + "_province_name");
       const hiddenCity = document.getElementById(prefix + "_city_name");
       const hiddenBarangay = document.getElementById(prefix + "_barangay_name");
-      
+
       const provinces = await fetchData("action=get_provinces");
-      populate(provinceEl, provinces, "province_code", "province_name", { regionCode: "region_code" });
+      populate(provinceEl, provinces, "province_code", "province_name", {
+        regionCode: "region_code"
+      });
 
       if (saved.province_code) {
         provinceEl.value = saved.province_code;
         handleProvinceChange(provinceEl.value);
       }
 
-      provinceEl.addEventListener("change", function() { handleProvinceChange(this.value); });
+      provinceEl.addEventListener("change", function() {
+        handleProvinceChange(this.value);
+      });
 
       async function handleProvinceChange(provCode) {
         reset(cityEl);
@@ -456,17 +501,17 @@ if ($distanceAmount !== null) {
         updateHiddenName(provinceEl, hiddenProvince);
 
         if (!provCode) {
-            hiddenRegionCode.value = "";
-            hiddenRegionName.value = "";
-            return;
+          hiddenRegionCode.value = "";
+          hiddenRegionName.value = "";
+          return;
         }
 
         const selectedOpt = provinceEl.options[provinceEl.selectedIndex];
         const regCode = selectedOpt.dataset.regionCode;
         if (regCode) {
-            const regName = REGION_MAP[regCode] || regCode;
-            hiddenRegionCode.value = regCode;
-            hiddenRegionName.value = regName;
+          const regName = REGION_MAP[regCode] || regCode;
+          hiddenRegionCode.value = regCode;
+          hiddenRegionName.value = regName;
         }
         updateLiveFare();
 
@@ -474,9 +519,9 @@ if ($distanceAmount !== null) {
         populate(cityEl, cities, "city_code", "city_name");
 
         if (saved.city_code && cities.some(c => c.city_code === saved.city_code)) {
-            cityEl.value = saved.city_code;
-            cityEl.dispatchEvent(new Event("change"));
-            saved.city_code = null;
+          cityEl.value = saved.city_code;
+          cityEl.dispatchEvent(new Event("change"));
+          saved.city_code = null;
         }
       }
 
@@ -493,109 +538,114 @@ if ($distanceAmount !== null) {
         }
       });
 
-      barangayEl.addEventListener("change", function() { updateHiddenName(this, hiddenBarangay); });
+      barangayEl.addEventListener("change", function() {
+        updateHiddenName(this, hiddenBarangay);
+      });
     }
 
     (async function init() {
-        const regionsData = await fetchData("action=get_regions");
-        regionsData.forEach(r => { REGION_MAP[r.region_code] = r.region_name; });
+      const regionsData = await fetchData("action=get_regions");
+      regionsData.forEach(r => {
+        REGION_MAP[r.region_code] = r.region_name;
+      });
 
-        setupSelector("pickup", {
-          region_code: "<?= h((string)($pickup["region_code"] ?? "")) ?>",
-          province_code: "<?= h((string)($pickup["province_code"] ?? "")) ?>",
-          city_code: "<?= h((string)($pickup["city_code"] ?? "")) ?>",
-          brgy_code: "<?= h((string)($pickup["brgy_code"] ?? "")) ?>"
-        });
+      setupSelector("pickup", {
+        region_code: "<?= h((string)($pickup["region_code"] ?? "")) ?>",
+        province_code: "<?= h((string)($pickup["province_code"] ?? "")) ?>",
+        city_code: "<?= h((string)($pickup["city_code"] ?? "")) ?>",
+        brgy_code: "<?= h((string)($pickup["brgy_code"] ?? "")) ?>"
+      });
 
-        setupSelector("drop", {
-          region_code: "<?= h((string)($drop["region_code"] ?? "")) ?>",
-          province_code: "<?= h((string)($drop["province_code"] ?? "")) ?>",
-          city_code: "<?= h((string)($drop["city_code"] ?? "")) ?>",
-          brgy_code: "<?= h((string)($drop["brgy_code"] ?? "")) ?>"
-        });
+      setupSelector("drop", {
+        region_code: "<?= h((string)($drop["region_code"] ?? "")) ?>",
+        province_code: "<?= h((string)($drop["province_code"] ?? "")) ?>",
+        city_code: "<?= h((string)($drop["city_code"] ?? "")) ?>",
+        brgy_code: "<?= h((string)($drop["brgy_code"] ?? "")) ?>"
+      });
     })();
 
     // -------------------------------------------------------------
     // DB FETCH + AUTO-FILL + SMART MATCHING
     // -------------------------------------------------------------
-    
+
     function normalize(str) {
-        if (!str) return "";
-        return str.toLowerCase()
-            .replace(/\(.*\)/g, "") // Remove (Tulo)
-            .replace("city of", "")
-            .replace("municipality of", "")
-            .replace("brgy", "")
-            .replace("barangay", "")
-            .trim();
+      if (!str) return "";
+      return str.toLowerCase()
+        .replace(/\(.*\)/g, "") // Remove (Tulo)
+        .replace("city of", "")
+        .replace("municipality of", "")
+        .replace("brgy", "")
+        .replace("barangay", "")
+        .trim();
     }
 
     function findOptionBySmartMatch(selectEl, searchStr) {
-        if (!searchStr) return null;
-        const target = normalize(searchStr);
-        return Array.from(selectEl.options).find(o => {
-            const optText = normalize(o.text);
-            return optText === target || optText.includes(target) || target.includes(optText);
-        });
+      if (!searchStr) return null;
+      const target = normalize(searchStr);
+      return Array.from(selectEl.options).find(o => {
+        const optText = normalize(o.text);
+        return optText === target || optText.includes(target) || target.includes(optText);
+      });
     }
 
     document.getElementById("useDefaultPickupBtn").addEventListener("click", async () => {
       // Fetch from DB (AJAX)
       try {
-          const res = await fetch("?action=get_user_address");
-          const p = await res.json();
+        const res = await fetch("?action=get_user_address");
+        const p = await res.json();
 
-          if (!p) {
-              alert("No address found in your database profile.");
-              return;
-          }
-          console.log("DB Address:", p);
+        if (!p) {
+          alert("No address found in your database profile.");
+          return;
+        }
+        console.log("DB Address:", p);
 
-          // 1. Fill House
-          document.getElementById("pickup_house").value = p.house || "";
+        // 1. Fill House
+        document.getElementById("pickup_house").value = p.house || "";
 
-          // 2. Province
-          const provSelect = document.getElementById("pickup_province");
-          const provOpt = findOptionBySmartMatch(provSelect, p.province);
+        // 2. Province
+        const provSelect = document.getElementById("pickup_province");
+        const provOpt = findOptionBySmartMatch(provSelect, p.province);
 
-          if (provOpt) {
-              provSelect.value = provOpt.value;
-              provSelect.dispatchEvent(new Event("change"));
+        if (provOpt) {
+          provSelect.value = provOpt.value;
+          provSelect.dispatchEvent(new Event("change"));
 
-              // 3. City
-              const waitForCities = setInterval(() => {
-                  const citySelect = document.getElementById("pickup_city");
-                  if (citySelect.options.length > 1 && !citySelect.disabled) {
-                      clearInterval(waitForCities);
-                      
-                      const cityOpt = findOptionBySmartMatch(citySelect, p.municipality);
-                      if (cityOpt) {
-                          citySelect.value = cityOpt.value;
-                          citySelect.dispatchEvent(new Event("change"));
+          // 3. City
+          const waitForCities = setInterval(() => {
+            const citySelect = document.getElementById("pickup_city");
+            if (citySelect.options.length > 1 && !citySelect.disabled) {
+              clearInterval(waitForCities);
 
-                          // 4. Barangay
-                          const waitForBrgy = setInterval(() => {
-                              const brgySelect = document.getElementById("pickup_barangay");
-                              if (brgySelect.options.length > 1 && !brgySelect.disabled) {
-                                  clearInterval(waitForBrgy);
-                                  const brgyOpt = findOptionBySmartMatch(brgySelect, p.barangay);
-                                  if (brgyOpt) {
-                                      brgySelect.value = brgyOpt.value;
-                                      brgySelect.dispatchEvent(new Event("change"));
-                                  }
-                              }
-                          }, 100);
-                      }
+              const cityOpt = findOptionBySmartMatch(citySelect, p.municipality);
+              if (cityOpt) {
+                citySelect.value = cityOpt.value;
+                citySelect.dispatchEvent(new Event("change"));
+
+                // 4. Barangay
+                const waitForBrgy = setInterval(() => {
+                  const brgySelect = document.getElementById("pickup_barangay");
+                  if (brgySelect.options.length > 1 && !brgySelect.disabled) {
+                    clearInterval(waitForBrgy);
+                    const brgyOpt = findOptionBySmartMatch(brgySelect, p.barangay);
+                    if (brgyOpt) {
+                      brgySelect.value = brgyOpt.value;
+                      brgySelect.dispatchEvent(new Event("change"));
+                    }
                   }
-              }, 100);
-          } else {
-             alert(`Could not find province "${p.province}"`);
-          }
+                }, 100);
+              }
+            }
+          }, 100);
+        } else {
+          alert(`Could not find province "${p.province}"`);
+        }
 
       } catch (e) {
-          console.error("Error fetching user address", e);
+        console.error("Error fetching user address", e);
       }
     });
   </script>
 </body>
+
 </html>
