@@ -7,117 +7,126 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pack IT</title>
 
-
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
 
   <style>
     : root {
       --brand-yellow: #f8e15b;
       --brand-dark: #111;
       --brand-gray: #555;
+      --soft-shadow: 0 8px 28px rgba(16, 24, 40, 0.06);
+      --glass: rgba(255,255,255,0.6);
     }
 
-
+    /* Base */
+    html, body { height: 100%; }
     body {
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       overflow-x: hidden;
-      background:  #fff;
+      background: linear-gradient(180deg, #ffffff 0%, #fcfcfd 100%);
+      color: var(--brand-dark);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Container spacing */
+    main.container {
+      padding-top: 3.5rem;
+      padding-bottom: 3.5rem;
+    }
+
+    /* HERO area */
+    .display-1 {
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      line-height: 0.95;
       color: var(--brand-dark);
     }
 
-
-    .bg-brand {
-      background-color: var(--brand-yellow) !important;
+    .lead {
+      color: var(--brand-gray);
+      font-size: 1.05rem;
+      max-width: 56ch;
     }
 
-
-    .hover-scale {
-      transition: transform 0.2s ease-in-out;
+    /* Get Started button — keep and subtly enhance */
+    .btn.bg-brand {
+      background: linear-gradient(90deg, var(--brand-yellow), #ffe27a);
+      color: var(--brand-dark);
+      border: none;
+      box-shadow: var(--soft-shadow);
+      transition: transform .16s ease, box-shadow .16s ease;
+    }
+    .btn.bg-brand:hover,
+    .btn.bg-brand:focus {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 40px rgba(16,24,40,0.10);
+      color: var(--brand-dark);
     }
 
-    .hover-scale:hover {
-      transform: scale(1.15);
+    /* Mascot image */
+    .hero-img {
+      max-height: 450px;
+      width: auto;
+      transition: transform .25s ease;
+      border-radius: 12px;
+      box-shadow: var(--soft-shadow);
     }
+    .hero-img:hover { transform: translateY(-6px) scale(1.02); }
 
-
-    .footer-curve {
-      height: 90px;
-      background: var(--brand-yellow);
-      clip-path: ellipse(85% 100% at 50% 100%);
-    }
-
-
+    /* Floating actions simplified visuals (keeps same markup) */
     .floating-actions {
       position: fixed;
       top: 50%;
       right: 20px;
       transform: translateY(-50%);
-      background: #f8e15b;
-      border-radius: 10px;
-      padding: 20px;
+      background: rgba(248,225,91,0.98);
+      border-radius: 12px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      align-items: stretch;
-      gap: 25px;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 10px 30px rgba(16,24,40,0.09);
       z-index: 1050;
-      width: 120px;
+      min-width: 92px;
+      justify-content: center;
     }
-
-
-    .floating-actions button {
-      width: 100%;
-      border-radius: 5px;
-    }
-
 
     .floating-actions a {
-      display: flex;
+      display: inline-flex;
       flex-direction: column;
       align-items: center;
       text-decoration: none;
       color: var(--brand-dark);
       font-size: 0.9rem;
-      transition: transform 0.2s;
+      transition: transform .14s ease, filter .14s ease;
+      gap: 6px;
     }
-
-
     .floating-actions a img {
-      width: 45px;
-      height: 45px;
-      margin-bottom: 5px;
+      width: 44px;
+      height: 44px;
+      object-fit: contain;
+      filter: drop-shadow(0 6px 16px rgba(0,0,0,0.08));
     }
-
-
-    .floating-actions a:hover {
-      transform: scale(1.1);
-    }
-
+    .floating-actions a:hover { transform: translateY(-6px); filter: brightness(1.03); }
 
     @media (max-width: 991px) {
-      h1.display-1 {
-        font-size:  3rem;
-      }
-
+      h1.display-1 { font-size: 3rem; }
       .floating-actions {
         top: auto;
         bottom: 80px;
         right: 20px;
         flex-direction: row;
-        border-radius: 12px;
-        padding: 10px 15px;
-        gap: 15px;
+        border-radius: 14px;
+        padding: 10px;
+        gap: 12px;
       }
-
-      .floating-actions a img {
-        width: 35px;
-        height: 35px;
-      }
+      .floating-actions a img { width: 36px; height: 36px; }
     }
 
-    /* Chat modal / widget styles */
+    /* Chat modal/widget styling kept but refined */
     .chat-widget .modal-dialog {
       max-width: 420px;
       margin: 0;
@@ -132,6 +141,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      border-radius: 8px;
     }
 
     .chat-messages {
@@ -172,26 +182,19 @@
       max-width: 78%;
       padding: 9px 12px;
       border-radius: 12px;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
       line-height: 1.3;
       white-space: pre-wrap;
+      background: #f1f3ff;
     }
 
-    .chat-msg.user {
-      justify-content: flex-end;
-    }
-
+    .chat-msg.user { justify-content: flex-end; }
     .chat-msg.user .chat-bubble {
       background: #0d6efd;
       color: #fff;
       border-bottom-right-radius: 4px;
     }
-
-    .chat-msg.bot .chat-bubble {
-      background: #f1f3ff;
-      color: #111;
-      border-bottom-left-radius: 4px;
-    }
+    .chat-msg.bot .chat-bubble { background: #f1f3ff; color: #111; border-bottom-left-radius: 4px; }
 
     .chat-typing {
       display: inline-block;
@@ -201,44 +204,32 @@
       border-radius: 6px;
       animation: blink 1.2s infinite;
     }
-
     @keyframes blink {
-      0% {
-        opacity: .25;
-        transform: translateY(0);
-      }
-
-      50% {
-        opacity: 1;
-        transform: translateY(-2px);
-      }
-
-      100% {
-        opacity: .25;
-        transform: translateY(0);
-      }
+      0% { opacity: .25; transform: translateY(0); }
+      50% { opacity: 1; transform: translateY(-2px); }
+      100% { opacity: .25; transform: translateY(0); }
     }
 
-    .chat-controls {
-      display: flex;
-      gap: 8px;
-      align-items: center;
+    .chat-controls { display: flex; gap: 8px; align-items: center; }
+    .chat-controls textarea { resize: none; height: 46px; }
+
+    /* Footer curve (kept) */
+    .footer-curve {
+      height: 90px;
+      background: var(--brand-yellow);
+      clip-path: ellipse(85% 100% at 50% 100%);
     }
 
-    .chat-controls textarea {
-      resize: none;
-      height: 46px;
-    }
+    /* small reveal */
+    .reveal { opacity: 0; transform: translateY(10px); transition: opacity .45s ease, transform .45s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
   </style>
 </head>
 
-
 <body id="top" class="min-vh-100">
-
 
   <?php $page = basename($_SERVER['PHP_SELF']); ?>
   <?php include("frontend/components/navbar.php"); ?>
-
 
   <main class="container my-5 py-lg-5">
     <div class="row align-items-center gy-5">
@@ -251,15 +242,13 @@
         <a href="../PackIT/frontend/aboutUs.php" class="btn bg-brand btn-lg fw-bold rounded-pill px-4 mt-3 hover-scale">Get Started</a>
       </div>
 
-
       <div class="col-lg-6 text-center">
-        <img src="assets/mascot.png" class="img-fluid" alt="Mascot" style="max-height: 450px;">
+        <img src="assets/mascot.png" class="img-fluid hero-img" alt="Mascot" style="max-height: 450px;">
       </div>
     </div>
   </main>
 
-
-  <div class="floating-actions">
+  <div class="floating-actions" aria-hidden="false">
     <a href="../PackIT/frontend/booking/package.php">
       <img src="assets/box.png" alt="book">
       <span>Book</span>
@@ -274,11 +263,7 @@
     </a>
   </div>
 
-
-
-
   <?php include("frontend/components/footer.php"); ?>
-
 
   <!-- Chat Modal (widget) -->
   <div class="modal fade chat-widget" id="chatModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="false">
@@ -419,8 +404,6 @@
           if (!res.ok) {
             appendMessage('Sorry, I could not reach the assistant.Try again later.', 'bot');
           } else {
-            // chatai.php returns HTML-escaped content (echo htmlspecialchars),
-            // so it's safe to insert as text.We already escaped above.
             appendMessage(textResp, 'bot');
           }
         } catch (err) {
@@ -464,6 +447,11 @@
         if (chatMessages.children.length === 0) {
           appendMessage('Hi!I am Pack IT Assistant.How can I help you today?', 'bot');
         }
+      });
+
+      // reveal animation on load for elements that have the class
+      document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
       });
 
     })();
