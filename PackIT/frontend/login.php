@@ -25,22 +25,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $userObj->login($email, $password);
 
         if ($user) {
-            // Login successful - regenerate session id and set session using Auth class
+            // Login successful - regenerate session id
             session_regenerate_id(true);
 
             $fullName = $user['first_name'] .' ' .$user['last_name'];
+            
+            // Use Auth:: login() to set consistent session variables
             Auth::login($user['id'], $user['email'], $fullName, $user['role']);
-
-            // Store user details in session
-            $_SESSION['user'] = [
-                'id'          => $user['id'],
-                'firstName'   => $user['first_name'],
-                'lastName'    => $user['last_name'],
-                'email'       => $user['email'],
-                'contact'     => $user['contact_number'],
-                'role'        => $user['role'],
-                'created_at'  => $user['created_at']
-            ];
 
             // Redirect based on role
             if ($user['role'] === 'admin') {
@@ -67,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>PackIT - Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="d-flex align-items-center min-vh-100" style="background-color:  #fffef5;">
+<body class="d-flex align-items-center min-vh-100" style="background-color: #fffef5;">
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-5 col-lg-4">
@@ -75,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="card-body">
                     <h1 class="h3 fw-bold mb-3 text-center">Welcome Back</h1>
 
-                    <?php if (! empty($_SESSION['success'])) : ?>
+                    <?php if (!empty($_SESSION['success'])) : ?>
                         <div class="alert alert-success small"><?= htmlspecialchars($_SESSION['success']) ?></div>
                         <?php unset($_SESSION['success']); ?>
                     <?php endif; ?>

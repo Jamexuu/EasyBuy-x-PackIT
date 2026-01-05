@@ -1,4 +1,7 @@
-<!doctype html>
+<?php
+session_start();
+?>
+<! doctype html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -7,9 +10,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
-        :root {
+        : root {
             --brand-yellow: #f8e14b;
-            --bg-light: #f8f9fa;
+            --bg-light:  #f8f9fa;
             --text-muted: #6c757d;
         }
 
@@ -30,15 +33,15 @@
         }
 
         .custom-header img {
-            height: 40px;
+            height:  40px;
         }
 
         .transaction-container {
             background-color: #ffffff;
-            border: 3px solid var(--brand-yellow);
+            border:  3px solid var(--brand-yellow);
             border-radius: 28px;
             padding: 40px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            box-shadow:  0 8px 20px rgba(0,0,0,0.06);
         }
 
         .page-header {
@@ -69,7 +72,7 @@
         }
 
         .table thead th {
-            background-color: var(--brand-yellow);
+            background-color:  var(--brand-yellow);
             border: none;
             padding: 14px;
             font-weight: 600;
@@ -99,18 +102,6 @@
 
 <body>
     <?php include("components/navbar.php"); ?>
-
-    <header class="custom-header container">
-        <img src="assets/LOGO.svg" alt="Logo">
-
-        <div class="d-flex align-items-center gap-3">
-            <span style="font-size: 1.2rem; cursor: pointer;">🔔</span>
-            <strong style="font-size: 0.8rem; cursor: pointer; line-height: 1;">
-                LOGIN /<br>SIGNUP
-            </strong>
-        </div>
-    </header>
-
 
     <main class="container transaction-container">
         <div class="page-header">
