@@ -207,7 +207,7 @@ if ($isAvailable === 1) {
             <p class="text-muted">Welcome to your driver dashboard.</p>
         </div>
         <div class="col-md-6 text-md-end">
-            <a href="driver_profile.php" class="btn btn-dark rounded-pill px-4 me-2">
+            <a href="driverProfile.php" class="btn btn-dark rounded-pill px-4 me-2">
                 <i class="bi bi-person-circle me-2"></i>Profile
             </a>
             <div class="status-toggle-card d-inline-flex align-items-center shadow-sm">
