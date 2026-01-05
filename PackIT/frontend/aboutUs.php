@@ -195,7 +195,6 @@
 
   <main class="page-container">
 
-    <!-- HERO -->
     <section class="hero">
       <div class="hero-card reveal" aria-labelledby="about-hero-title">
         <span class="brand-badge" aria-hidden="true"><img src="../assets/LOGO.svg" alt="" width="18" height="18" style="object-fit:contain"> PackIT</span>
@@ -248,8 +247,7 @@
         </div>
 
         <div class="cta-strip" role="region" aria-label="Call to action">
-            <a class="btn btn-warning btn-lg" href="tracking.php" role="button">Track Shipment</a>
-          </div>
+          <a class="btn btn-warning btn-lg" href="tracking.php" role="button">Track Shipment</a>
         </div>
       </div>
 
@@ -284,34 +282,34 @@
       <h2 class="h3 mb-3">Our Services</h2>
 
       <div id="servicesCarousel"
-     class="carousel slide"
-     data-bs-ride="carousel"
-     data-bs-interval="3500"
-     data-bs-pause="false"
-     aria-label="Services carousel">
-  <div class="carousel-inner">
-    <div class="carousel-item active">
-      <img src="../assets/carousel1.png" class="d-block w-100 rounded-lg" alt="Same-day delivery" loading="lazy">
-    </div>
+           class="carousel slide"
+           data-bs-ride="carousel"
+           data-bs-interval="3500"
+           data-bs-pause="false"
+           aria-label="Services carousel">
+        <div class="carousel-inner">
+          <div class="carousel-item active">
+            <img src="../assets/carousel1.png" class="d-block w-100 rounded-lg" alt="Same-day delivery" loading="lazy">
+          </div>
 
-    <div class="carousel-item">
-      <img src="../assets/carousel2.png" class="d-block w-100 rounded-lg" alt="Nationwide freight" loading="lazy">
-    </div>
+          <div class="carousel-item">
+            <img src="../assets/carousel2.png" class="d-block w-100 rounded-lg" alt="Nationwide freight" loading="lazy">
+          </div>
 
-    <div class="carousel-item">
-      <img src="../assets/carousel3.png" class="d-block w-100 rounded-lg" alt="Warehousing solutions" loading="lazy">
-    </div>
+          <div class="carousel-item">
+            <img src="../assets/carousel3.png" class="d-block w-100 rounded-lg" alt="Warehousing solutions" loading="lazy">
+          </div>
 
-    <div class="carousel-item">
-      <img src="../assets/carousel4.png" class="d-block w-100 rounded-lg" alt="Ecommerce fulfillment" loading="lazy">
-    </div>
+          <div class="carousel-item">
+            <img src="../assets/carousel4.png" class="d-block w-100 rounded-lg" alt="Ecommerce fulfillment" loading="lazy">
+          </div>
 
-    <div class="carousel-item">
-      <img src="../assets/carousel5.png" class="d-block w-100 rounded-lg" alt="Custom logistics" loading="lazy">
-    </div>
-  </div>
-</div>
+          <div class="carousel-item">
+            <img src="../assets/carousel5.png" class="d-block w-100 rounded-lg" alt="Custom logistics" loading="lazy">
+          </div>
+        </div>
 
+        <!-- Controls are siblings of .carousel-inner -->
         <button class="carousel-control-prev" type="button" data-bs-target="#servicesCarousel" data-bs-slide="prev" aria-label="Previous service">
           <span class="carousel-control-prev-icon" aria-hidden="true"></span>
         </button>
@@ -359,7 +357,7 @@
 
   </main>
 
-  <?php include("components/navbar.php"); ?>
+  <?php include("components/footer.php"); ?>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
