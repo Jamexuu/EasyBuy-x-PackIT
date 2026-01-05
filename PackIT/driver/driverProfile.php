@@ -168,6 +168,7 @@ $hasActiveAssignment = driver_has_active_booking($db, $driverId);
     </style>
 </head>
 <body>
+    <?php include("../frontend/components/driverNavbar.php"); ?>
     <div class="container my-5">
         <?php if (!empty($_SESSION['flash_success'])): ?>
             <div class="alert alert-success"><?php echo htmlspecialchars($_SESSION['flash_success']); unset($_SESSION['flash_success']); ?></div>
@@ -307,6 +308,7 @@ $hasActiveAssignment = driver_has_active_booking($db, $driverId);
             </div>
         </div>
     </div>
+    <?php include("../frontend/components/driverFooter.php"); ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
