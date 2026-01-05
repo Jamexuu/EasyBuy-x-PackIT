@@ -190,6 +190,9 @@
 
 <body>
 
+  <?php $page = basename($_SERVER['PHP_SELF']); ?>
+  <?php include("components/navbar.php"); ?>
+
   <main class="page-container">
 
     <!-- HERO -->
@@ -329,32 +332,34 @@
     </section>
 
     <section class="mt-4 reveal" aria-label="Trusted by">
-      <h3 class="h5 mb-3">Trusted by businesses across the Philippines</h3>
+      <h3 class="h5 mb-4 text-center">What makes us better?</h3>
       <div class="row g-3">
         <div class="col-6 col-md-3">
           <div class="p-3 rounded-lg border text-center bg-white">
-            <img src="../assets/client1.png" alt="Client 1" class="img-fluid" loading="lazy">
+            <img src="../assets/robot.gif" alt="GIF 1" class="img-fluid" loading="lazy">
           </div>
         </div>
         <div class="col-6 col-md-3">
           <div class="p-3 rounded-lg border text-center bg-white">
-            <img src="../assets/client2.png" alt="Client 2" class="img-fluid" loading="lazy">
+            <img src="../assets/motor.gif" alt="GIF 2" class="img-fluid" loading="lazy">
           </div>
         </div>
         <div class="col-6 col-md-3">
           <div class="p-3 rounded-lg border text-center bg-white">
-            <img src="../assets/client3.png" alt="Client 3" class="img-fluid" loading="lazy">
+            <img src="../assets/clock.gif" alt="GIF 3" class="img-fluid" loading="lazy">
           </div>
         </div>
         <div class="col-6 col-md-3">
           <div class="p-3 rounded-lg border text-center bg-white">
-            <img src="../assets/client4.png" alt="Client 4" class="img-fluid" loading="lazy">
+            <img src="../assets/delivery.gif" alt="GIF 4" class="img-fluid" loading="lazy">
           </div>
         </div>
       </div>
     </section>
 
   </main>
+
+  <?php include("components/navbar.php"); ?>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
