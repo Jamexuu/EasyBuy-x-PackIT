@@ -10,7 +10,7 @@ session_start();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
-        : root {
+        :root {
             --brand-yellow: #f8e14b;
             --bg-light:  #f8f9fa;
             --text-muted: #6c757d;
