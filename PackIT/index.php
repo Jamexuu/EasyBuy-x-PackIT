@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
   <style>
-    :root {
+    root {
       --brand-yellow: #f8e15b;
       --brand-dark: #111;
       --brand-gray: #555;
@@ -20,7 +20,11 @@
     }
 
     /* Base */
-    html, body { height: 100%; }
+    html,
+    body {
+      height: 100%;
+    }
+
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       overflow-x: hidden;
@@ -58,6 +62,7 @@
       box-shadow: var(--soft-shadow);
       transition: transform .16s ease, box-shadow .16s ease;
     }
+
     .btn.bg-brand:hover,
     .btn.bg-brand:focus {
       transform: translateY(-3px);
@@ -73,7 +78,10 @@
       border-radius: 12px;
       box-shadow: var(--soft-shadow);
     }
-    .hero-img:hover { transform: translateY(-6px) scale(1.02); }
+
+    .hero-img:hover {
+      transform: translateY(-6px) scale(1.02);
+    }
 
     /* --- UPDATED FLOATING ACTIONS --- */
     .floating-actions {
@@ -82,13 +90,13 @@
       right: 20px;
       transform: translateY(-50%);
       background: rgba(248, 225, 91, 0.98);
-      border-radius: 16px; /* Slightly rounder */
-      padding: 10px;
+      border-radius: 12px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 0; /* Gap handled by internal padding now */
-      box-shadow: 0 10px 30px rgba(16, 24, 40, 0.15);
+      gap: 14px;
+      box-shadow: 0 10px 30px rgba(16, 24, 40, 0.09);
       z-index: 1050;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       /* Default State: Width fits content */
@@ -101,7 +109,8 @@
       gap: 14px;
       padding: 4px;
       overflow: hidden;
-      max-height: 500px; /* Arbitrary max for transition */
+      max-height: 500px;
+      /* Arbitrary max for transition */
       opacity: 1;
       transition: all 0.3s ease;
     }
@@ -130,48 +139,31 @@
       width: 40px;
       height: 40px;
       object-fit: contain;
-      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
-    }
-    .floating-actions a:hover { transform: translateY(-3px); filter: brightness(1.05); }
-
-    /* Toggle Button Style */
-    .action-toggle-btn {
-      background: transparent;
-      border: none;
-      color: var(--brand-dark);
-      font-size: 1.2rem;
-      cursor: pointer;
-      padding: 4px;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      border-radius: 50%;
-      transition: background 0.2s;
-    }
-    .action-toggle-btn:hover {
-      background: rgba(255,255,255,0.4);
-    }
-    
-    /* Rotate animation for the icon */
-    .action-toggle-btn i {
-      transition: transform 0.3s ease;
-    }
-    .floating-actions.closed .action-toggle-btn i {
-      transform: rotate(180deg);
+      filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.08));
     }
 
-    /* --- MOBILE STYLES (Bottom Horizontal) --- */
+    .floating-actions a:hover {
+      transform: translateY(-6px);
+      filter: brightness(1.03);
+    }
+
     @media (max-width: 991px) {
-      h1.display-1 { font-size: 3rem; }
+      h1.display-1 {
+        font-size: 3rem;
+      }
 
       .floating-actions {
         top: auto;
-        bottom: 20px; /* Moved up slightly */
+        bottom: 20px;
+        /* Moved up slightly */
         right: 20px;
         transform: none;
-        flex-direction: row-reverse; /* Button on the right */
-        border-radius: 50px; /* Pill shape on mobile */
-        padding: 6px 6px 6px 16px; /* Padding for pill shape */
+        flex-direction: row-reverse;
+        /* Button on the right */
+        border-radius: 50px;
+        /* Pill shape on mobile */
+        padding: 6px 6px 6px 16px;
+        /* Padding for pill shape */
       }
 
       /* When closed on mobile, it becomes a circle */
@@ -183,32 +175,22 @@
       }
 
       .action-links-wrapper {
-        flex-direction: row; /* Horizontal on mobile */
-        max-width: 500px; /* Use width for horizontal transition */
+        flex-direction: row;
+        /* Horizontal on mobile */
+        max-width: 500px;
+        /* Use width for horizontal transition */
         max-height: unset;
         gap: 18px;
         padding-right: 12px;
       }
 
-      .floating-actions.closed .action-links-wrapper {
-        max-width: 0;
-        padding-right: 0;
-      }
-
-      .floating-actions a img { width: 32px; height: 32px; }
-      .floating-actions a span { display: none; } /* Hide text on mobile to save space */
-      
-      .action-toggle-btn {
-        width: 40px;
-        height: 40px;
-        align-items: center;
-        background: #fff; /* White background for button on mobile for contrast */
-        border-radius: 50%;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      .floating-actions a img {
+        width: 36px;
+        height: 36px;
       }
     }
 
-    /* Chat modal/widget styling */
+    /* Chat modal/widget styling kept but refined */
     .chat-widget .modal-dialog {
       max-width: 420px;
       margin: 0;
@@ -265,19 +247,27 @@
       max-width: 78%;
       padding: 9px 12px;
       border-radius: 12px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
       line-height: 1.3;
       white-space: pre-wrap;
       background: #f1f3ff;
     }
 
-    .chat-msg.user { justify-content: flex-end; }
+    .chat-msg.user {
+      justify-content: flex-end;
+    }
+
     .chat-msg.user .chat-bubble {
       background: #0d6efd;
       color: #fff;
       border-bottom-right-radius: 4px;
     }
-    .chat-msg.bot .chat-bubble { background: #f1f3ff; color: #111; border-bottom-left-radius: 4px; }
+
+    .chat-msg.bot .chat-bubble {
+      background: #f1f3ff;
+      color: #111;
+      border-bottom-left-radius: 4px;
+    }
 
     .chat-typing {
       display: inline-block;
@@ -287,14 +277,34 @@
       border-radius: 6px;
       animation: blink 1.2s infinite;
     }
+
     @keyframes blink {
-      0% { opacity: .25; transform: translateY(0); }
-      50% { opacity: 1; transform: translateY(-2px); }
-      100% { opacity: .25; transform: translateY(0); }
+      0% {
+        opacity: .25;
+        transform: translateY(0);
+      }
+
+      50% {
+        opacity: 1;
+        transform: translateY(-2px);
+      }
+
+      100% {
+        opacity: .25;
+        transform: translateY(0);
+      }
     }
 
-    .chat-controls { display: flex; gap: 8px; align-items: center; }
-    .chat-controls textarea { resize: none; height: 46px; }
+    .chat-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .chat-controls textarea {
+      resize: none;
+      height: 46px;
+    }
 
     /* Footer curve (kept) */
     .footer-curve {
@@ -304,8 +314,16 @@
     }
 
     /* small reveal */
-    .reveal { opacity: 0; transform: translateY(10px); transition: opacity .45s ease, transform .45s ease; }
-    .reveal.visible { opacity: 1; transform: none; }
+    .reveal {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity .45s ease, transform .45s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
   </style>
 </head>
 
@@ -370,7 +388,7 @@
         <div class="modal-body p-0">
           <div class="chat-window">
             <div class="chat-messages" id="chatMessages" aria-live="polite" aria-atomic="false">
-              </div>
+            </div>
 
             <div class="chat-input">
               <form id="chatForm" onsubmit="return false;">
@@ -394,20 +412,20 @@
       const floatingActions = document.getElementById('floatingActions');
       const toggleBtn = document.getElementById('actionsToggleBtn');
       const toggleIcon = document.getElementById('toggleIcon');
-      
+
       toggleBtn.addEventListener('click', function() {
         // Toggle the class that handles the hiding/showing via CSS
         floatingActions.classList.toggle('closed');
-        
+
         // Update Icon based on state
         if (floatingActions.classList.contains('closed')) {
-            // If closed, show a 'List' or 'Plus' icon indicating you can open it
-            toggleIcon.classList.remove('bi-x-lg');
-            toggleIcon.classList.add('bi-list'); // or bi-plus-lg
+          // If closed, show a 'List' or 'Plus' icon indicating you can open it
+          toggleIcon.classList.remove('bi-x-lg');
+          toggleIcon.classList.add('bi-list'); // or bi-plus-lg
         } else {
-            // If open, show an 'X' to close it
-            toggleIcon.classList.remove('bi-list');
-            toggleIcon.classList.add('bi-x-lg');
+          // If open, show an 'X' to close it
+          toggleIcon.classList.remove('bi-list');
+          toggleIcon.classList.add('bi-x-lg');
         }
       });
 
