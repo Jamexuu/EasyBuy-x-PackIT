@@ -58,12 +58,28 @@ function set_selected_package(string $key): void {
 
   $_SESSION["booking"]["base_amount"] = $pkg["amount"];
 
-  // store extra details for later display if needed
+  // store extra details for later display and DB
   $_SESSION["booking"]["package_type"] = $pkg["package_type"];
   $_SESSION["booking"]["max_kg"] = $pkg["max_kg"];
   $_SESSION["booking"]["size_length_m"] = $pkg["size_length_m"];
   $_SESSION["booking"]["size_width_m"] = $pkg["size_width_m"];
   $_SESSION["booking"]["size_height_m"] = $pkg["size_height_m"];
+
+  // Local helper (no global function)
+  $fmt1 = function (float $x): string {
+    return rtrim(rtrim(number_format($x, 1), '0'), '.');
+  };
+
+  // Human-friendly description string
+  $desc = sprintf(
+    "Type: %s | Max: %d kg | Size: %s x %s x %s Meter",
+    (string)$pkg["package_type"],
+    (int)$pkg["max_kg"],
+    $fmt1((float)$pkg["size_length_m"]),
+    $fmt1((float)$pkg["size_width_m"]),
+    $fmt1((float)$pkg["size_height_m"])
+  );
+  $_SESSION["booking"]["package_desc"] = $desc;
 }
 
 function get_booking_state(): array {
