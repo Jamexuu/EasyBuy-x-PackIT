@@ -11,12 +11,12 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
   <style>
-    : root {
+    :root {
       --brand-yellow: #f8e15b;
       --brand-dark: #111;
       --brand-gray: #555;
       --soft-shadow: 0 8px 28px rgba(16, 24, 40, 0.06);
-      --glass: rgba(255,255,255,0.6);
+      --glass: rgba(255, 255, 255, 0.6);
     }
 
     /* Base */
@@ -50,7 +50,7 @@
       max-width: 56ch;
     }
 
-    /* Get Started button — keep and subtly enhance */
+    /* Get Started button */
     .btn.bg-brand {
       background: linear-gradient(90deg, var(--brand-yellow), #ffe27a);
       color: var(--brand-dark);
@@ -61,7 +61,7 @@
     .btn.bg-brand:hover,
     .btn.bg-brand:focus {
       transform: translateY(-3px);
-      box-shadow: 0 14px 40px rgba(16,24,40,0.10);
+      box-shadow: 0 14px 40px rgba(16, 24, 40, 0.10);
       color: var(--brand-dark);
     }
 
@@ -75,23 +75,43 @@
     }
     .hero-img:hover { transform: translateY(-6px) scale(1.02); }
 
-    /* Floating actions simplified visuals (keeps same markup) */
+    /* --- UPDATED FLOATING ACTIONS --- */
     .floating-actions {
       position: fixed;
       top: 50%;
       right: 20px;
       transform: translateY(-50%);
-      background: rgba(248,225,91,0.98);
-      border-radius: 12px;
-      padding: 14px;
+      background: rgba(248, 225, 91, 0.98);
+      border-radius: 16px; /* Slightly rounder */
+      padding: 10px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 14px;
-      box-shadow: 0 10px 30px rgba(16,24,40,0.09);
+      gap: 0; /* Gap handled by internal padding now */
+      box-shadow: 0 10px 30px rgba(16, 24, 40, 0.15);
       z-index: 1050;
-      min-width: 92px;
-      justify-content: center;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      /* Default State: Width fits content */
+    }
+
+    /* The wrapper for the links to animate hide/show */
+    .action-links-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 4px;
+      overflow: hidden;
+      max-height: 500px; /* Arbitrary max for transition */
+      opacity: 1;
+      transition: all 0.3s ease;
+    }
+
+    /* Hidden state for the wrapper */
+    .floating-actions.closed .action-links-wrapper {
+      max-height: 0;
+      opacity: 0;
+      padding: 0;
+      margin: 0;
     }
 
     .floating-actions a {
@@ -100,33 +120,95 @@
       align-items: center;
       text-decoration: none;
       color: var(--brand-dark);
-      font-size: 0.9rem;
+      font-size: 0.8rem;
+      font-weight: 600;
       transition: transform .14s ease, filter .14s ease;
-      gap: 6px;
+      gap: 4px;
     }
-    .floating-actions a img {
-      width: 44px;
-      height: 44px;
-      object-fit: contain;
-      filter: drop-shadow(0 6px 16px rgba(0,0,0,0.08));
-    }
-    .floating-actions a:hover { transform: translateY(-6px); filter: brightness(1.03); }
 
+    .floating-actions a img {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
+    }
+    .floating-actions a:hover { transform: translateY(-3px); filter: brightness(1.05); }
+
+    /* Toggle Button Style */
+    .action-toggle-btn {
+      background: transparent;
+      border: none;
+      color: var(--brand-dark);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 4px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+    .action-toggle-btn:hover {
+      background: rgba(255,255,255,0.4);
+    }
+    
+    /* Rotate animation for the icon */
+    .action-toggle-btn i {
+      transition: transform 0.3s ease;
+    }
+    .floating-actions.closed .action-toggle-btn i {
+      transform: rotate(180deg);
+    }
+
+    /* --- MOBILE STYLES (Bottom Horizontal) --- */
     @media (max-width: 991px) {
       h1.display-1 { font-size: 3rem; }
+
       .floating-actions {
         top: auto;
-        bottom: 80px;
+        bottom: 20px; /* Moved up slightly */
         right: 20px;
-        flex-direction: row;
-        border-radius: 14px;
-        padding: 10px;
-        gap: 12px;
+        transform: none;
+        flex-direction: row-reverse; /* Button on the right */
+        border-radius: 50px; /* Pill shape on mobile */
+        padding: 6px 6px 6px 16px; /* Padding for pill shape */
       }
-      .floating-actions a img { width: 36px; height: 36px; }
+
+      /* When closed on mobile, it becomes a circle */
+      .floating-actions.closed {
+        border-radius: 50%;
+        padding: 10px;
+        right: 20px;
+        bottom: 20px;
+      }
+
+      .action-links-wrapper {
+        flex-direction: row; /* Horizontal on mobile */
+        max-width: 500px; /* Use width for horizontal transition */
+        max-height: unset;
+        gap: 18px;
+        padding-right: 12px;
+      }
+
+      .floating-actions.closed .action-links-wrapper {
+        max-width: 0;
+        padding-right: 0;
+      }
+
+      .floating-actions a img { width: 32px; height: 32px; }
+      .floating-actions a span { display: none; } /* Hide text on mobile to save space */
+      
+      .action-toggle-btn {
+        width: 40px;
+        height: 40px;
+        align-items: center;
+        background: #fff; /* White background for button on mobile for contrast */
+        border-radius: 50%;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      }
     }
 
-    /* Chat modal/widget styling kept but refined */
+    /* Chat modal/widget styling */
     .chat-widget .modal-dialog {
       max-width: 420px;
       margin: 0;
@@ -134,6 +216,7 @@
       right: 20px;
       bottom: 90px;
       transform: translateZ(0);
+      z-index: 1060;
     }
 
     .chat-window {
@@ -147,13 +230,13 @@
     .chat-messages {
       flex: 1 1 auto;
       padding: 12px;
-      overflow-y:  auto;
+      overflow-y: auto;
       background: linear-gradient(180deg, #f8f9fa, #fff);
     }
 
     .chat-input {
       border-top: 1px solid #e9ecef;
-      padding:  10px;
+      padding: 10px;
       background: #fff;
     }
 
@@ -167,9 +250,9 @@
     .chat-msg .avatar {
       width: 36px;
       height: 36px;
-      border-radius:  50%;
+      border-radius: 50%;
       overflow: hidden;
-      flex:  0 0 36px;
+      flex: 0 0 36px;
       background: #e9ecef;
       display: inline-flex;
       align-items: center;
@@ -248,24 +331,29 @@
     </div>
   </main>
 
-  <div class="floating-actions" aria-hidden="false">
-    <a href="../PackIT/frontend/booking/package.php">
-      <img src="assets/box.png" alt="book">
-      <span>Book</span>
-    </a>
-    <a href="../PackIT/frontend/tracking.php">
-      <img src="assets/tracking.png" alt="tracking">
-      <span>Tracking</span>
-    </a>
-    <a href="../PackIT/frontend/chatai.php" id="chatbotLauncher">
-      <img src="assets/chatbot.png" alt="Chatbot">
-      <span>Chatbot</span>
-    </a>
+  <div class="floating-actions" id="floatingActions" aria-expanded="true">
+    <button class="action-toggle-btn" id="actionsToggleBtn" aria-label="Toggle Menu">
+      <i class="bi bi-x-lg" id="toggleIcon"></i>
+    </button>
+
+    <div class="action-links-wrapper">
+      <a href="../PackIT/frontend/booking/package.php">
+        <img src="assets/box.png" alt="book">
+        <span>Book</span>
+      </a>
+      <a href="../PackIT/frontend/tracking.php">
+        <img src="assets/tracking.png" alt="tracking">
+        <span>Tracking</span>
+      </a>
+      <a href="../PackIT/frontend/chatai.php" id="chatbotLauncher">
+        <img src="assets/chatbot.png" alt="Chatbot">
+        <span>Chatbot</span>
+      </a>
+    </div>
   </div>
 
   <?php include("frontend/components/footer.php"); ?>
 
-  <!-- Chat Modal (widget) -->
   <div class="modal fade chat-widget" id="chatModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="false">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -282,8 +370,7 @@
         <div class="modal-body p-0">
           <div class="chat-window">
             <div class="chat-messages" id="chatMessages" aria-live="polite" aria-atomic="false">
-              <!-- messages will be appended here -->
-            </div>
+              </div>
 
             <div class="chat-input">
               <form id="chatForm" onsubmit="return false;">
@@ -303,7 +390,28 @@
 
   <script>
     (function() {
-      // Keep the original markup intact.We'll intercept the chatbot anchor click and open a modal chat widget instead.
+      // --- FLOATING ACTION TOGGLE LOGIC ---
+      const floatingActions = document.getElementById('floatingActions');
+      const toggleBtn = document.getElementById('actionsToggleBtn');
+      const toggleIcon = document.getElementById('toggleIcon');
+      
+      toggleBtn.addEventListener('click', function() {
+        // Toggle the class that handles the hiding/showing via CSS
+        floatingActions.classList.toggle('closed');
+        
+        // Update Icon based on state
+        if (floatingActions.classList.contains('closed')) {
+            // If closed, show a 'List' or 'Plus' icon indicating you can open it
+            toggleIcon.classList.remove('bi-x-lg');
+            toggleIcon.classList.add('bi-list'); // or bi-plus-lg
+        } else {
+            // If open, show an 'X' to close it
+            toggleIcon.classList.remove('bi-list');
+            toggleIcon.classList.add('bi-x-lg');
+        }
+      });
+
+      // --- EXISTING CHAT LOGIC ---
       const launcher = document.getElementById('chatbotLauncher');
       const chatModalEl = document.getElementById('chatModal');
       const chatMessages = document.getElementById('chatMessages');
@@ -311,11 +419,9 @@
       const sendBtn = document.getElementById('sendBtn');
       const chatForm = document.getElementById('chatForm');
 
-      // Resolve the backend endpoint from the anchor's href so we don't hardcode a path change.
       const chatEndpoint = launcher.getAttribute('href') || 'frontend/chatai.php';
       let modal;
 
-      // Helper:  append message
       function appendMessage(text, who = 'bot') {
         const wrapper = document.createElement('div');
         wrapper.className = 'chat-msg ' + (who === 'user' ? 'user' : 'bot');
@@ -348,7 +454,7 @@
           return ({
             '&': '&amp;',
             '<': '&lt;',
-            '>':  '&gt;',
+            '>': '&gt;',
             '"': '&quot;',
             "'": '&#39;'
           })[m];
@@ -361,32 +467,25 @@
         if (!isSending) chatInput.focus();
       }
 
-      // Intercept link navigation and open modal
       launcher.addEventListener('click', function(ev) {
         ev.preventDefault();
-        // show bootstrap modal positioned at bottom-right
         if (!modal) modal = new bootstrap.Modal(chatModalEl, {
           keyboard: true
         });
         modal.show();
-        // focus input
         setTimeout(() => chatInput.focus(), 220);
       });
 
-      // Send message to backend
       async function sendMessage(text) {
         if (!text || !text.trim()) return;
         const message = text.trim();
-        // append user message
         appendMessage(message, 'user');
         chatInput.value = '';
         setSendingState(true);
 
-        // show typing
         const typingNode = appendTypingIndicator();
 
         try {
-          // POST form data (chatai.php expects 'prompt' via POST)
           const fd = new FormData();
           fd.append('prompt', message);
 
@@ -397,25 +496,22 @@
           });
 
           const textResp = await res.text();
-
-          // remove typing indicator
           removeNode(typingNode);
 
           if (!res.ok) {
-            appendMessage('Sorry, I could not reach the assistant.Try again later.', 'bot');
+            appendMessage('Sorry, I could not reach the assistant. Try again later.', 'bot');
           } else {
             appendMessage(textResp, 'bot');
           }
         } catch (err) {
           removeNode(typingNode);
-          appendMessage('Network error.Please check your connection and try again.', 'bot');
+          appendMessage('Network error. Please check your connection and try again.', 'bot');
           console.error('Chat error:', err);
         } finally {
           setSendingState(false);
         }
       }
 
-      // UI handlers
       sendBtn.addEventListener('click', () => {
         const v = chatInput.value;
         sendMessage(v);
@@ -428,13 +524,10 @@
         }
       });
 
-      // Optionally handle modal hide to clear chat or keep history
       chatModalEl.addEventListener('hidden.bs.modal', function() {
-        // Keep conversation by default.If you want to clear on close, uncomment: 
         // chatMessages.innerHTML = '';
       });
 
-      // Accessibility:  allow opening chat with keyboard when focused
       launcher.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -442,14 +535,12 @@
         }
       });
 
-      // Prepopulate a welcome message when the modal is opened first time
       chatModalEl.addEventListener('shown.bs.modal', function() {
         if (chatMessages.children.length === 0) {
-          appendMessage('Hi!I am Pack IT Assistant.How can I help you today?', 'bot');
+          appendMessage('Hi! I am Pack IT Assistant. How can I help you today?', 'bot');
         }
       });
 
-      // reveal animation on load for elements that have the class
       document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
       });
