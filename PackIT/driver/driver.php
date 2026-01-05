@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once __DIR__ . '/../api/classes/Database.php';
+require_once _DIR_ . '/../api/classes/Database.php';
 
 if (!isset($_SESSION['driver_id'])) {
     header("Location: login.php");
@@ -40,6 +40,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $value = (isset($_POST['value']) && ((string)$_POST['value'] === '1')) ? 1 : 0;
         $stmt = $db->executeQuery("UPDATE drivers SET is_available = ? WHERE id = ?", [$value, $driverId]);
         // no need to check affected rows here; return success
+
+        $db->executeQuery("UPDATE drivers SET is_available = ? WHERE id = ?", [$value, $driverId]);
+
         header('Content-Type: application/json');
         echo json_encode(['success' => true, 'is_available' => $value]);
         exit;
@@ -81,6 +84,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Location: driver.php');
             exit;
         }
+        // mysqli: check if the UPDATE changed any row
+        $accepted = (mysqli_stmt_affected_rows($stmt) > 0);
 
         // Attempt to atomically claim the booking (matching vehicle_type)
         $stmt = $db->executeQuery(
@@ -104,6 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['flash_error'] = 'Booking not found or not assigned to you.';
         } else {
             $current = $row[0]['tracking_status'];
+
             $nextMap = [
                 'accepted'   => 'picked_up',
                 'picked_up'  => 'in_transit',
@@ -114,6 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['flash_error'] = 'Cannot advance status from "' . htmlspecialchars($current) . '".';
             } else {
                 $next = $nextMap[$current];
+
                 $stmt2 = $db->executeQuery(
                     "UPDATE bookings
                      SET tracking_status = ?, updated_at = CURRENT_TIMESTAMP()
@@ -122,6 +129,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 );
 
                 $updated = mysqli_stmt_affected_rows($stmt2) > 0;
+                // mysqli: check if the UPDATE changed any row
+                $updated = (mysqli_stmt_affected_rows($stmt2) > 0);
+
                 if ($updated) {
                     $_SESSION['flash_success'] = 'Booking status updated to ' . $next . '.';
                 } else {
@@ -244,7 +254,7 @@ if (!empty($cRow) && isset($cRow[0]['c'])) {
             </div>
         </div>
         <div class="col-md-6 text-md-end">
-            <a href="driverProfile.php" class="btn btn-dark rounded-pill px-4 me-2">
+            <a href="driver_profile.php" class="btn btn-dark rounded-pill px-4 me-2">
                 <i class="bi bi-person-circle me-2"></i>Profile
             </a>
             <div class="status-toggle-card d-inline-flex align-items-center shadow-sm">
