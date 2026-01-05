@@ -1,4 +1,13 @@
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pack IT</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <style>
     .footer-curve {
         height: 90px;
@@ -9,11 +18,13 @@
 <footer class="pt-5 pb-4 text-dark mt-auto" style="background-color: #f8e15b;">
     <div class="container text-center text-md-start">
         <div class="row">
-            <div class="col-md-3 col-lg-4 col-xl-3 mx-auto mb-4">
-                <h5 class="text-uppercase fw-bold mb-4"><i class="bi bi-box-seam-fill me-2"></i>PackIT</h5>
-                <p class="mb-0">The gold standard of PH logistics. Bridging gaps and breaking records, one delivery
-                    at a time.</p>
-            </div>
+            <div class="container text-center text-md-start">
+      <div class="row gy-4">
+        <div class="col-12 col-md-6 col-lg-4 d-flex align-items-center">
+          <div>
+            <img src="/EasyBuy-x-PackIT/PackIT/assets/LOGO.svg" alt="PackIT logo" class="packit-logo">
+          </div>
+        </div>
 
             <div class="col-md-2 col-lg-2 col-xl-2 mx-auto mb-4">
                 <h6 class="text-uppercase fw-bold mb-4">Services</h6>
