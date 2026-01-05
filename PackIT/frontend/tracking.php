@@ -3,6 +3,8 @@ declare(strict_types=1);
 session_start();
 
 require_once __DIR__ . "/../api/classes/Database.php";
+include __DIR__ . '/components/autorefresh.php';
+
 
 // Require login (because bookings.user_id is NOT NULL)
 $userId = null;
