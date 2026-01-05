@@ -1,7 +1,7 @@
 <?php
 session_start();
 ?>
-<! doctype html>
+<!doctype html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -10,15 +10,29 @@ session_start();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
-        : root {
+        :root {
             --brand-yellow: #f8e14b;
             --bg-light:  #f8f9fa;
             --text-muted: #6c757d;
         }
 
+        /* --- UPDATED BODY CSS --- */
         body {
             background-color: var(--bg-light);
-            padding: 30px 0;
+            padding-top: 30px;    /* Changed from padding: 30px 0 to handle footer overlap better */
+            padding-bottom: 0;    
+            
+            /* These lines force the footer to the bottom */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- NEW MAIN CSS --- */
+        main {
+            flex: 1; /* This makes the content grow to push footer down */
+            width: 100%; /* Ensures Bootstrap container centers correctly */
+            margin-bottom: 30px; /* specific spacing before footer */
         }
 
         .custom-header {
@@ -142,7 +156,9 @@ session_start();
                 </tbody>
             </table>
         </div>
-    </main>
+    </main>      
+        
+ <?php include 'components/footer.php'; ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
