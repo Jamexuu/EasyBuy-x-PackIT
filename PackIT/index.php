@@ -1,3 +1,4 @@
+<?php session_start(); ?>
 <!doctype html>
 <html lang="en">
 
@@ -10,7 +11,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
   <style>
-    :root {
+    : root {
       --brand-yellow: #f8e15b;
       --brand-dark: #111;
       --brand-gray: #555;
@@ -146,13 +147,13 @@
     .chat-messages {
       flex: 1 1 auto;
       padding: 12px;
-      overflow-y: auto;
+      overflow-y:  auto;
       background: linear-gradient(180deg, #f8f9fa, #fff);
     }
 
     .chat-input {
       border-top: 1px solid #e9ecef;
-      padding: 10px;
+      padding:  10px;
       background: #fff;
     }
 
@@ -166,9 +167,9 @@
     .chat-msg .avatar {
       width: 36px;
       height: 36px;
-      border-radius: 50%;
+      border-radius:  50%;
       overflow: hidden;
-      flex: 0 0 36px;
+      flex:  0 0 36px;
       background: #e9ecef;
       display: inline-flex;
       align-items: center;
@@ -235,7 +236,7 @@
       <div class="col-lg-6 text-center text-lg-start">
         <h1 class="display-1 fw-black text-uppercase">PACK IT</h1>
         <p class="lead mt-4" style="color: var(--brand-gray);">
-          The gold standard of PH logistics. 🏆<br>
+          The gold standard of PH logistics.🏆<br>
           Bridging gaps and breaking records, one delivery at a time.
         </p>
         <a href="../PackIT/frontend/aboutUs.php" class="btn bg-brand btn-lg fw-bold rounded-pill px-4 mt-3 hover-scale">Get Started</a>
@@ -270,10 +271,10 @@
       <div class="modal-content">
         <div class="modal-header">
           <div class="d-flex align-items-center gap-2">
-            <img src="assets/chatbot.png" alt="bot" style="width:36px;height:36px;">
+            <img src="assets/chatbot.png" alt="bot" style="width: 36px;height:36px;">
             <div>
               <div class="fw-bold">Pack IT Assistant</div>
-              <div class="muted-sm" style="font-size:0.85rem;color:#6c757d">Ask about bookings, tracking, and packaging</div>
+              <div class="muted-sm" style="font-size: 0.85rem;color:#6c757d">Ask about bookings, tracking, and packaging</div>
             </div>
           </div>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -302,7 +303,7 @@
 
   <script>
     (function() {
-      // Keep the original markup intact. We'll intercept the chatbot anchor click and open a modal chat widget instead.
+      // Keep the original markup intact.We'll intercept the chatbot anchor click and open a modal chat widget instead.
       const launcher = document.getElementById('chatbotLauncher');
       const chatModalEl = document.getElementById('chatModal');
       const chatMessages = document.getElementById('chatMessages');
@@ -314,7 +315,7 @@
       const chatEndpoint = launcher.getAttribute('href') || 'frontend/chatai.php';
       let modal;
 
-      // Helper: append message
+      // Helper:  append message
       function appendMessage(text, who = 'bot') {
         const wrapper = document.createElement('div');
         wrapper.className = 'chat-msg ' + (who === 'user' ? 'user' : 'bot');
@@ -347,7 +348,7 @@
           return ({
             '&': '&amp;',
             '<': '&lt;',
-            '>': '&gt;',
+            '>':  '&gt;',
             '"': '&quot;',
             "'": '&#39;'
           })[m];
@@ -401,13 +402,13 @@
           removeNode(typingNode);
 
           if (!res.ok) {
-            appendMessage('Sorry, I could not reach the assistant. Try again later.', 'bot');
+            appendMessage('Sorry, I could not reach the assistant.Try again later.', 'bot');
           } else {
             appendMessage(textResp, 'bot');
           }
         } catch (err) {
           removeNode(typingNode);
-          appendMessage('Network error. Please check your connection and try again.', 'bot');
+          appendMessage('Network error.Please check your connection and try again.', 'bot');
           console.error('Chat error:', err);
         } finally {
           setSendingState(false);
@@ -429,11 +430,11 @@
 
       // Optionally handle modal hide to clear chat or keep history
       chatModalEl.addEventListener('hidden.bs.modal', function() {
-        // Keep conversation by default. If you want to clear on close, uncomment:
+        // Keep conversation by default.If you want to clear on close, uncomment: 
         // chatMessages.innerHTML = '';
       });
 
-      // Accessibility: allow opening chat with keyboard when focused
+      // Accessibility:  allow opening chat with keyboard when focused
       launcher.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -444,7 +445,7 @@
       // Prepopulate a welcome message when the modal is opened first time
       chatModalEl.addEventListener('shown.bs.modal', function() {
         if (chatMessages.children.length === 0) {
-          appendMessage('Hi! I am Pack IT Assistant. How can I help you today?', 'bot');
+          appendMessage('Hi!I am Pack IT Assistant.How can I help you today?', 'bot');
         }
       });
 

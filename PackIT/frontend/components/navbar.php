@@ -39,7 +39,7 @@ $userName = $loggedIn ? trim(($_SESSION['user']['firstName'] ?? '') . ' ' . ($_S
             </a>
 
             <div class="d-flex align-items-center gap-2 gap-lg-3 order-lg-3">
-                <button class="btn p-0 border-0 text-dark" title="Notifications"><i class="bi bi-bell fs-4"></i></button>
+                <button class="btn p-0 border-0 text-dark" title="Notifications"></button>
 
                 <?php if (! $loggedIn): ?>
                     <a href="<?= htmlspecialchars(u('frontend/login.php')) ?>" class="text-dark text-decoration-none fw-bold text-uppercase lh-1 d-none d-sm-block" style="font-size: 0.8rem;">
@@ -71,9 +71,7 @@ $userName = $loggedIn ? trim(($_SESSION['user']['firstName'] ?? '') . ' ' . ($_S
                         $navItems = [
                             'index.php' => 'Home',
                             'frontend/vehicle.php' => 'Vehicles',
-                            'frontend/payment.php' => 'Payment',
-                            'frontend/transactions.php' => 'Transactions',
-                            'frontend/records.php' => 'Records'
+                            'frontend/transaction.php' => 'Transactions',
                         ];
 
                         foreach ($navItems as $path => $label):

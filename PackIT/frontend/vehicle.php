@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 require_once '../api/classes/Database.php';
 
 $db = new Database();
@@ -16,7 +18,7 @@ function meters3($l, $w, $h) {
   return $fmt($l) . ' x ' . $fmt($w) . ' x ' . $fmt($h) . ' Meter';
 }
 ?>
-<!doctype html>
+<! doctype html>
 <html lang="en">
 
 <head>
@@ -120,10 +122,10 @@ function meters3($l, $w, $h) {
             $img  = $v['image_file'] ?? '';
 
             $descHtml =
-              '<small class="text-muted">Type:</small> <strong>' . htmlspecialchars($v['package_type'] ?? '') . '</strong><br>' .
-              '<small class="text-muted">Price:</small> <strong>' . htmlspecialchars(peso($v['fare'] ?? 0)) . '</strong><br>' .
+              '<small class="text-muted">Type:</small> <strong>' . htmlspecialchars($v['package_type'] ??  '') . '</strong><br>' . 
+              '<small class="text-muted">Price:</small> <strong>' . htmlspecialchars(peso($v['fare'] ??  0)) . '</strong><br>' .
               '<small class="text-muted">Max:</small> <strong>' . htmlspecialchars((string)($v['max_kg'] ?? 0)) . ' kg</strong><br>' .
-              '<small class="text-muted">Size:</small> <strong>' . htmlspecialchars(meters3($v['size_length_m'] ?? 0, $v['size_width_m'] ?? 0, $v['size_height_m'] ?? 0)) . '</strong>';
+              '<small class="text-muted">Size:</small> <strong>' . htmlspecialchars(meters3($v['size_length_m'] ?? 0, $v['size_width_m'] ?? 0, $v['size_height_m'] ??  0)) . '</strong>';
           ?>
           <div class="vehicle-wrapper">
             <div class="card rounded-4 shadow-sm vehicle-card">
