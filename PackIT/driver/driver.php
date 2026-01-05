@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once __DIR__ . '/../api/classes/Database.php';
+require_once _DIR_ . '/../api/classes/Database.php';
 
 if (!isset($_SESSION['driver_id'])) {
     header("Location: login.php");
@@ -25,14 +25,6 @@ function next_button_label($status) {
     };
 }
 
-/* Helper: check if booking now assigned to this driver (fallback if rowCount is unavailable) */
-function booking_assigned_to_driver($db, $bookingId, $driverId) {
-    $stmt = $db->executeQuery("SELECT driver_id FROM bookings WHERE id = ? LIMIT 1", [$bookingId]);
-    $row = $db->fetch($stmt);
-    if (empty($row)) return false;
-    return ((int)$row[0]['driver_id'] === $driverId);
-}
-
 /* Handle POST actions */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // If AJAX toggle_availability -> return JSON
@@ -45,8 +37,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(['success' => false, 'message' => 'Invalid request (CSRF).']);
             exit;
         }
-        $value = isset($_POST['value']) && ($_POST['value'] === '1' || $_POST['value'] === 1) ? 1 : 0;
+        $value = (isset($_POST['value']) && ((string)$_POST['value'] === '1')) ? 1 : 0;
+
         $db->executeQuery("UPDATE drivers SET is_available = ? WHERE id = ?", [$value, $driverId]);
+
         header('Content-Type: application/json');
         echo json_encode(['success' => true, 'is_available' => $value]);
         exit;
@@ -71,16 +65,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             [$driverId, $bookingId]
         );
 
-        $accepted = false;
-        if (is_object($stmt) && method_exists($stmt, 'rowCount')) {
-            try {
-                $accepted = ($stmt->rowCount() > 0);
-            } catch (Exception $e) {
-                $accepted = booking_assigned_to_driver($db, $bookingId, $driverId);
-            }
-        } else {
-            $accepted = booking_assigned_to_driver($db, $bookingId, $driverId);
-        }
+        // mysqli: check if the UPDATE changed any row
+        $accepted = (mysqli_stmt_affected_rows($stmt) > 0);
 
         if ($accepted) {
             $_SESSION['flash_success'] = 'Booking accepted.';
@@ -94,44 +80,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             [$bookingId, $driverId]
         );
         $row = $db->fetch($stmt);
+
         if (empty($row)) {
             $_SESSION['flash_error'] = 'Booking not found or not assigned to you.';
         } else {
             $current = $row[0]['tracking_status'];
+
             $nextMap = [
-                'accepted'    => 'picked_up',
-                'picked_up'   => 'in_transit',
-                'in_transit'  => 'delivered'
+                'accepted'   => 'picked_up',
+                'picked_up'  => 'in_transit',
+                'in_transit' => 'delivered',
             ];
-            if (isset($nextMap[$current])) {
+
+            if (!isset($nextMap[$current])) {
+                $_SESSION['flash_error'] = 'Cannot advance status from "' . htmlspecialchars($current) . '".';
+            } else {
                 $next = $nextMap[$current];
+
                 $stmt2 = $db->executeQuery(
-                    "UPDATE bookings SET tracking_status = ?, updated_at = CURRENT_TIMESTAMP() WHERE id = ? AND driver_id = ?",
+                    "UPDATE bookings
+                     SET tracking_status = ?, updated_at = CURRENT_TIMESTAMP()
+                     WHERE id = ? AND driver_id = ?",
                     [$next, $bookingId, $driverId]
                 );
 
-                $updated = false;
-                if (is_object($stmt2) && method_exists($stmt2, 'rowCount')) {
-                    try {
-                        $updated = ($stmt2->rowCount() > 0);
-                    } catch (Exception $e) {
-                        $s = $db->executeQuery("SELECT tracking_status FROM bookings WHERE id = ? LIMIT 1", [$bookingId]);
-                        $r = $db->fetch($s);
-                        $updated = !empty($r) && $r[0]['tracking_status'] === $next;
-                    }
-                } else {
-                    $s = $db->executeQuery("SELECT tracking_status FROM bookings WHERE id = ? LIMIT 1", [$bookingId]);
-                    $r = $db->fetch($s);
-                    $updated = !empty($r) && $r[0]['tracking_status'] === $next;
-                }
+                // mysqli: check if the UPDATE changed any row
+                $updated = (mysqli_stmt_affected_rows($stmt2) > 0);
 
                 if ($updated) {
                     $_SESSION['flash_success'] = 'Booking status updated to ' . $next . '.';
                 } else {
                     $_SESSION['flash_error'] = 'Failed to update booking status. Try again.';
                 }
-            } else {
-                $_SESSION['flash_error'] = 'Cannot advance status from "' . htmlspecialchars($current) . '".';
             }
         }
     }
@@ -149,12 +129,14 @@ if (empty($rows)) {
     header("Location: login.php");
     exit;
 }
+
 $driverName = $rows[0]['first_name'];
 $isAvailable = (int)$rows[0]['is_available'];
 
 /* Only fetch bookings if driver is online */
 $pendingBookings = [];
 $myBookings = [];
+
 if ($isAvailable === 1) {
     /* Fetch pending bookings (unassigned, pending) */
     $stmtPending = $db->executeQuery(
@@ -207,7 +189,7 @@ if ($isAvailable === 1) {
             <p class="text-muted">Welcome to your driver dashboard.</p>
         </div>
         <div class="col-md-6 text-md-end">
-            <a href="driverProfile.php" class="btn btn-dark rounded-pill px-4 me-2">
+            <a href="driver_profile.php" class="btn btn-dark rounded-pill px-4 me-2">
                 <i class="bi bi-person-circle me-2"></i>Profile
             </a>
             <div class="status-toggle-card d-inline-flex align-items-center shadow-sm">
@@ -224,10 +206,13 @@ if ($isAvailable === 1) {
     <!-- Flash messages -->
     <?php if (!empty($_SESSION['flash_success'])): ?>
         <div class="alert alert-success"><?php echo htmlspecialchars($_SESSION['flash_success']); ?></div>
-        <?php unset($_SESSION['flash_success']); endif; ?>
+        <?php unset($_SESSION['flash_success']); ?>
+    <?php endif; ?>
+
     <?php if (!empty($_SESSION['flash_error'])): ?>
         <div class="alert alert-danger"><?php echo htmlspecialchars($_SESSION['flash_error']); ?></div>
-        <?php unset($_SESSION['flash_error']); endif; ?>
+        <?php unset($_SESSION['flash_error']); ?>
+    <?php endif; ?>
 
     <div class="row g-4">
         <div class="col-md-6">

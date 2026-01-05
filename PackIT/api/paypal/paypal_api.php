@@ -104,7 +104,7 @@ $action = $input['action'] ?? '';
 
 try {
     if ($action === 'create_order') {
-        // Require login before booking (your requirement)
+        // Require login before booking
         $userId = getLoggedInUserId();
         if (!$userId) {
             http_response_code(401);
@@ -133,7 +133,7 @@ try {
         $orderId = (string)($input['orderID'] ?? '');
         if ($orderId === '') throw new Exception("Missing Order ID");
 
-        // Require login before booking (your requirement)
+        // Require login before booking
         $userId = getLoggedInUserId();
         if (!$userId) {
             http_response_code(401);
@@ -174,20 +174,33 @@ try {
 
             $totalAmount = compute_total_fare($baseAmount, $distanceAmount, $doorToDoorAmount);
 
-            // bookings.vehicle_type now matches vehicle_label enum you altered
+            // Package and vehicle details from session
             $vehicleType = (string)$state['vehicle_label'];
+            $packageType = (string)($state['package_type'] ?? '');
+            $maxKg       = (int)($state['max_kg'] ?? 0);
+            $sizeL       = (float)($state['size_length_m'] ?? 0);
+            $sizeW       = (float)($state['size_width_m'] ?? 0);
+            $sizeH       = (float)($state['size_height_m'] ?? 0);
+            $packageDesc = (string)($state['package_desc'] ?? '');
 
             $db = new Database();
 
-            // Insert booking
+            // Insert booking including package description/details
             $db->executeQuery(
                 "INSERT INTO bookings
-                (user_id, driver_id, pickup_house, pickup_barangay, pickup_municipality, pickup_province,
+                (user_id, driver_id,
+                 pickup_house, pickup_barangay, pickup_municipality, pickup_province,
                  drop_house, drop_barangay, drop_municipality, drop_province,
-                 vehicle_type, distance_km, base_amount, distance_amount, door_to_door_amount, total_amount,
+                 vehicle_type, package_type, package_desc, max_kg, size_length_m, size_width_m, size_height_m,
+                 distance_km, base_amount, distance_amount, door_to_door_amount, total_amount,
                  payment_status, payment_method, tracking_status, created_at)
                 VALUES
-                (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, 'paid', 'paypal', 'pending', NOW())",
+                (?, NULL,
+                 ?, ?, ?, ?,
+                 ?, ?, ?, ?,
+                 ?, ?, ?, ?, ?, ?, ?,
+                 NULL, ?, ?, ?, ?,
+                 'paid', 'paypal', 'pending', NOW())",
                 [
                     $userId,
                     (string)($pickup['house'] ?? null),
@@ -199,6 +212,12 @@ try {
                     $dropMunicipality,
                     $dropProvince,
                     $vehicleType,
+                    $packageType,
+                    $packageDesc,
+                    (string)$maxKg,
+                    (string)$sizeL,
+                    (string)$sizeW,
+                    (string)$sizeH,
                     (string)$baseAmount,
                     (string)$distanceAmount,
                     (string)$doorToDoorAmount,

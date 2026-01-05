@@ -30,22 +30,29 @@ if ($distanceAmount === null) {
 
 $totalAmount = compute_total_fare($baseAmount, $distanceAmount, $doorToDoorAmount);
 
-function h(string $s): string
-{
-  return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
-}
-function format_addr(array $a): string
-{
+function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
+function fmt1(float $x): string { return rtrim(rtrim(number_format($x, 1), '0'), '.'); }
+
+function format_addr(array $a): string {
   $parts = array_filter([$a["house"] ?? "", $a["barangay"] ?? "", $a["municipality"] ?? "", $a["province"] ?? ""]);
   return implode(", ", $parts);
 }
 
 $pickupText = format_addr((array)$state["pickup_address"]);
 $dropText = format_addr((array)$state["drop_address"]);
+
+// Package details
+$vehicleLabel = (string)($state["vehicle_label"] ?? '');
+$packageType  = (string)($state["package_type"] ?? '');
+$maxKg        = (int)($state["max_kg"] ?? 0);
+$sizeL        = (float)($state["size_length_m"] ?? 0);
+$sizeW        = (float)($state["size_width_m"] ?? 0);
+$sizeH        = (float)($state["size_height_m"] ?? 0);
+$packageDesc  = (string)($state["package_desc"] ?? '');
+
 ?>
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -94,7 +101,6 @@ $dropText = format_addr((array)$state["drop_address"]);
 
   <script src="https://www.paypal.com/sdk/js?client-id=<?= PAYPAL_CLIENT_ID ?>&currency=PHP"></script>
 </head>
-
 <body>
   <?php include("../components/navbar.php"); ?>
 
@@ -103,37 +109,52 @@ $dropText = format_addr((array)$state["drop_address"]);
       <div class="col-lg-8 col-md-10">
         <div class="card shadow-sm border-0 rounded-4">
           <div class="card-header p-4 rounded-top-4">
-            <h4 class="mb-0 fw-bold">Step 3: Review Booking</h4>
-            <div class="muted-sm">Confirm details before payment</div>
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <div class="muted-sm">TOTAL</div>
+                <div class="price-tag">₱<?= number_format($totalAmount, 0) ?></div>
+                <div class="muted-sm">Vehicle: <?= h($vehicleLabel) ?></div>
+              </div>
+            </div>
           </div>
 
           <div class="card-body p-4">
-            <div class="text-center mb-3">
-              <div class="small text-muted text-uppercase">Total</div>
-              <div class="price-tag">₱<?= number_format($totalAmount, 2) ?></div>
-              <div class="muted-sm">Vehicle: <strong><?= h((string)($state["vehicle_label"] ?? "--")) ?></strong></div>
+            <h5 class="mb-3">Step 3: Review Booking</h5>
+
+            <div class="mb-4">
+              <h6>Details</h6>
+              <div class="detail-box">
+                <div class="mb-3">
+                  <div class="muted-sm mb-1">Package</div>
+                  <div>
+                    <?= h($vehicleLabel) ?> (Base ₱<?= number_format($baseAmount, 0) ?>)
+                  </div>
+                  <div class="mt-2 p-3 rounded-3" style="background:#fff;border:1px solid rgba(0,0,0,.08)">
+                    <?php if ($packageDesc !== ''): ?>
+                      <?= h($packageDesc) ?>
+                    <?php else: ?>
+                      Type: <strong><?= h($packageType) ?></strong><br/>
+                      Max: <strong><?= (int)$maxKg ?> kg</strong><br/>
+                      Size: <?= fmt1($sizeL) ?> x <?= fmt1($sizeW) ?> x <?= fmt1($sizeH) ?> Meter
+                    <?php endif; ?>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <div class="muted-sm">Pickup</div>
+                  <div><?= h($pickupText) ?></div>
+                  <div class="muted-sm">Region: <strong><?= h((string)($state["pickup_region"] ?? '')) ?></strong></div>
+                </div>
+
+                <div class="mb-3">
+                  <div class="muted-sm">Drop-off</div>
+                  <div><?= h($dropText) ?></div>
+                  <div class="muted-sm">Region: <strong><?= h((string)($state["drop_region"] ?? '')) ?></strong></div>
+                </div>
+              </div>
             </div>
 
-            <hr>
-
-            <h6 class="fw-bold">Details</h6>
-            <ul class="list-group mb-3">
-              <li class="list-group-item">
-                <div class="fw-bold">Package</div>
-                <div class="muted-sm"><?= h((string)($state["package_label"] ?? "--")) ?> (Base ₱<?= number_format($baseAmount, 0) ?>)</div>
-              </li>
-              <li class="list-group-item">
-                <div class="fw-bold">Pickup</div>
-                <div class="muted-sm"><?= h($pickupText) ?></div>
-                <div class="muted-sm">Region: <strong><?= h((string)$pickupRegion) ?></strong></div>
-              </li>
-              <li class="list-group-item">
-                <div class="fw-bold">Drop-off</div>
-                <div class="muted-sm"><?= h($dropText) ?></div>
-                <div class="muted-sm">Region: <strong><?= h((string)$dropRegion) ?></strong></div>
-              </li>
-            </ul>
-
+            <!-- Existing fare breakdown and PayPal button continue below -->
             <h6 class="fw-bold">Fare breakdown</h6>
             <ul class="list-group mb-4">
               <li class="list-group-item d-flex justify-content-between">
