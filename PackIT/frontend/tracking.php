@@ -80,6 +80,7 @@ function buildTimeline(string $status, string $createdAt): array {
 
 // ----------------------------
 // Fetch list of bookings for user
+// NOTE: Delivered bookings are excluded from tracking view and will appear in Transaction (history).
 // ----------------------------
 $stmt = $db->executeQuery(
     "SELECT id, user_id, driver_id,
@@ -87,7 +88,7 @@ $stmt = $db->executeQuery(
             drop_municipality, drop_province,
             vehicle_type, total_amount, tracking_status, payment_status, created_at
      FROM bookings
-     WHERE user_id = ?
+     WHERE user_id = ? AND tracking_status != 'delivered'
      ORDER BY id DESC",
     [(string)$userId]
 );
@@ -112,19 +113,28 @@ foreach ($rows as $r) {
         'pickup' => trim((string)($r['pickup_municipality'] ?? '') . ', ' . (string)($r['pickup_province'] ?? '')),
         'drop' => trim((string)($r['drop_municipality'] ?? '') . ', ' . (string)($r['drop_province'] ?? '')),
         'timeline' => buildTimeline($status, $createdAt),
+        'created_at' => $createdAt,
+        'tracking_status' => $status,
     ];
 }
 
 // ----------------------------
 // View selection: list or detail
+// If user requests a track_id that is delivered, redirect them to transactions (history) instead.
 // ----------------------------
 $view = 'list';
 $activeOrder = null;
 
 $trackId = isset($_GET['track_id']) ? (int)$_GET['track_id'] : 0;
-if ($trackId > 0 && isset($orders[$trackId])) {
-    $view = 'detail';
-    $activeOrder = $orders[$trackId];
+if ($trackId > 0) {
+    if (isset($orders[$trackId])) {
+        $view = 'detail';
+        $activeOrder = $orders[$trackId];
+    } else {
+        // Possibly the booking was delivered (and thus excluded). Redirect to transactions page.
+        header('Location: transaction.php');
+        exit;
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -245,7 +255,7 @@ if ($trackId > 0 && isset($orders[$trackId])) {
                         <div class="empty-state-container">
                             <img src="../assets/box.png" alt="No Orders" class="empty-state-img">
                             <h4 class="fw-bold text-dark">No Active Orders</h4>
-                            <p class="mb-4">It looks like you haven't booked any deliveries yet.</p>
+                            <p class="mb-4">It looks like you haven't booked any active deliveries yet. Delivered orders move to your Transaction History.</p>
                             <a href="booking/package.php" class="btn btn-warning fw-bold px-4 py-2 shadow-sm text-uppercase">
                                 Book Now
                             </a>
