@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
   <style>
-    : root {
+    :root {
       --brand-yellow: #f8e15b;
       --brand-dark: #111;
       --brand-gray: #555;
