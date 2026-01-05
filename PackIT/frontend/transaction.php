@@ -2,9 +2,10 @@
 declare(strict_types=1);
 session_start();
 
+// FIX: Changed from "/../../" to "/../" because transaction.php is in 'frontend', not 'frontend/booking'
 require_once __DIR__ . "/../api/classes/Database.php";
 
-// Require login (same pattern used in tracking.php)
+// 1. Authentication Check
 $userId = null;
 if (!empty($_SESSION['user']['id'])) {
     $userId = (int)$_SESSION['user']['id'];
@@ -19,40 +20,51 @@ if (!$userId) {
 
 $db = new Database();
 
+// --- Helpers ---
 function h(string $s): string {
     return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
 }
+
 function formatMoney($n): string {
     return number_format((float)$n, 2);
 }
 
-/**
- * Build timeline for a delivered booking (reused/simplified)
- */
+// Helper to color-code statuses
+function getStatusColor($status) {
+    return match (strtolower($status ?? '')) {
+        'completed', 'delivered' => 'text-success',
+        'pending' => 'text-warning',
+        'accepted', 'in_transit', 'picked_up' => 'text-primary',
+        'cancelled', 'failed' => 'text-danger',
+        default => 'text-muted',
+    };
+}
+
+// 2. Build Timeline Logic
 function buildTimeline(string $status, string $date): array {
     $steps = [
-        'pending'    => ['title' => 'Booking created',     'desc' => 'We received your booking request.'],
-        'accepted'   => ['title' => 'Driver accepted',     'desc' => 'A driver has accepted your booking.'],
-        'picked_up'  => ['title' => 'Package picked up',   'desc' => 'Your package has been picked up.'],
-        'in_transit' => ['title' => 'In transit',          'desc' => 'Your package is on the way.'],
+        'pending'    => ['title' => 'Booking Created',     'desc' => 'We received your booking request.'],
+        'accepted'   => ['title' => 'Driver Accepted',     'desc' => 'A driver has accepted your booking.'],
+        'picked_up'  => ['title' => 'Package Picked Up',   'desc' => 'Your package has been picked up.'],
+        'in_transit' => ['title' => 'In Transit',          'desc' => 'Your package is on the way.'],
         'delivered'  => ['title' => 'Delivered',           'desc' => 'Your package has been delivered.'],
     ];
 
     if ($status === 'cancelled') {
         return [
-            ['date' => date('M d', strtotime($date)), 'title' => 'Booking created', 'desc' => '', 'active' => false],
-            ['date' => date('M d', strtotime($date)), 'title' => 'Cancelled', 'desc' => '', 'active' => true],
+            ['date' => date('M d', strtotime($date)), 'title' => 'Booking Created', 'desc' => '', 'active' => false],
+            ['date' => date('M d', strtotime($date)), 'title' => 'Cancelled', 'desc' => 'This booking was cancelled.', 'active' => true],
         ];
     }
 
     $order = array_keys($steps);
     $currentIndex = array_search($status, $order, true);
-    if ($currentIndex === false) $currentIndex = 0;
+    if ($currentIndex === false) $currentIndex = 0; // Default to first step if unknown
 
     $timeline = [];
     foreach ($order as $i => $key) {
         $timeline[] = [
-            'date' => date('M d', strtotime($date)),
+            'date' => ($i <= $currentIndex) ? date('M d', strtotime($date)) : '', // Only show date for past/current steps
             'title' => $steps[$key]['title'],
             'desc' => $steps[$key]['desc'],
             'active' => $i <= $currentIndex,
@@ -61,18 +73,19 @@ function buildTimeline(string $status, string $date): array {
     return $timeline;
 }
 
-// If booking_id provided show detail of that delivered booking (receipt/timeline)
+// 3. Handle Detail View vs List View
 $detailId = isset($_GET['booking_id']) ? (int)$_GET['booking_id'] : 0;
 $booking = null;
 $transactions = [];
 
 if ($detailId > 0) {
+    // --- DETAIL VIEW QUERY ---
     $stmt = $db->executeQuery(
         "SELECT b.*, p.amount AS paid_amount, p.currency AS currency, p.status AS payment_status, u.first_name, u.last_name
          FROM bookings b
          LEFT JOIN payments p ON p.booking_id = b.id
          LEFT JOIN users u ON u.id = b.user_id
-         WHERE b.id = ? AND b.user_id = ? AND b.tracking_status = 'delivered'
+         WHERE b.id = ? AND b.user_id = ?
          LIMIT 1",
         [$detailId, $userId]
     );
@@ -80,44 +93,49 @@ if ($detailId > 0) {
     $row = empty($row) ? [] : $row[0];
 
     if (empty($row)) {
-        // not found or not delivered — go back to list
         header('Location: transaction.php');
         exit;
     }
-    // build detail view variables
+
     $booking = [
         'id' => (int)$row['id'],
         'vehicle' => $row['vehicle_type'] ?? '',
         'price' => (float)($row['total_amount'] ?? 0),
         'paid' => isset($row['paid_amount']) ? (float)$row['paid_amount'] : null,
         'currency' => $row['currency'] ?? 'PHP',
-        'payment_status' => $row['payment_status'] ?? '',
+        'status' => $row['tracking_status'] ?? 'pending',
+        'payment_status' => $row['payment_status'] ?? 'Unpaid',
         'pickup' => trim(($row['pickup_municipality'] ?? '') . ', ' . ($row['pickup_province'] ?? '')),
         'drop' => trim(($row['drop_municipality'] ?? '') . ', ' . ($row['drop_province'] ?? '')),
         'created_at' => $row['created_at'] ?? '',
         'updated_at' => $row['updated_at'] ?? $row['created_at'] ?? '',
-        'timeline' => buildTimeline($row['tracking_status'] ?? 'delivered', $row['updated_at'] ?? $row['created_at']),
+        // Generate timeline
+        'timeline' => buildTimeline($row['tracking_status'] ?? 'pending', $row['updated_at'] ?? $row['created_at']),
         'customer' => trim(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? '')),
     ];
+
 } else {
-    // List delivered bookings (transaction history)
+    // --- LIST VIEW QUERY ---
     $stmt = $db->executeQuery(
-        "SELECT b.id, b.created_at, b.updated_at, b.vehicle_type, b.total_amount, p.amount AS paid_amount, p.currency, p.status AS payment_status
+        "SELECT b.id, b.created_at, b.updated_at, b.vehicle_type, b.total_amount, b.tracking_status,
+                p.amount AS paid_amount, p.currency, p.status AS payment_status
          FROM bookings b
          LEFT JOIN payments p ON p.booking_id = b.id
-         WHERE b.user_id = ? AND b.tracking_status = 'delivered'
-         ORDER BY COALESCE(b.updated_at, b.created_at) DESC",
+         WHERE b.user_id = ?
+         ORDER BY b.created_at DESC",
         [(string)$userId]
     );
     $rows = $db->fetch($stmt);
+    
     foreach ($rows as $r) {
         $transactions[] = [
             'id' => (int)$r['id'],
-            'date' => $r['updated_at'] ?? $r['created_at'],
+            'date' => $r['created_at'],
             'vehicle' => $r['vehicle_type'] ?? '',
-            'amount' => isset($r['paid_amount']) && $r['paid_amount'] !== null ? (float)$r['paid_amount'] : (float)($r['total_amount'] ?? 0),
+            'amount' => (float)($r['total_amount'] ?? 0),
             'currency' => $r['currency'] ?? 'PHP',
-            'payment_status' => $r['payment_status'] ?? '',
+            'status' => $r['tracking_status'] ?? 'pending',
+            'payment_status' => $r['payment_status'] ?? 'unpaid',
         ];
     }
 }
@@ -131,43 +149,24 @@ if ($detailId > 0) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
-        : root {
+        :root {
             --brand-yellow: #f8e14b;
             --bg-light:  #f8f9fa;
             --text-muted: #6c757d;
         }
 
-        /* --- UPDATED BODY CSS --- */
         body {
             background-color: var(--bg-light);
             padding-bottom: 0;
-
-            /* These lines force the footer to the bottom */
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
 
-        /* --- NEW MAIN CSS --- */
         main {
-            flex: 1; /* This makes the content grow to push footer down */
-            width: 100%; /* Ensures Bootstrap container centers correctly */
-            margin-bottom: 30px; /* specific spacing before footer */
-        }
-
-        .custom-header {
-            background-color: #ffffff;
-            border-radius: 16px;
-            padding: 12px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            flex: 1;
+            width: 100%;
             margin-bottom: 30px;
-        }
-
-        .custom-header img {
-            height:  40px;
         }
 
         .transaction-container {
@@ -176,6 +175,7 @@ if ($detailId > 0) {
             border-radius: 28px;
             padding: 40px;
             box-shadow:  0 8px 20px rgba(0,0,0,0.06);
+            margin-top: 30px;
         }
 
         .page-header {
@@ -187,22 +187,12 @@ if ($detailId > 0) {
             gap: 15px;
         }
 
-        .page-header h3 {
-            margin: 0;
-            font-weight: 700;
-        }
-
         .search-bar {
             background-color: #f1f3f5;
             border: none;
             border-radius: 20px;
             padding: 8px 18px;
             width: 240px;
-        }
-
-        .table {
-            border-collapse: separate;
-            border-spacing: 0 10px;
         }
 
         .table thead th {
@@ -216,23 +206,21 @@ if ($detailId > 0) {
             background-color: #ffffff;
             box-shadow: 0 3px 8px rgba(0,0,0,0.05);
             border-radius: 12px;
+            transition: transform 0.2s;
+        }
+        
+        .table tbody tr:hover {
+            transform: translateY(-2px);
+            background-color: #fffdf0;
         }
 
         .table tbody td {
             padding: 14px;
             border: none;
+            vertical-align: middle;
         }
 
-        .table tbody tr:hover {
-            background-color: #fffdf0;
-        }
-
-        .status-completed {
-            color: #198754;
-            font-weight: 600;
-        }
-
-        /* Timeline styles reused from tracking */
+        /* Timeline Styles */
         .timeline {
             position: relative;
             padding-left: 3.5rem;
@@ -251,7 +239,8 @@ if ($detailId > 0) {
             border-radius: 50%; background-color: #e0e0e0; border: 2px solid #fff; z-index: 1;
         }
         .timeline-item.active .timeline-dot {
-            background-color: #203a43;
+            background-color: #f8e14b;
+            border-color: #000;
             transform: scale(1.3);
         }
         .timeline-date {
@@ -272,29 +261,43 @@ if ($detailId > 0) {
     <?php include __DIR__ . "/components/navbar.php"; ?>
 
     <main class="container transaction-container">
+        
         <?php if ($detailId > 0 && $booking !== null): ?>
             <div class="page-header mb-4">
                 <div>
-                    <h3 class="mb-0">Transaction Receipt</h3>
-                    <small class="text-muted">Booking #<?= (int)$booking['id'] ?> — <?= h($booking['customer']) ?></small>
+                    <h3 class="mb-0">Booking Details</h3>
+                    <small class="text-muted">Order #<?= (int)$booking['id'] ?></small>
                 </div>
                 <div>
-                    <a href="transaction.php" class="btn btn-secondary">Back to History</a>
+                    <a href="transaction.php" class="btn btn-outline-dark rounded-pill px-4">Back to History</a>
                 </div>
             </div>
 
-            <div class="mb-3">
-                <h4>₱ <?= h(formatMoney($booking['price'])) ?></h4>
-                <p class="mb-1"><strong>Vehicle:</strong> <?= h($booking['vehicle']) ?></p>
-                <p class="mb-1"><strong>Pickup:</strong> <?= h($booking['pickup']) ?></p>
-                <p class="mb-1"><strong>Drop:</strong> <?= h($booking['drop']) ?></p>
-                <p class="mb-1"><strong>Payment:</strong> <?= h($booking['payment_status'] ?? '') ?> <?= isset($booking['paid']) ? ' - ₱' . h(formatMoney($booking['paid'])) : '' ?></p>
-                <p class="text-muted small">Delivered on: <?= h(date('M d, Y H:i', strtotime($booking['updated_at']))) ?></p>
+            <div class="card border-0 bg-light p-3 mb-4 rounded-4">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h2 class="fw-bold mb-0">₱ <?= h(formatMoney($booking['price'])) ?></h2>
+                        <span class="badge bg-warning text-dark mb-3"><?= h(strtoupper($booking['payment_status'])) ?></span>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <div class="text-muted small">Vehicle</div>
+                        <div class="fw-bold"><?= h(ucfirst($booking['vehicle'])) ?></div>
+                    </div>
+                </div>
+                <hr>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <small class="text-muted">Pickup Location</small>
+                        <p class="fw-medium mb-0"><i class="bi bi-geo-alt-fill text-danger me-1"></i> <?= h($booking['pickup']) ?></p>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted">Drop-off Location</small>
+                        <p class="fw-medium mb-0"><i class="bi bi-geo-alt-fill text-success me-1"></i> <?= h($booking['drop']) ?></p>
+                    </div>
+                </div>
             </div>
 
-            <hr>
-
-            <h5 class="mb-3">Timeline</h5>
+            <h5 class="mb-3">Delivery Progress</h5>
             <div class="timeline">
                 <?php foreach ($booking['timeline'] as $log): ?>
                     <div class="timeline-item <?= !empty($log['active']) ? 'active' : '' ?>">
@@ -312,36 +315,38 @@ if ($detailId > 0) {
 
             <div class="page-header">
                 <h3>TRANSACTION HISTORY</h3>
-                <input id="search" type="text" class="search-bar form-control" placeholder="🔍 Search (booking id / vehicle)">
+                <input id="search" type="text" class="search-bar form-control" placeholder="🔍 Search orders...">
             </div>
 
             <div class="table-responsive">
-                <table class="table align-middle">
+                <table class="table align-middle" style="border-collapse: separate; border-spacing: 0 10px;">
                     <thead>
                         <tr>
-                            <th>Date</th>
+                            <th class="rounded-start-3">Date</th>
                             <th>Order ID</th>
-                            <th>Product</th>
+                            <th>Service</th>
                             <th>Amount</th>
                             <th>Vehicle</th>
                             <th>Status</th>
-                            <th></th>
+                            <th class="rounded-end-3"></th>
                         </tr>
                     </thead>
                     <tbody id="tx-body">
                         <?php if (empty($transactions)): ?>
-                            <tr><td colspan="7" class="text-center text-muted">No delivered orders yet.</td></tr>
+                            <tr><td colspan="7" class="text-center text-muted py-5">No orders found.</td></tr>
                         <?php else: ?>
                             <?php foreach ($transactions as $t): ?>
                                 <tr>
                                     <td><?= h(date('M d, Y', strtotime($t['date']))) ?></td>
-                                    <td>#<?= (int)$t['id'] ?></td>
-                                    <td>Delivery</td>
-                                    <td>₱ <?= h(formatMoney($t['amount'])) ?></td>
-                                    <td><?= h($t['vehicle']) ?></td>
-                                    <td><span class="status-completed"><?= h(ucfirst($t['payment_status'] ?: 'completed')) ?></span></td>
+                                    <td class="fw-bold">#<?= (int)$t['id'] ?></td>
+                                    <td>Logistics</td>
+                                    <td class="fw-bold">₱ <?= h(formatMoney($t['amount'])) ?></td>
+                                    <td><?= h(ucfirst($t['vehicle'])) ?></td>
+                                    <td class="fw-bold <?= getStatusColor($t['status']) ?>">
+                                        <?= h(ucwords(str_replace('_', ' ', $t['status']))) ?>
+                                    </td>
                                     <td class="text-end">
-                                        <a href="transaction.php?booking_id=<?= (int)$t['id'] ?>" class="btn btn-sm btn-outline-primary">View</a>
+                                        <a href="transaction.php?booking_id=<?= (int)$t['id'] ?>" class="btn btn-sm btn-light border rounded-pill px-3">View</a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -356,6 +361,7 @@ if ($detailId > 0) {
     <?php include __DIR__ . '/components/footer.php'; ?>
 
     <script>
+    // Simple frontend search filter
     document.getElementById('search')?.addEventListener('input', function (e) {
         const q = e.target.value.toLowerCase().trim();
         const rows = document.querySelectorAll('#tx-body tr');
