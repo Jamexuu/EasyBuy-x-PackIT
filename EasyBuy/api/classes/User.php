@@ -98,4 +98,12 @@ class User {
         
         return $result[0] ?? null;
     }
+
+    function emailExists($email){
+        $sql = "SELECT COUNT(*) as count FROM users WHERE email = ?";
+        $stmt = $this->db->executeQuery($sql, [$email]);
+        $result = $this->db->fetch($stmt);
+        
+        return $result[0]['count'] > 0;
+    }
 }

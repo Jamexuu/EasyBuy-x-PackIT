@@ -1,3 +1,8 @@
+<?php 
+    require '../api/classes/Auth.php';
+    Auth::requireAuth();    
+?>
+
 <!doctype html>
 <html lang="en">
 
@@ -243,7 +248,7 @@
                         e.preventDefault();
                         const checkedItems = getCheckedItems();
                         
-                        await fetch('../api/saveCheckoutItems.php', {
+                        await fetch('../api/saveCartItems.php', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ cart_ids: checkedItems })
