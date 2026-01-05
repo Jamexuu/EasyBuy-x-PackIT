@@ -1,4 +1,16 @@
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pack IT</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+    
+</body>
 
 <style>
     :root {
@@ -52,8 +64,8 @@
             </div>
 
             <div class="d-none d-lg-flex align-items-center gap-3">
-                <button class="btn p-0 border-0"><i class="bi bi-bell fs-4"></i></button>
-                <a href="profile.php" class="text-dark text-decoration-none d-flex align-items-center gap-2">
+                <button class="btn p-0 border-0">
+                <a href="driver_profile.php" class="text-dark text-decoration-none d-flex align-items-center gap-2">
                     <span class="fw-bold text-uppercase small">Profile</span>
                     <i class="bi bi-person-circle fs-4"></i>
                 </a>
