@@ -140,7 +140,6 @@ if ($detailId > 0) {
         /* --- UPDATED BODY CSS --- */
         body {
             background-color: var(--bg-light);
-            padding-top: 30px;    /* Changed from padding: 30px 0 to handle footer overlap better */
             padding-bottom: 0;
 
             /* These lines force the footer to the bottom */
