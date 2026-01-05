@@ -1,10 +1,9 @@
 <?php
 
 declare(strict_types=1);
+
 require_once __DIR__ . "/booking_state.php";
 require_once __DIR__ . "/fare_rules.php";
-
-// FIX: Point to the config file in the api/paypal folder (Go up 2 levels)
 require_once __DIR__ . "/../../api/paypal/paypal_config.php";
 
 $state = get_booking_state();
@@ -157,6 +156,9 @@ $dropText = format_addr((array)$state["drop_address"]);
 
             <div class="d-flex gap-2 align-items-center flex-column">
               <div id="paypal-button-container" class="w-100"></div>
+              <div class="small text-muted text-center" style="max-width: 520px;">
+                You will be redirected to the success page after payment. Please ensure you are logged in before booking.
+              </div>
 
               <a class="btn btn-outline-secondary btn-sm mt-2" href="address.php" style="width: 200px;">Back to Address</a>
             </div>
@@ -175,37 +177,31 @@ $dropText = format_addr((array)$state["drop_address"]);
   <?php include("../components/footer.php"); ?>
 
   <script>
-    // PayPal Integration Script
     paypal.Buttons({
-      // 1. Customer clicks PayPal button -> Call Backend to Create Order [cite: 117-120]
       createOrder: function(data, actions) {
-        return fetch("../../api/paypal/paypal_api.php", { // Points to your API folder
+        return fetch("../../api/paypal/paypal_api.php", {
             method: "post",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              action: "create_order"
-            })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "create_order" })
           })
           .then(res => res.json())
           .then(orderData => {
-            if (orderData.error) {
-              console.error("Server Error:", orderData.error);
-              alert("Could not create order: " + orderData.error);
-              return;
+            if (orderData && orderData.error) {
+              // Handles 401 login-required and 500 server errors
+              alert(orderData.error);
+              throw new Error(orderData.error);
             }
-            return orderData.id; // Return the PayPal Order ID
+            if (!orderData || !orderData.id) {
+              throw new Error("Could not create PayPal order.");
+            }
+            return orderData.id;
           });
       },
 
-      // 2. Customer approves payment -> Call Backend to Capture Payment [cite: 121-128]
       onApprove: function(data, actions) {
         return fetch("../../api/paypal/paypal_api.php", {
             method: "post",
-            headers: {
-              "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               action: "capture_order",
               orderID: data.orderID
@@ -213,13 +209,21 @@ $dropText = format_addr((array)$state["drop_address"]);
           })
           .then(res => res.json())
           .then(details => {
-            if (details.error) {
-              alert("Payment failed: " + details.error);
+            if (details && details.error) {
+              alert("Payment/booking failed: " + details.error);
               return;
             }
-            // Success: Redirect to success page or show alert [cite: 127]
-            alert("Payment completed by " + details.payer.name.given_name);
-            window.location.href = "../../api/paypal/success.php";
+
+            const bookingId = details ? (details._packit_booking_id || "") : "";
+            if (!bookingId) {
+              // Payment might be completed but booking insert failed or booking id wasn't returned
+              alert("Payment completed, but booking reference is missing. Please contact support.");
+              window.location.href = "../../api/paypal/success.php";
+              return;
+            }
+
+            // Redirect to success page with booking id
+            window.location.href = "../../api/paypal/success.php?booking_id=" + encodeURIComponent(bookingId);
           });
       },
 
@@ -227,7 +231,7 @@ $dropText = format_addr((array)$state["drop_address"]);
         console.error(err);
         alert("An error occurred during payment.");
       }
-    }).render('#paypal-button-container'); // [cite: 128]
+    }).render('#paypal-button-container');
   </script>
 </body>
 
