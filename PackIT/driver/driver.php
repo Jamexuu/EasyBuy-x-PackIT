@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once _DIR_ . '/../api/classes/Database.php';
+require_once __DIR__ . '/../api/classes/Database.php';
 
 if (!isset($_SESSION['driver_id'])) {
     header("Location: login.php");
