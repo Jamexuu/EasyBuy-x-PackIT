@@ -344,7 +344,7 @@
       </div>
 
       <div class="col-lg-6 text-center">
-        <img src="assets/mascot.png" class="img-fluid hero-img" alt="Mascot" style="max-height: 450px;">
+        <img src="assets/duckvideo.gif" class="img-fluid hero-img" alt="Mascot" style="max-height: 450px;">
       </div>
     </div>
   </main>
@@ -394,7 +394,7 @@
               <form id="chatForm" onsubmit="return false;">
                 <div class="chat-controls">
                   <textarea id="chatInput" class="form-control" placeholder="Type your message and press Enter to send" aria-label="Chat message"></textarea>
-                  <button id="sendBtn" class="btn btn-primary" type="button"><i class="bi bi-send"></i></button>
+                  <button id="sendBtn" class="btn btn-warning" type="button"><i class="bi bi-send"></i></button>
                 </div>
               </form>
             </div>

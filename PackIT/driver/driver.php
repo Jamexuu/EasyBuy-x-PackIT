@@ -301,17 +301,17 @@ if (!empty($cRow) && isset($cRow[0]['c'])) {
                     <?php endif; ?>
                 </div>
             </div>
-            <div class="col-md-6 text-md-end">
-                <a href="driver_profile.php" class="btn btn-dark rounded-pill px-4 me-2">
-                    <i class="bi bi-person-circle me-2"></i>Profile
-                </a>
-                <div class="status-toggle-card d-inline-flex align-items-center shadow-sm">
-                    <span class="me-3 fw-bold small">GO ONLINE</span>
-                    <div class="form-check form-switch mb-0">
-                        <input class="form-check-input" type="checkbox" role="switch" id="onlineSwitch"
-                            <?php echo $isAvailable === 1 ? 'checked' : ''; ?>
-                            style="width: 2.5em; height: 1.25em; cursor: pointer;">
-                    </div>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="driverProfile.php" class="btn btn-dark rounded-pill px-4 me-2">
+                <i class="bi bi-person-circle me-2"></i>Profile
+            </a>
+            <div class="status-toggle-card d-inline-flex align-items-center shadow-sm">
+                <span class="me-3 fw-bold small">GO ONLINE</span>
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" role="switch" id="onlineSwitch"
+                        <?php echo $isAvailable === 1 ? 'checked' : ''; ?>
+                        style="width: 2.5em; height: 1.25em; cursor: pointer;">
                 </div>
             </div>
         </div>
