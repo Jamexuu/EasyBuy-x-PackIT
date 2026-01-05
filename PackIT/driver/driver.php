@@ -38,6 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
         $value = (isset($_POST['value']) && ((string)$_POST['value'] === '1')) ? 1 : 0;
+        $stmt = $db->executeQuery("UPDATE drivers SET is_available = ? WHERE id = ?", [$value, $driverId]);
+        // no need to check affected rows here; return success
 
         $db->executeQuery("UPDATE drivers SET is_available = ? WHERE id = ?", [$value, $driverId]);
 
@@ -46,8 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // For non-AJAX actions (accept/advance) keep original redirection behaviour
-    // Basic CSRF check
+    // For non-AJAX actions (accept/advance)
     if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
         $_SESSION['flash_error'] = 'Invalid request';
         header('Location: driver.php');
@@ -57,28 +58,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $bookingId = (int)($_POST['booking_id'] ?? 0);
 
     if ($action === 'accept' && $bookingId > 0) {
-        // Attempt to atomically claim the booking (only if still pending & unassigned)
+        // get active vehicle name for this driver
         $stmt = $db->executeQuery(
-            "UPDATE bookings
-             SET driver_id = ?, tracking_status = 'accepted', updated_at = CURRENT_TIMESTAMP()
-             WHERE id = ? AND tracking_status = 'pending' AND (driver_id IS NULL OR driver_id = 0)",
-            [$driverId, $bookingId]
+            "SELECT v.name AS active_vehicle_name
+             FROM drivers d
+             LEFT JOIN vehicles v ON d.active_vehicle_id = v.id
+             WHERE d.id = ? LIMIT 1",
+            [$driverId]
         );
+        $driverRow = $db->fetch($stmt);
+        $activeVehicleName = $driverRow && !empty($driverRow[0]['active_vehicle_name']) ? $driverRow[0]['active_vehicle_name'] : null;
 
+        if (!$activeVehicleName) {
+            $_SESSION['flash_error'] = 'Please select an active vehicle in your profile before accepting bookings.';
+            header('Location: driver.php');
+            exit;
+        }
+
+        // ensure driver has no other active booking
+        $stmt = $db->executeQuery("SELECT COUNT(*) AS c FROM bookings WHERE driver_id = ? AND tracking_status IN ('accepted','picked_up','in_transit')", [$driverId]);
+        $cntRow = $db->fetch($stmt);
+        $existingCount = !empty($cntRow) ? (int)$cntRow[0]['c'] : 0;
+        if ($existingCount > 0) {
+            $_SESSION['flash_error'] = 'You already have an active booking. Finish it before accepting another.';
+            header('Location: driver.php');
+            exit;
+        }
         // mysqli: check if the UPDATE changed any row
         $accepted = (mysqli_stmt_affected_rows($stmt) > 0);
 
-        if ($accepted) {
+        // Attempt to atomically claim the booking (matching vehicle_type)
+        $stmt = $db->executeQuery(
+            "UPDATE bookings
+             SET driver_id = ?, tracking_status = 'accepted', updated_at = CURRENT_TIMESTAMP()
+             WHERE id = ? AND tracking_status = 'pending' AND (driver_id IS NULL OR driver_id = 0) AND vehicle_type = ?",
+            [$driverId, $bookingId, $activeVehicleName]
+        );
+
+        $affected = mysqli_stmt_affected_rows($stmt);
+        if ($affected > 0) {
             $_SESSION['flash_success'] = 'Booking accepted.';
         } else {
-            $_SESSION['flash_error'] = 'Booking was already taken by another driver or is no longer pending.';
+            $_SESSION['flash_error'] = 'Booking was already taken, no longer pending, or does not match your active vehicle.';
         }
     } elseif ($action === 'advance' && $bookingId > 0) {
-        // Fetch current status ensuring the booking belongs to this driver
-        $stmt = $db->executeQuery(
-            "SELECT tracking_status FROM bookings WHERE id = ? AND driver_id = ? LIMIT 1",
-            [$bookingId, $driverId]
-        );
+        $stmt = $db->executeQuery("SELECT tracking_status FROM bookings WHERE id = ? AND driver_id = ? LIMIT 1", [$bookingId, $driverId]);
         $row = $db->fetch($stmt);
 
         if (empty($row)) {
@@ -104,6 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     [$next, $bookingId, $driverId]
                 );
 
+                $updated = mysqli_stmt_affected_rows($stmt2) > 0;
                 // mysqli: check if the UPDATE changed any row
                 $updated = (mysqli_stmt_affected_rows($stmt2) > 0);
 
@@ -120,8 +145,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-/* Fetch driver info */
-$stmt = $db->executeQuery("SELECT first_name, is_available FROM drivers WHERE id = ? LIMIT 1", [$driverId]);
+/* Fetch driver info (include active vehicle id and name) */
+$stmt = $db->executeQuery(
+    "SELECT d.first_name, d.is_available, d.active_vehicle_id, v.name AS active_vehicle_name
+     FROM drivers d
+     LEFT JOIN vehicles v ON d.active_vehicle_id = v.id
+     WHERE d.id = ? LIMIT 1",
+    [$driverId]
+);
 $rows = $db->fetch($stmt);
 
 if (empty($rows)) {
@@ -132,23 +163,39 @@ if (empty($rows)) {
 
 $driverName = $rows[0]['first_name'];
 $isAvailable = (int)$rows[0]['is_available'];
+$activeVehicleId = isset($rows[0]['active_vehicle_id']) ? (int)$rows[0]['active_vehicle_id'] : null;
+$activeVehicleName = $rows[0]['active_vehicle_name'] ?? null;
+
+/* Load the vehicles the driver owns (driver_vehicles) */
+$stmt = $db->executeQuery(
+    "SELECT dv.id AS dv_id, dv.vehicle_id, v.name AS vehicle_name, dv.license_plate
+     FROM driver_vehicles dv
+     JOIN vehicles v ON dv.vehicle_id = v.id
+     WHERE dv.driver_id = ?
+     ORDER BY v.name ASC",
+    [$driverId]
+);
+$ownedVehicles = $db->fetch($stmt);
 
 /* Only fetch bookings if driver is online */
 $pendingBookings = [];
 $myBookings = [];
 
 if ($isAvailable === 1) {
-    /* Fetch pending bookings (unassigned, pending) */
-    $stmtPending = $db->executeQuery(
-        "SELECT b.*, u.first_name AS user_first_name, u.last_name AS user_last_name
-         FROM bookings b
-         JOIN users u ON b.user_id = u.id
-         WHERE b.tracking_status = 'pending'
-         ORDER BY b.created_at ASC"
-    );
-    $pendingBookings = $db->fetch($stmtPending);
+    if ($activeVehicleName) {
+        $stmtPending = $db->executeQuery(
+            "SELECT b.*, u.first_name AS user_first_name, u.last_name AS user_last_name
+             FROM bookings b
+             JOIN users u ON b.user_id = u.id
+             WHERE b.tracking_status = 'pending' AND b.vehicle_type = ?
+             ORDER BY b.created_at ASC",
+            [$activeVehicleName]
+        );
+        $pendingBookings = $db->fetch($stmtPending);
+    } else {
+        $pendingBookings = [];
+    }
 
-    /* Fetch active bookings assigned to this driver */
     $stmtMine = $db->executeQuery(
         "SELECT b.*, u.first_name AS user_first_name, u.last_name AS user_last_name
          FROM bookings b
@@ -158,6 +205,14 @@ if ($isAvailable === 1) {
         [$driverId]
     );
     $myBookings = $db->fetch($stmtMine);
+}
+
+/* Helper to check if driver currently has an active booking (to disable accept buttons) */
+$hasActiveAssignment = false;
+$stmt = $db->executeQuery("SELECT COUNT(*) AS c FROM bookings WHERE driver_id = ? AND tracking_status IN ('accepted','picked_up','in_transit')", [$driverId]);
+$cRow = $db->fetch($stmt);
+if (!empty($cRow) && isset($cRow[0]['c'])) {
+    $hasActiveAssignment = ((int)$cRow[0]['c'] > 0);
 }
 ?>
 <!doctype html>
@@ -178,6 +233,8 @@ if ($isAvailable === 1) {
         @media (max-width: 767px) {
             .list-container { max-height: none; }
         }
+        .vehicle-pill { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; background:white; border:1px solid #e9ecef; margin-right:8px; }
+        .vehicle-active { border-color: var(--brand-yellow); box-shadow:0 2px 8px rgba(0,0,0,0.04);}
     </style>
 </head>
 <body>
@@ -187,6 +244,14 @@ if ($isAvailable === 1) {
         <div class="col-md-6">
             <h2 class="fw-bold mb-0">Hello, <?php echo htmlspecialchars($driverName); ?>!</h2>
             <p class="text-muted">Welcome to your driver dashboard.</p>
+            <div class="mt-2">
+                <strong>Active vehicle:</strong>
+                <?php if ($activeVehicleName): ?>
+                    <span class="vehicle-pill vehicle-active"><?php echo htmlspecialchars($activeVehicleName); ?></span>
+                <?php else: ?>
+                    <span class="text-muted small">No active vehicle — set one in your profile to see bookings.</span>
+                <?php endif; ?>
+            </div>
         </div>
         <div class="col-md-6 text-md-end">
             <a href="driver_profile.php" class="btn btn-dark rounded-pill px-4 me-2">
@@ -221,8 +286,10 @@ if ($isAvailable === 1) {
                 <?php if ($isAvailable !== 1): ?>
                     <div class="alert alert-warning">You are currently offline. Toggle <strong>GO ONLINE</strong> to see pending bookings.</div>
                 <?php else: ?>
-                    <?php if (empty($pendingBookings)): ?>
-                        <div class="alert alert-info">No pending bookings at the moment.</div>
+                    <?php if (!$activeVehicleName): ?>
+                        <div class="alert alert-info">You have no active vehicle selected. Go to Profile to add/select a vehicle to see bookings.</div>
+                    <?php elseif (empty($pendingBookings)): ?>
+                        <div class="alert alert-info">No pending bookings for your active vehicle at the moment.</div>
                     <?php else: ?>
                         <?php foreach ($pendingBookings as $b): ?>
                             <div class="booking-card shadow-sm">
@@ -238,7 +305,7 @@ if ($isAvailable === 1) {
                                             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                                             <input type="hidden" name="booking_id" value="<?php echo (int)$b['id']; ?>">
                                             <input type="hidden" name="action" value="accept">
-                                            <button type="submit" class="btn btn-primary">Accept</button>
+                                            <button type="submit" class="btn btn-primary" <?php echo $hasActiveAssignment ? 'disabled title="Finish current assignment before accepting another."' : ''; ?>>Accept</button>
                                         </form>
                                     </div>
                                 </div>
@@ -290,6 +357,24 @@ if ($isAvailable === 1) {
                     <?php endif; ?>
                 <?php endif; ?>
             </div>
+
+            <!-- Quick list of driver's owned vehicles and active switching help -->
+            <div class="mt-3">
+                <h6 class="fw-bold">Your Vehicles</h6>
+                <?php if (empty($ownedVehicles)): ?>
+                    <div class="small text-muted">No vehicles registered. Add vehicles in your <a href="driverProfile.php">profile</a>.</div>
+                <?php else: ?>
+                    <?php foreach ($ownedVehicles as $v): ?>
+                        <div class="vehicle-pill <?php echo ($v['vehicle_id'] === $activeVehicleId) ? 'vehicle-active' : ''; ?>">
+                            <strong><?php echo htmlspecialchars($v['vehicle_name']); ?></strong>
+                            <?php if (!empty($v['license_plate'])): ?>
+                                <small class="text-muted"> — <?php echo htmlspecialchars($v['license_plate']); ?></small>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+                <div class="small text-muted mt-2">To add vehicles or change active vehicle, go to <a href="driverProfile.php">Profile</a>.</div>
+            </div>
         </div>
     </div>
 </div>
@@ -301,7 +386,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     onlineSwitch.addEventListener('change', async function () {
         const checked = this.checked ? 1 : 0;
-        // disable during request
         this.disabled = true;
 
         const params = new URLSearchParams();
@@ -314,17 +398,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 method: 'POST',
                 body: params,
                 credentials: 'same-origin',
-                headers: {
-                    'Accept': 'application/json'
-                }
+                headers: { 'Accept': 'application/json' }
             });
             const json = await res.json();
             if (json && json.success) {
-                // reload to show/hide bookings
                 location.reload();
             } else {
                 alert('Failed to change online status: ' + (json?.message ?? 'Unknown error'));
-                // revert checkbox if failed
                 this.checked = !this.checked;
             }
         } catch (err) {
