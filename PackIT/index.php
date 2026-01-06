@@ -3,8 +3,8 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Pack IT</title>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -83,110 +83,133 @@
       transform: translateY(-6px) scale(1.02);
     }
 
-    /* --- UPDATED FLOATING ACTIONS --- */
+    /* ---------- Bigger floating actions (replace your existing floating-actions rules) ---------- */
+
+    /* container: taller/wider pill on the right edge */
     .floating-actions {
       position: fixed;
       top: 50%;
       right: 20px;
       transform: translateY(-50%);
+      width: 110px;
+      /* wider */
+      padding: 18px 12px;
+      /* more padding */
+      border-radius: 28px;
+      /* pill shape */
       background: rgba(248, 225, 91, 0.98);
-      border-radius: 12px;
-      padding: 14px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 14px;
-      box-shadow: 0 10px 30px rgba(16, 24, 40, 0.09);
+      gap: 18px;
+      /* more space between items */
+      box-shadow: 0 14px 40px rgba(16, 24, 40, 0.10);
       z-index: 1050;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      /* Default State: Width fits content */
+      transition: all .28s ease;
+      overflow: visible;
     }
 
-    /* The wrapper for the links to animate hide/show */
+    /* toggle button (top small square inside pill) */
+    .floating-actions .action-toggle-btn {
+      width: 56px;
+      height: 56px;
+      padding: 0;
+      border-radius: 10px;
+      border: none;
+      background: rgba(248, 225, 91, 0.98);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.15rem;
+      color: var(--brand-dark, #111);
+      /* ensure toggle stays visually at top of pill */
+      margin-top: -6px;
+    }
+
+    /* links vertically stacked inside the pill */
     .action-links-wrapper {
       display: flex;
       flex-direction: column;
-      gap: 14px;
-      padding: 4px;
-      overflow: hidden;
-      max-height: 500px;
-      /* Arbitrary max for transition */
-      opacity: 1;
-      transition: all 0.3s ease;
-    }
-
-    /* Hidden state for the wrapper */
-    .floating-actions.closed .action-links-wrapper {
-      max-height: 0;
-      opacity: 0;
+      gap: 18px;
+      align-items: center;
       padding: 0;
       margin: 0;
     }
 
+    /* each action: larger icon + label */
     .floating-actions a {
       display: inline-flex;
       flex-direction: column;
       align-items: center;
       text-decoration: none;
       color: var(--brand-dark);
-      font-size: 0.8rem;
-      font-weight: 600;
+      font-size: 0.95rem;
+      /* slightly larger label */
+      font-weight: 700;
+      gap: 8px;
       transition: transform .14s ease, filter .14s ease;
-      gap: 4px;
     }
 
+    /* bigger images */
     .floating-actions a img {
-      width: 40px;
-      height: 40px;
+      width: 56px;
+      /* increased icon size */
+      height: 56px;
       object-fit: contain;
-      filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.08));
+      filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.08));
     }
 
+    /* hover lift */
     .floating-actions a:hover {
       transform: translateY(-6px);
-      filter: brightness(1.03);
+      filter: brightness(1.02);
     }
 
+    /* collapsed state: small circular toggle only */
+    .floating-actions.closed {
+      width: 72px;
+      padding: 8px;
+      border-radius: 50%;
+      right: 20px;
+    }
+
+    /* hide action list when collapsed */
+    .floating-actions.closed .action-links-wrapper {
+      display: none;
+    }
+
+    /* adjust toggle to fill circular collapsed container */
+    .floating-actions.closed .action-toggle-btn {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      margin-top: 0;
+    }
+
+    /* Responsive: keep it slightly smaller on narrow screens */
     @media (max-width: 991px) {
-      h1.display-1 {
-        font-size: 3rem;
-      }
-
       .floating-actions {
-        top: auto;
-        bottom: 20px;
-        /* Moved up slightly */
-        right: 20px;
-        transform: none;
-        flex-direction: row-reverse;
-        /* Button on the right */
-        border-radius: 50px;
-        /* Pill shape on mobile */
-        padding: 6px 6px 6px 16px;
-        /* Padding for pill shape */
+        width: 92px;
+        padding: 12px;
+        right: 12px;
+        border-radius: 22px;
+        gap: 12px;
       }
 
-      /* When closed on mobile, it becomes a circle */
-      .floating-actions.closed {
-        border-radius: 50%;
-        padding: 10px;
-        right: 20px;
-        bottom: 20px;
-      }
-
-      .action-links-wrapper {
-        flex-direction: row;
-        /* Horizontal on mobile */
-        max-width: 500px;
-        /* Use width for horizontal transition */
-        max-height: unset;
-        gap: 18px;
-        padding-right: 12px;
+      .floating-actions .action-toggle-btn {
+        width: 48px;
+        height: 48px;
+        font-size: 1rem;
       }
 
       .floating-actions a img {
-        width: 36px;
-        height: 36px;
+        width: 48px;
+        height: 48px;
+      }
+
+      .floating-actions a {
+        font-size: 0.9rem;
       }
     }
 
@@ -324,6 +347,20 @@
       opacity: 1;
       transform: none;
     }
+
+    @media (min-width: 992px) {
+      .near-duck {
+        margin-left: -120px;
+        /* move closer on lg */
+      }
+    }
+
+    @media (min-width: 1200px) {
+      .near-duck {
+        margin-left: -200px;
+        /* move even more on xl */
+      }
+    }
   </style>
 </head>
 
@@ -332,21 +369,27 @@
   <?php $page = basename($_SERVER['PHP_SELF']); ?>
   <?php include("frontend/components/navbar.php"); ?>
 
-  <main class="container my-5 py-lg-5">
+  <main class="container-fluid my-1 py-lg-2">
     <div class="row align-items-center gy-5">
-      <div class="col-lg-6 text-center text-lg-start">
-        <h1 class="display-1 fw-black text-uppercase">PACK IT</h1>
-        <p class="lead mt-4" style="color: var(--brand-gray);">
-          The gold standard of PH logistics.🏆<br>
-          Bridging gaps and breaking records, one delivery at a time.
-        </p>
-        <a href="../PackIT/frontend/aboutUs.php" class="btn bg-brand btn-lg fw-bold rounded-pill px-4 mt-3 hover-scale">Get Started</a>
+      <!-- LEFT: Duck image -->
+      <div class="col-12 col-lg-6 d-flex justify-content-center justify-content-lg-start">
+        <img src="assets/duck.png" class="img-fluid" alt="Duck Mascot" style="max-width:520px; height:auto; transition: transform .25s ease;">
       </div>
 
-      <div class="col-lg-6 text-center">
-        <img src="assets/duckvideo.gif" class="img-fluid hero-img" alt="Mascot" style="max-height: 450px;">
+      <!-- RIGHT: PACK IT (beside the duck on lg+, stacked on sm) -->
+      <div class="col-12 col-lg-6 d-flex align-items-center text-center text-lg-start near-duck">
+        <div style="max-width:44ch;">
+          <h1 class="display-1 fw-bold text-uppercase mb-3">PACK IT</h1>
+
+          <p class="lead mb-3" style="color: var(--brand-gray);">
+            The gold standard of PH logistics.🏆<br>
+            Bridging gaps and breaking records, one delivery at a time.
+          </p>
+        </div>
       </div>
     </div>
+    <?php include("frontend/aboutUs.php"); ?>
+
   </main>
 
   <div class="floating-actions" id="floatingActions" aria-expanded="true">
@@ -385,10 +428,10 @@
           </div>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
+
         <div class="modal-body p-0">
           <div class="chat-window">
-            <div class="chat-messages" id="chatMessages" aria-live="polite" aria-atomic="false">
-            </div>
+            <div class="chat-messages" id="chatMessages" aria-live="polite" aria-atomic="false"></div>
 
             <div class="chat-input">
               <form id="chatForm" onsubmit="return false;">
