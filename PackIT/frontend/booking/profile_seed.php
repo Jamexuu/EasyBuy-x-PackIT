@@ -1,5 +1,39 @@
 <?php
 declare(strict_types=1);
+
+if (session_status() === PHP_SESSION_NONE) {
+  session_start();
+}
+
+require_once __DIR__ . "/../../api/classes/Database.php";
+
+$userId = isset($_SESSION['user']['id']) ? (int)$_SESSION['user']['id'] : 0;
+
+$fullName = "";
+$contactNumber = "";
+$canUse = false;
+
+if ($userId > 0) {
+  $db = new Database();
+  $stmt = $db->executeQuery(
+    "SELECT first_name, last_name, contact_number
+     FROM users
+     WHERE id = ?
+     LIMIT 1",
+    [$userId]
+  );
+  $rows = $db->fetch($stmt);
+
+  if (!empty($rows)) {
+    $fullName = trim(((string)$rows[0]['first_name']) . " " . ((string)$rows[0]['last_name']));
+    $contactNumber = (string)($rows[0]['contact_number'] ?? '');
+    $canUse = true;
+  }
+}
+
+function h(string $s): string {
+  return htmlspecialchars($s, ENT_QUOTES, "UTF-8");
+}
 ?>
 <!doctype html>
 <html lang="en">
@@ -15,15 +49,49 @@ declare(strict_types=1);
     <div class="col-md-7">
       <div class="card shadow-sm border-0 rounded-4">
         <div class="card-body p-4">
-          <h4 class="fw-bold">Seed Default Pickup Address (Frontend Only)</h4>
-          <p class="text-muted small mb-4">This simulates the user registered address using LocalStorage.</p>
+          <h4 class="fw-bold">Seed Default Pickup Details (Frontend Only)</h4>
+          <p class="text-muted small mb-4">
+            This simulates default pickup details using LocalStorage. Address still uses <code>packit_profile_address</code>,
+            and contact uses <code>packit_profile_contact</code>.
+          </p>
 
-          <div class="alert alert-info small mb-4">
-            Quick fill: click <strong>Use Sample (Makati, NCR)</strong> then click <strong>Save to LocalStorage</strong>.
-            This should make <code>address.php</code> show Region <strong>NCR</strong> using your province alias rule.
-          </div>
+          <?php if (!$canUse): ?>
+            <div class="alert alert-warning small">
+              You are not logged in (or user not found). Please log in first so we can pull your name & CP number from the database.
+            </div>
+          <?php else: ?>
+            <div class="alert alert-info small mb-4">
+              Loaded from DB (users table): <strong><?= h($fullName) ?></strong> • <strong><?= h($contactNumber) ?></strong>
+            </div>
+          <?php endif; ?>
 
           <div class="row g-3">
+            <!-- Contact seed -->
+            <div class="col-12">
+              <h6 class="fw-bold mb-0">Pickup Contact (from current user)</h6>
+              <div class="text-muted small">Editable before saving to LocalStorage.</div>
+            </div>
+
+            <div class="col-md-7">
+              <label class="form-label">Full Name</label>
+              <input class="form-control" id="contact_name" placeholder="e.g. Juan Dela Cruz"
+                     value="<?= h($fullName) ?>" <?= $canUse ? "" : "disabled" ?>>
+            </div>
+
+            <div class="col-md-5">
+              <label class="form-label">CP Number</label>
+              <input class="form-control" id="contact_number" placeholder="09xxxxxxxxx"
+                     value="<?= h($contactNumber) ?>" <?= $canUse ? "" : "disabled" ?>>
+            </div>
+
+            <hr class="my-3">
+
+            <!-- Address seed -->
+            <div class="col-12">
+              <h6 class="fw-bold mb-0">Pickup Address</h6>
+              <div class="text-muted small">This is the same address seed you already had.</div>
+            </div>
+
             <div class="col-12">
               <label class="form-label">House Address</label>
               <input class="form-control" id="house" placeholder="e.g. Blk 1 Lot 2" value="Blk 1 Lot 2">
@@ -55,14 +123,21 @@ declare(strict_types=1);
           </div>
 
           <div class="d-flex gap-2 mt-3">
-            <button class="btn btn-primary w-50" id="saveBtn" type="button">Save to LocalStorage</button>
+            <button class="btn btn-primary w-50" id="saveBtn" type="button" <?= $canUse ? "" : "disabled" ?>>
+              Save to LocalStorage
+            </button>
             <a class="btn btn-outline-secondary w-50" href="package.php">Go to Booking</a>
           </div>
 
           <hr class="my-4">
           <div class="small text-muted">
-            Stored key: <code>packit_profile_address</code>
+            Stored keys:
+            <ul class="mb-0">
+              <li><code>packit_profile_address</code> (pickup address)</li>
+              <li><code>packit_profile_contact</code> (pickup contact)</li>
+            </ul>
           </div>
+
         </div>
       </div>
     </div>
@@ -96,14 +171,22 @@ declare(strict_types=1);
   });
 
   document.getElementById("saveBtn").addEventListener("click", () => {
-    const data = {
+    const address = {
       house: document.getElementById("house").value.trim(),
       barangay: document.getElementById("barangay").value.trim(),
       municipality: document.getElementById("municipality").value.trim(),
       province: document.getElementById("province").value.trim(),
     };
-    localStorage.setItem("packit_profile_address", JSON.stringify(data));
-    alert("Saved! Now open address.php and click 'Use default pickup address'.");
+
+    const contact = {
+      name: document.getElementById("contact_name").value.trim(),
+      contact_number: document.getElementById("contact_number").value.trim(),
+    };
+
+    localStorage.setItem("packit_profile_address", JSON.stringify(address));
+    localStorage.setItem("packit_profile_contact", JSON.stringify(contact));
+
+    alert("Saved! Address + Contact stored. You can now proceed to booking.");
   });
 </script>
 </body>

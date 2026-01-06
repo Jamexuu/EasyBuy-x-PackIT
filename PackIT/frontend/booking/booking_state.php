@@ -70,7 +70,7 @@ function set_selected_package(string $key): void {
     return rtrim(rtrim(number_format($x, 1), '0'), '.');
   };
 
-  // Human-friendly description string
+  // Human-friendly description string (AUTO SPECS)
   $desc = sprintf(
     "Type: %s | Max: %d kg | Size: %s x %s x %s Meter",
     (string)$pkg["package_type"],
@@ -79,7 +79,13 @@ function set_selected_package(string $key): void {
     $fmt1((float)$pkg["size_width_m"]),
     $fmt1((float)$pkg["size_height_m"])
   );
-  $_SESSION["booking"]["package_desc"] = $desc;
+
+  // IMPORTANT: do NOT overwrite user's package_desc.
+  $_SESSION["booking"]["package_specs_desc"] = $desc;
+
+  // defaults for new required fields
+  $_SESSION["booking"]["package_desc"] ??= "";
+  $_SESSION["booking"]["package_quantity"] ??= 1;
 }
 
 function get_booking_state(): array {

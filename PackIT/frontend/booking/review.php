@@ -16,19 +16,26 @@ if (empty($state["pickup_address"]) || empty($state["drop_address"])) {
   exit;
 }
 
+// Require contacts before review
+if (
+  empty($state["pickup_contact_name"]) || empty($state["pickup_contact_number"]) ||
+  empty($state["drop_contact_name"]) || empty($state["drop_contact_number"])
+) {
+  header("Location: address.php");
+  exit;
+}
+
 $baseAmount = (int)($state["base_amount"] ?? 0);
 $pickupRegion = $state["pickup_region"] ?? null;
 $dropRegion = $state["drop_region"] ?? null;
 
 $distanceAmount = compute_distance_fare($pickupRegion, $dropRegion);
-$doorToDoorAmount = get_door_to_door_amount((bool)($state["door_to_door"] ?? true));
-
 if ($distanceAmount === null) {
   header("Location: address.php");
   exit;
 }
 
-$totalAmount = compute_total_fare($baseAmount, $distanceAmount, $doorToDoorAmount);
+$totalAmount = compute_total_fare($baseAmount, $distanceAmount, 0);
 
 function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
 function fmt1(float $x): string { return rtrim(rtrim(number_format($x, 1), '0'), '.'); }
@@ -41,15 +48,21 @@ function format_addr(array $a): string {
 $pickupText = format_addr((array)$state["pickup_address"]);
 $dropText = format_addr((array)$state["drop_address"]);
 
-// Package details
 $vehicleLabel = (string)($state["vehicle_label"] ?? '');
 $packageType  = (string)($state["package_type"] ?? '');
 $maxKg        = (int)($state["max_kg"] ?? 0);
 $sizeL        = (float)($state["size_length_m"] ?? 0);
 $sizeW        = (float)($state["size_width_m"] ?? 0);
 $sizeH        = (float)($state["size_height_m"] ?? 0);
-$packageDesc  = (string)($state["package_desc"] ?? '');
 
+$userDesc = (string)($state["package_desc"] ?? '');
+$qty = (int)($state["package_quantity"] ?? 1);
+$specsDesc = (string)($state["package_specs_desc"] ?? '');
+
+$pickupContactName = (string)$state["pickup_contact_name"];
+$pickupContactNumber = (string)$state["pickup_contact_number"];
+$dropContactName = (string)$state["drop_contact_name"];
+$dropContactNumber = (string)$state["drop_contact_number"];
 ?>
 <!doctype html>
 <html lang="en">
@@ -60,43 +73,12 @@ $packageDesc  = (string)($state["package_desc"] ?? '');
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    :root {
-      --brand-yellow: #f8e14b;
-      --brand-yellow-dark: #e6cc32;
-      --brand-black: #1c1c1c;
-    }
-
-    body {
-      background: #f8f9fa;
-    }
-
-    .card-header {
-      background: var(--brand-yellow) !important;
-      color: var(--brand-black) !important;
-    }
-
-    .btn-primary {
-      background-color: var(--brand-yellow);
-      border-color: var(--brand-yellow);
-      color: var(--brand-black);
-      font-weight: 600;
-    }
-
-    .btn-primary:hover {
-      background-color: var(--brand-yellow-dark);
-      border-color: var(--brand-yellow-dark);
-    }
-
-    .price-tag {
-      font-size: 2.2rem;
-      font-weight: 900;
-      color: var(--brand-black);
-    }
-
-    .muted-sm {
-      font-size: .9rem;
-      color: #6c757d;
-    }
+    :root { --brand-yellow:#f8e14b; --brand-yellow-dark:#e6cc32; --brand-black:#1c1c1c; }
+    body { background:#f8f9fa; }
+    .card-header { background:var(--brand-yellow) !important; color:var(--brand-black) !important; }
+    .price-tag { font-size:2.2rem; font-weight:900; color:var(--brand-black); }
+    .muted-sm { font-size:.9rem; color:#6c757d; }
+    .detail-box { background:#f8f9fa; border-radius:.75rem; padding:1rem; }
   </style>
 
   <script src="https://www.paypal.com/sdk/js?client-id=<?= PAYPAL_CLIENT_ID ?>&currency=PHP"></script>
@@ -109,13 +91,9 @@ $packageDesc  = (string)($state["package_desc"] ?? '');
       <div class="col-lg-8 col-md-10">
         <div class="card shadow-sm border-0 rounded-4">
           <div class="card-header p-4 rounded-top-4">
-            <div class="d-flex align-items-center justify-content-between">
-              <div>
-                <div class="muted-sm">TOTAL</div>
-                <div class="price-tag">₱<?= number_format($totalAmount, 0) ?></div>
-                <div class="muted-sm">Vehicle: <?= h($vehicleLabel) ?></div>
-              </div>
-            </div>
+            <div class="muted-sm">TOTAL</div>
+            <div class="price-tag">₱<?= number_format($totalAmount, 0) ?></div>
+            <div class="muted-sm">Vehicle: <?= h($vehicleLabel) ?></div>
           </div>
 
           <div class="card-body p-4">
@@ -124,37 +102,38 @@ $packageDesc  = (string)($state["package_desc"] ?? '');
             <div class="mb-4">
               <h6>Details</h6>
               <div class="detail-box">
+
                 <div class="mb-3">
                   <div class="muted-sm mb-1">Package</div>
-                  <div>
-                    <?= h($vehicleLabel) ?> (Base ₱<?= number_format($baseAmount, 0) ?>)
-                  </div>
+                  <div><?= h($vehicleLabel) ?> (Base ₱<?= number_format($baseAmount, 0) ?>)</div>
                   <div class="mt-2 p-3 rounded-3" style="background:#fff;border:1px solid rgba(0,0,0,.08)">
-                    <?php if ($packageDesc !== ''): ?>
-                      <?= h($packageDesc) ?>
-                    <?php else: ?>
-                      Type: <strong><?= h($packageType) ?></strong><br/>
-                      Max: <strong><?= (int)$maxKg ?> kg</strong><br/>
-                      Size: <?= fmt1($sizeL) ?> x <?= fmt1($sizeW) ?> x <?= fmt1($sizeH) ?> Meter
-                    <?php endif; ?>
+                    <div><strong>Quantity:</strong> <?= (int)$qty ?></div>
+                    <div class="mt-2"><strong>Description:</strong><br><?= h($userDesc) ?></div>
+
+                    <div class="mt-3 text-muted small">
+                      <strong>Limits (auto):</strong>
+                      <?= h($specsDesc !== '' ? $specsDesc : ("Type: $packageType | Max: $maxKg kg | Size: ".fmt1($sizeL)." x ".fmt1($sizeW)." x ".fmt1($sizeH)." Meter")) ?>
+                    </div>
                   </div>
                 </div>
 
                 <div class="mb-3">
                   <div class="muted-sm">Pickup</div>
-                  <div><?= h($pickupText) ?></div>
+                  <div class="mb-1"><?= h($pickupText) ?></div>
+                  <div class="muted-sm">Contact: <strong><?= h($pickupContactName) ?></strong> • <strong><?= h($pickupContactNumber) ?></strong></div>
                   <div class="muted-sm">Region: <strong><?= h((string)($state["pickup_region"] ?? '')) ?></strong></div>
                 </div>
 
                 <div class="mb-3">
                   <div class="muted-sm">Drop-off</div>
-                  <div><?= h($dropText) ?></div>
+                  <div class="mb-1"><?= h($dropText) ?></div>
+                  <div class="muted-sm">Recipient: <strong><?= h($dropContactName) ?></strong> • <strong><?= h($dropContactNumber) ?></strong></div>
                   <div class="muted-sm">Region: <strong><?= h((string)($state["drop_region"] ?? '')) ?></strong></div>
                 </div>
+
               </div>
             </div>
 
-            <!-- Existing fare breakdown and PayPal button continue below -->
             <h6 class="fw-bold">Fare breakdown</h6>
             <ul class="list-group mb-4">
               <li class="list-group-item d-flex justify-content-between">
@@ -164,10 +143,6 @@ $packageDesc  = (string)($state["package_desc"] ?? '');
               <li class="list-group-item d-flex justify-content-between">
                 <span>Distance fare</span>
                 <strong>₱<?= number_format($distanceAmount, 0) ?></strong>
-              </li>
-              <li class="list-group-item d-flex justify-content-between">
-                <span>Door-to-door</span>
-                <strong>₱<?= number_format($doorToDoorAmount, 0) ?></strong>
               </li>
               <li class="list-group-item d-flex justify-content-between">
                 <span class="fw-bold">Total</span>
@@ -208,7 +183,6 @@ $packageDesc  = (string)($state["package_desc"] ?? '');
           .then(res => res.json())
           .then(orderData => {
             if (orderData && orderData.error) {
-              // Handles 401 login-required and 500 server errors
               alert(orderData.error);
               throw new Error(orderData.error);
             }
@@ -237,13 +211,11 @@ $packageDesc  = (string)($state["package_desc"] ?? '');
 
             const bookingId = details ? (details._packit_booking_id || "") : "";
             if (!bookingId) {
-              // Payment might be completed but booking insert failed or booking id wasn't returned
               alert("Payment completed, but booking reference is missing. Please contact support.");
               window.location.href = "../../api/paypal/success.php";
               return;
             }
 
-            // Redirect to success page with booking id
             window.location.href = "../../api/paypal/success.php?booking_id=" + encodeURIComponent(bookingId);
           });
       },
@@ -255,5 +227,4 @@ $packageDesc  = (string)($state["package_desc"] ?? '');
     }).render('#paypal-button-container');
   </script>
 </body>
-
 </html>

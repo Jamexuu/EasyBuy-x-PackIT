@@ -11,10 +11,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $selected = $_POST["package"] ?? "";
   $selected = is_string($selected) ? trim($selected) : "";
 
+  $userDesc = trim((string)($_POST["package_desc"] ?? ""));
+  $qty = (int)($_POST["package_quantity"] ?? 0);
+
   if (!$selected || !get_package($selected)) {
     $error = "Please select a valid option.";
+  } elseif ($userDesc === "") {
+    $error = "Please enter your package description.";
+  } elseif ($qty < 1) {
+    $error = "Quantity must be at least 1.";
   } else {
     set_selected_package($selected);
+
+    $_SESSION["booking"] ??= [];
+    $_SESSION["booking"]["package_desc"] = $userDesc;
+    $_SESSION["booking"]["package_quantity"] = $qty;
+
     header("Location: address.php");
     exit;
   }
@@ -46,60 +58,13 @@ function meters3($l, $w, $h): string
       --brand-yellow-dark: #e6cc32;
       --brand-black: #1c1c1c;
     }
-
-    body {
-      background-color: #f8f9fa;
-    }
-
-    .card-header {
-      background-color: var(--brand-yellow) !important;
-      color: var(--brand-black) !important;
-    }
-
-    .btn-primary {
-      background-color: var(--brand-yellow);
-      border-color: var(--brand-yellow);
-      color: var(--brand-black);
-      font-weight: 600;
-    }
-
-    .btn-primary:hover,
-    .btn-primary:focus {
-      background-color: var(--brand-yellow-dark);
-      border-color: var(--brand-yellow-dark);
-      color: var(--brand-black);
-    }
-
-    .pkg-card {
-      border: 1px solid rgba(0, 0, 0, .08);
-      border-radius: .75rem;
-      padding: 1.1rem;
-      background: #fff;
-      cursor: pointer;
-      height: 100%;
-    }
-
-    .pkg-card.active {
-      box-shadow: 0 0 0 3px rgba(248, 225, 75, .8);
-      border-color: var(--brand-yellow-dark);
-    }
-
-    .muted-sm {
-      font-size: .9rem;
-      color: #6c757d;
-    }
-
-    .detail-box {
-      background: #f8f9fa;
-      border-radius: .75rem;
-      padding: .85rem;
-    }
-
-    .price-tag {
-      font-size: 2rem;
-      font-weight: 800;
-      color: var(--brand-black);
-    }
+    body { background-color: #f8f9fa; }
+    .card-header { background-color: var(--brand-yellow) !important; color: var(--brand-black) !important; }
+    .muted-sm { font-size: .9rem; color: #6c757d; }
+    .detail-box { background: #f8f9fa; border-radius: .75rem; padding: .85rem; }
+    .pkg-card { border: 1px solid rgba(0, 0, 0, .08); border-radius: .75rem; padding: 1.1rem; background: #fff; cursor: pointer; height: 100%; }
+    .pkg-card.active { box-shadow: 0 0 0 3px rgba(248, 225, 75, .8); border-color: var(--brand-yellow-dark); }
+    .price-tag { font-size: 2rem; font-weight: 800; color: var(--brand-black); }
   </style>
 </head>
 
@@ -128,16 +93,11 @@ function meters3($l, $w, $h): string
                   <div class="col-lg-4 col-md-6">
                     <label class="pkg-card <?= ($selectedKey === (string)$key) ? "active" : "" ?>">
                       <div class="d-flex align-items-start gap-2">
-                        <input
-                          class="form-check-input mt-1"
-                          type="radio"
-                          name="package"
+                        <input class="form-check-input mt-1" type="radio" name="package"
                           value="<?= htmlspecialchars((string)$key) ?>"
                           <?= ($selectedKey === (string)$key) ? "checked" : "" ?>>
                         <div class="w-100">
-                          <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div class="fw-bold fs-6"><?= htmlspecialchars($pkg["label"]) ?></div>
-                          </div>
+                          <div class="fw-bold fs-6 mb-2"><?= htmlspecialchars($pkg["label"]) ?></div>
 
                           <div class="detail-box">
                             <div class="small" style="line-height:1.6;">
@@ -163,6 +123,28 @@ function meters3($l, $w, $h): string
 
               <hr class="my-4">
 
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label fw-bold">Package Description <span class="text-danger">*</span></label>
+                  <textarea class="form-control" name="package_desc" rows="3" required
+                    placeholder="Describe your package..."><?= htmlspecialchars((string)($state["package_desc"] ?? "")) ?></textarea>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label fw-bold">Quantity <span class="text-danger">*</span></label>
+                  <input class="form-control" type="number" name="package_quantity" min="1" step="1" required
+                    value="<?= (int)($state["package_quantity"] ?? 1) ?>">
+                </div>
+
+                <div class="col-md-8">
+                  <label class="form-label fw-bold">Allowed Specs (Auto)</label>
+                  <input class="form-control" type="text" readonly
+                    value="<?= htmlspecialchars((string)($state["package_specs_desc"] ?? "")) ?>">
+                </div>
+              </div>
+
+              <hr class="my-4">
+
               <div class="row g-3 align-items-center">
                 <div class="col-md-7">
                   <div class="muted-sm">Selected result</div>
@@ -176,12 +158,8 @@ function meters3($l, $w, $h): string
                   </div>
                 </div>
                 <div class="col-md-5 text-md-end">
-                  <button class="btn btn-warning w-100" type="submit">
-                    Save & Continue
-                  </button>
-                  <div class="muted-sm mt-2">
-                    Next: Address & region-based distance fare
-                  </div>
+                  <button class="btn btn-warning w-100" type="submit">Save & Continue</button>
+                  <div class="muted-sm mt-2">Next: Address & region-based distance fare</div>
                 </div>
               </div>
             </form>
@@ -199,19 +177,14 @@ function meters3($l, $w, $h): string
     </div>
   </div>
   <?php include("../components/footer.php"); ?>
+
   <script>
     const packages = <?=
-                      json_encode(array_map(fn($p) => [
-                        "label" => $p["label"],
-                        "vehicle_label" => $p["vehicle_label"],
-                        "amount" => $p["amount"],
-                        "package_type" => $p["package_type"],
-                        "max_kg" => $p["max_kg"],
-                        "size_length_m" => $p["size_length_m"],
-                        "size_width_m" => $p["size_width_m"],
-                        "size_height_m" => $p["size_height_m"],
-                      ], $packages), JSON_UNESCAPED_SLASHES)
-                      ?>;
+      json_encode(array_map(fn($p) => [
+        "vehicle_label" => $p["vehicle_label"],
+        "amount" => $p["amount"],
+      ], $packages), JSON_UNESCAPED_SLASHES)
+    ?>;
 
     document.querySelectorAll('input[name="package"]').forEach(r => {
       r.addEventListener('change', () => {
@@ -225,5 +198,4 @@ function meters3($l, $w, $h): string
     });
   </script>
 </body>
-
 </html>

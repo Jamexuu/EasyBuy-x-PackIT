@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 require_once __DIR__ . '/../api/classes/Database.php';
@@ -142,7 +141,7 @@ if (!empty($rows[0]['vehicle_type'])) {
     $activeVehicleName = (string)$rows[0]['active_vehicle_name'];
 }
 
-/* Active booking check (disable accept / show CTA) */
+/* Active booking check */
 $stmt = $db->executeQuery(
     "SELECT COUNT(*) AS c
      FROM bookings
@@ -156,7 +155,11 @@ $hasActiveAssignment = (!empty($cRow) && isset($cRow[0]['c'])) ? ((int)$cRow[0][
 $pendingBookings = [];
 if ($isAvailable === 1 && $activeVehicleName !== '') {
     $stmtPending = $db->executeQuery(
-        "SELECT b.*, u.first_name AS user_first_name, u.last_name AS user_last_name
+        "SELECT b.*,
+                u.first_name AS user_first_name,
+                u.last_name AS user_last_name,
+                u.contact_number AS user_contact_number,
+                u.email AS user_email
          FROM bookings b
          JOIN users u ON b.user_id = u.id
          WHERE b.tracking_status = 'pending'
@@ -171,6 +174,11 @@ if ($isAvailable === 1 && $activeVehicleName !== '') {
 function h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 function money($n): string { return number_format((float)$n, 2); }
 function badgeStatusLabel(int $isAvailable): string { return $isAvailable === 1 ? 'ONLINE' : 'OFFLINE'; }
+
+function fmtDims($l, $w, $h): string {
+    $fmt = fn($x) => rtrim(rtrim(number_format((float)$x, 1), '0'), '.');
+    return $fmt($l) . " x " . $fmt($w) . " x " . $fmt($h) . " m";
+}
 ?>
 <!doctype html>
 <html lang="en">
@@ -236,6 +244,27 @@ function badgeStatusLabel(int $isAvailable): string { return $isAvailable === 1 
 
         .list-scroll { max-height: 68vh; overflow: auto; padding-right: .25rem; }
         .form-check-input { cursor: pointer; }
+
+        .kv {
+            display:flex;
+            justify-content:space-between;
+            gap:12px;
+            padding:6px 0;
+            border-bottom: 1px dashed rgba(0,0,0,0.08);
+        }
+        .kv:last-child { border-bottom: none; }
+        .kv .k { color:#6c757d; font-size:.78rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
+        .kv .v { font-weight:700; text-align:right; }
+
+        .btn-link-lite {
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: #0d6efd;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .btn-link-lite:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -323,7 +352,38 @@ function badgeStatusLabel(int $isAvailable): string { return $isAvailable === 1 
                     <?php else: ?>
                         <div class="list-scroll">
                             <?php foreach ($pendingBookings as $b): ?>
+                                <?php
+                                    $id = (int)($b['id'] ?? 0);
+                                    $collapseId = "details_" . $id;
+
+                                    $pickupFull = implode(', ', array_filter([
+                                        $b['pickup_house'] ?? null,
+                                        $b['pickup_barangay'] ?? null,
+                                        $b['pickup_municipality'] ?? null,
+                                        $b['pickup_province'] ?? null,
+                                    ]));
+                                    $dropFull = implode(', ', array_filter([
+                                        $b['drop_house'] ?? null,
+                                        $b['drop_barangay'] ?? null,
+                                        $b['drop_municipality'] ?? null,
+                                        $b['drop_province'] ?? null,
+                                    ]));
+
+                                    $pkgQty = (int)($b['package_quantity'] ?? 1);
+                                    $pkgDesc = (string)($b['package_desc'] ?? '');
+                                    $pkgType = (string)($b['package_type'] ?? '');
+                                    $dims = fmtDims($b['size_length_m'] ?? 0, $b['size_width_m'] ?? 0, $b['size_height_m'] ?? 0);
+
+                                    $pickupContact = trim((string)($b['pickup_contact_name'] ?? '')) !== ''
+                                        ? (string)$b['pickup_contact_name'] . ' • ' . (string)($b['pickup_contact_number'] ?? '')
+                                        : '—';
+
+                                    $dropContact = trim((string)($b['drop_contact_name'] ?? '')) !== ''
+                                        ? (string)$b['drop_contact_name'] . ' • ' . (string)($b['drop_contact_number'] ?? '')
+                                        : '—';
+                                ?>
                                 <div class="order-card-item p-4 mb-4">
+                                    <!-- Compact header -->
                                     <div class="row align-items-center">
                                         <div class="col-md-2 text-center mb-3 mb-md-0">
                                             <div class="bg-white rounded p-3 d-inline-block shadow-sm">
@@ -332,42 +392,61 @@ function badgeStatusLabel(int $isAvailable): string { return $isAvailable === 1 
                                         </div>
 
                                         <div class="col-md-7 mb-3 mb-md-0">
-                                            <div class="mb-2">
-                                                <span class="status-badge-gray">
-                                                    PENDING BOOKING • ID <?= (int)$b['id'] ?>
-                                                </span>
+                                            <div class="mb-2 d-flex flex-wrap gap-2">
+                                                <span class="status-badge-gray">PENDING • ID <?= $id ?></span>
+                                                <span class="status-badge-gray">VEHICLE: <?= h($b['vehicle_type'] ?? $activeVehicleName) ?></span>
+                                                <span class="status-badge-gray">QTY: <?= (int)$pkgQty ?></span>
                                             </div>
 
-                                            <h6 class="fw-bold mb-0 text-dark">
+                                            <h6 class="fw-bold mb-1 text-dark">
                                                 <?= h(($b['user_first_name'] ?? '') . ' ' . ($b['user_last_name'] ?? '')) ?>
                                             </h6>
 
-                                            <small class="text-muted">
-                                                VEHICLE TYPE: <?= h($b['vehicle_type'] ?? $activeVehicleName) ?>
-                                            </small>
+                                            <div class="small text-muted">
+                                                <strong>Route:</strong> <?= h($pickupFull) ?> → <?= h($dropFull) ?>
+                                            </div>
 
-                                            <div class="small text-muted mt-1">
-                                                <?php
-                                                    $pickup = implode(', ', array_filter([
-                                                        $b['pickup_house'] ?? null,
-                                                        $b['pickup_barangay'] ?? null,
-                                                        $b['pickup_municipality'] ?? null,
-                                                        $b['pickup_province'] ?? null,
-                                                    ]));
-                                                    $drop = implode(', ', array_filter([
-                                                        $b['drop_house'] ?? null,
-                                                        $b['drop_barangay'] ?? null,
-                                                        $b['drop_municipality'] ?? null,
-                                                        $b['drop_province'] ?? null,
-                                                    ]));
-                                                ?>
-                                                <?= h($pickup) ?> → <?= h($drop) ?>
+                                            <div class="mt-2 small">
+                                                <button class="btn-link-lite" type="button" data-bs-toggle="collapse" data-bs-target="#<?= h($collapseId) ?>" aria-expanded="false" aria-controls="<?= h($collapseId) ?>">
+                                                    Show details
+                                                </button>
                                             </div>
                                         </div>
 
                                         <div class="col-md-3 text-md-end text-start">
                                             <div class="fw-bold text-warning small text-uppercase" style="letter-spacing: 1px;">
                                                 ₱ <?= h(money($b['total_amount'] ?? 0)) ?>
+                                            </div>
+                                            <div class="small text-muted mt-1">
+                                                Base: ₱<?= h(money($b['base_amount'] ?? 0)) ?><br>
+                                                Distance: ₱<?= h(money($b['distance_amount'] ?? 0)) ?>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Collapsible details -->
+                                    <div class="collapse mt-3" id="<?= h($collapseId) ?>">
+                                        <div class="bg-white rounded-3 p-3 border">
+                                            <div class="row g-3">
+                                                <div class="col-12 col-md-6">
+                                                    <div class="fw-bold small mb-2">Package</div>
+                                                    <div class="kv"><div class="k">Quantity</div><div class="v"><?= (int)$pkgQty ?></div></div>
+                                                    <div class="kv"><div class="k">Description</div><div class="v"><?= h($pkgDesc !== '' ? $pkgDesc : '—') ?></div></div>
+                                                    <div class="kv"><div class="k">Type</div><div class="v"><?= h($pkgType !== '' ? $pkgType : '—') ?></div></div>
+                                                    <div class="kv"><div class="k">Max KG</div><div class="v"><?= (int)($b['max_kg'] ?? 0) ?> kg</div></div>
+                                                    <div class="kv"><div class="k">Size</div><div class="v"><?= h($dims) ?></div></div>
+                                                </div>
+
+                                                <div class="col-12 col-md-6">
+                                                    <div class="fw-bold small mb-2">Contacts</div>
+                                                    <div class="kv"><div class="k">User CP</div><div class="v"><?= h($b['user_contact_number'] ?? '—') ?></div></div>
+                                                    <div class="kv"><div class="k">Pickup</div><div class="v"><?= h($pickupContact !== '' ? $pickupContact : '—') ?></div></div>
+                                                    <div class="kv"><div class="k">Recipient</div><div class="v"><?= h($dropContact !== '' ? $dropContact : '—') ?></div></div>
+
+                                                    <div class="fw-bold small mt-3 mb-2">Meta</div>
+                                                    <div class="kv"><div class="k">Payment</div><div class="v"><?= h(($b['payment_status'] ?? '—') . ' / ' . ($b['payment_method'] ?? '—')) ?></div></div>
+                                                    <div class="kv"><div class="k">Created</div><div class="v"><?= h($b['created_at'] ?? '—') ?></div></div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -376,13 +455,12 @@ function badgeStatusLabel(int $isAvailable): string { return $isAvailable === 1 
 
                                     <div class="row align-items-center">
                                         <div class="col-md-6 text-muted small">
-                                            CREATED: <?= h($b['created_at'] ?? '') ?>
+                                            Tip: Review details before accepting.
                                         </div>
-
                                         <div class="col-md-6 text-md-end">
                                             <form method="post" class="d-inline">
                                                 <input type="hidden" name="csrf_token" value="<?= h($_SESSION['csrf_token']) ?>">
-                                                <input type="hidden" name="booking_id" value="<?= (int)$b['id'] ?>">
+                                                <input type="hidden" name="booking_id" value="<?= $id ?>">
                                                 <input type="hidden" name="action" value="accept">
                                                 <button type="submit" class="btn btn-warning fw-bold px-4 shadow-sm text-uppercase">
                                                     ACCEPT
