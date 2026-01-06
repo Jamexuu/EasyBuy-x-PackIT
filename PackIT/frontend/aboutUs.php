@@ -374,10 +374,9 @@
 </head>
 
 <body>
-  <?php include("components/navbar.php"); ?>
 
   <main class="page-container">
-    <!-- HERO -->
+
     <section class="hero">
       <div class="hero-card" aria-labelledby="about-hero-title" data-animate="fade-up" data-animate-delay="0">
         <span class="brand-badge" aria-hidden="true">
@@ -535,7 +534,6 @@
       </div>
     </section>
   </main>
-  <?php include("components/footer.php"); ?>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
