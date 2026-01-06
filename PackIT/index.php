@@ -388,10 +388,11 @@
         </div>
       </div>
     </div>
-    <?php include("frontend/aboutUs.php"); ?>
+    <?php include("frontend/components/aboutUs.php"); ?>
 
   </main>
 
+  <!-- Floating Action Menu -->
   <div class="floating-actions" id="floatingActions" aria-expanded="true">
     <button class="action-toggle-btn" id="actionsToggleBtn" aria-label="Toggle Menu">
       <i class="bi bi-x-lg" id="toggleIcon"></i>
