@@ -43,58 +43,82 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>PackIT - Driver Login</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .driver-card {
+            border-top: 5px solid #ffc107; /* Distinct yellow top border */
+        }
+    </style>
 </head>
 
-<body class="d-flex align-items-center min-vh-100" style="background-color:  #fffef5;">
+<body class="d-flex align-items-center min-vh-100">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-5 col-lg-4">
-                <div class="card border-0 shadow-lg rounded-4 p-4">
+                
+                <div class="card driver-card border-0 shadow-sm rounded-3 p-4 bg-white">
                     <div class="card-body">
-                        <h1 class="h3 fw-bold mb-3 text-center">Welcome Back</h1>
+                        
+                        <div class="mb-4 text-center">
+                            <h5 class="text-uppercase text-muted fw-bold small ls-1 mb-1">PackIT Services</h5>
+                            <h1 class="h3 fw-bold mb-0">Driver Login</h1>
+                        </div>
 
                         <?php if (! empty($_SESSION['success'])) : ?>
-                            <div class="alert alert-success small"><?= htmlspecialchars($_SESSION['success']) ?></div>
+                            <div class="alert alert-success small py-2 text-center"><?= htmlspecialchars($_SESSION['success']) ?></div>
                             <?php unset($_SESSION['success']); ?>
                         <?php endif; ?>
 
                         <?php if (!empty($error)) : ?>
-                            <div class="alert alert-danger small"><?= htmlspecialchars($error) ?></div>
+                            <div class="alert alert-danger small py-2 text-center">
+                                <?= htmlspecialchars($error) ?>
+                            </div>
                         <?php endif; ?>
 
                         <form action="" method="POST">
                             <div class="mb-3">
-                                <label for="email" class="form-label small fw-bold">Email address</label>
+                                <label for="email" class="form-label small fw-bold">Driver Email</label>
                                 <input type="email" class="form-control bg-light" name="email" id="email"
-                                    placeholder="driver@example.com" required>
+                                    placeholder="name@driver.packit.com" required>
                             </div>
 
-                            <div class="mb-3">
+                            <div class="mb-4">
                                 <label for="password" class="form-label small fw-bold">Password</label>
                                 <input type="password" class="form-control bg-light" name="password" id="password"
                                     placeholder="Enter your password" required>
                             </div>
 
                             <div class="d-grid mb-3">
-                                <button type="submit" class="btn btn-warning btn-lg rounded-pill">Sign In</button>
+                                <button type="submit" class="btn btn-warning rounded-pill fw-semibold">
+                                    Sign In
+                                </button>
                             </div>
                         </form>
 
-                        <div class="text-center mt-3">
-                            <p class="small text-muted">Don't have an account?
-                                <a href="signup.php" class="text-dark fw-bold">Sign up</a>
-                            </p>
+                        <div class="text-center mt-4">
+                            <p class="small text-muted mb-0">Not a driver?</p>
+                            <a href="signup.php" class="text-dark fw-bold text-decoration-none small">Apply Here</a>
                         </div>
                     </div>
                 </div>
+
                 <div class="text-center mt-4">
-                    <a href="../index.php" class="text-decoration-none text-muted small">&larr; Back to Home</a>
+                    <a href="../index.php" class="text-decoration-none text-muted small">
+                        &larr; Back to Home
+                    </a>
                 </div>
+
             </div>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>
