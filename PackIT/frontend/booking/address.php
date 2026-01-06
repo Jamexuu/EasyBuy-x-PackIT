@@ -289,7 +289,7 @@ if ($distanceAmount !== null) {
             <div class="alert alert-info">
               <div class="fw-bold mb-1">Default pickup address</div>
               <div class="muted-sm mb-2">Auto-fill from your Profile address.</div>
-              <button class="btn btn-sm btn-outline-primary" type="button" id="useDefaultPickupBtn">
+              <button class="btn btn-sm btn-warning" type="button" id="useDefaultPickupBtn">
                 Use default pickup address
               </button>
             </div>
@@ -310,7 +310,7 @@ if ($distanceAmount !== null) {
               <div class="row g-3">
                 <div class="col-md-6">
                   <div class="bg-light p-3 rounded h-100">
-                    <h6 class="fw-bold text-primary mb-3">Pickup Location</h6>
+                    <h6 class="fw-bold text-primary-black mb-3">Pickup Location</h6>
                     <label class="form-label small text-muted">House Address</label>
                     <input class="form-control" name="pickup_house" id="pickup_house" value="<?= h((string)($pickup["house"] ?? "")) ?>">
 
@@ -333,7 +333,7 @@ if ($distanceAmount !== null) {
 
                 <div class="col-md-6">
                   <div class="bg-light p-3 rounded h-100">
-                    <h6 class="fw-bold text-primary mb-3">Drop-off Location</h6>
+                    <h6 class="fw-bold text-primary-black mb-3">Drop-off Location</h6>
                     <label class="form-label small text-muted">House Address</label>
                     <input class="form-control" name="drop_house" id="drop_house" value="<?= h((string)($drop["house"] ?? "")) ?>">
 

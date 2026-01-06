@@ -47,7 +47,7 @@ if (!$user) {
         </ul>
 
         <div class="text-center mt-4">
-            <a href="booking/package.php" class="btn btn-primary rounded-pill me-2">Book a Delivery</a>
+            <a href="booking/package.php" class="btn btn-warning rounded-pill me-2">Book a Delivery</a>
             <a href="logout.php" class="btn btn-danger rounded-pill">Logout</a>
         </div>
     </div>
