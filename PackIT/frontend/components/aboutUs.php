@@ -380,7 +380,7 @@
     <section class="hero">
       <div class="hero-card" aria-labelledby="about-hero-title" data-animate="fade-up" data-animate-delay="0">
         <span class="brand-badge" aria-hidden="true">
-          <img src="../assets/LOGO.svg" alt="" width="18" height="18" style="object-fit:contain"> PackIT
+          <img src="assets/LOGO.svg" alt="" width="18" height="18" style="object-fit:contain"> PackIT
         </span>
 
         <h1 id="about-hero-title" class="hero-title">Logistics made simple, fast, and affordable</h1>
@@ -436,7 +436,7 @@
       </div>
 
       <div class="visual" data-animate="slide-right" data-animate-delay="60">
-        <img src="../assets/gif1.gif" alt="PackIT delivery truck animation" loading="lazy" width="640" height="360" />
+        <img src="assets/gif1.gif" alt="PackIT delivery truck animation" loading="lazy" width="640" height="360" />
       </div>
     </section>
 
@@ -457,7 +457,7 @@
         </div>
 
         <div class="col-lg-6" data-animate="zoom-in" data-animate-delay="80">
-          <img src="../assets/gif2.gif" alt="Warehouse animation" loading="lazy" class="rounded-lg" style="width:100%;max-height:360px;object-fit:cover;">
+          <img src="assets/gif2.gif" alt="Warehouse animation" loading="lazy" class="rounded-lg" style="width:100%;max-height:360px;object-fit:cover;">
         </div>
       </div>
     </section>
@@ -467,11 +467,11 @@
 
       <div id="servicesCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3500" data-bs-pause="false" aria-label="Services carousel" data-animate="fade-up" data-animate-delay="40">
         <div class="carousel-inner">
-          <div class="carousel-item active"><img src="../assets/carousel1.png" class="d-block w-100 rounded-lg" alt="Same-day delivery" loading="lazy"></div>
-          <div class="carousel-item"><img src="../assets/carousel2.png" class="d-block w-100 rounded-lg" alt="Nationwide freight" loading="lazy"></div>
-          <div class="carousel-item"><img src="../assets/carousel3.png" class="d-block w-100 rounded-lg" alt="Warehousing solutions" loading="lazy"></div>
-          <div class="carousel-item"><img src="../assets/carousel4.png" class="d-block w-100 rounded-lg" alt="Ecommerce fulfillment" loading="lazy"></div>
-          <div class="carousel-item"><img src="../assets/carousel5.png" class="d-block w-100 rounded-lg" alt="Custom logistics" loading="lazy"></div>
+          <div class="carousel-item active"><img src="assets/carousel1.png" class="d-block w-100 rounded-lg" alt="Same-day delivery" loading="lazy"></div>
+          <div class="carousel-item"><img src="assets/carousel2.png" class="d-block w-100 rounded-lg" alt="Nationwide freight" loading="lazy"></div>
+          <div class="carousel-item"><img src="assets/carousel3.png" class="d-block w-100 rounded-lg" alt="Warehousing solutions" loading="lazy"></div>
+          <div class="carousel-item"><img src="assets/carousel4.png" class="d-block w-100 rounded-lg" alt="Ecommerce fulfillment" loading="lazy"></div>
+          <div class="carousel-item"><img src="assets/carousel5.png" class="d-block w-100 rounded-lg" alt="Custom logistics" loading="lazy"></div>
         </div>
         <button class="carousel-control-prev" type="button" data-bs-target="#servicesCarousel" data-bs-slide="prev" aria-label="Previous service"><span class="carousel-control-prev-icon" aria-hidden="true"></span></button>
         <button class="carousel-control-next" type="button" data-bs-target="#servicesCarousel" data-bs-slide="next" aria-label="Next service"><span class="carousel-control-next-icon" aria-hidden="true"></span></button>
@@ -490,7 +490,7 @@
           <div class="col-6 col-md-3" role="listitem">
             <div class="h-100 d-flex flex-column justify-content-between position-relative p-3 delivery-card" data-animate-child style="min-height:320px;">
               <span class="badge top-right">Express</span>
-              <div class="media-wrap mx-auto"><img src="../assets/abt1.gif" alt="Motorcycle delivery — quick city drop" loading="lazy" class="gif"></div>
+              <div class="media-wrap mx-auto"><img src="assets/abt1.gif" alt="Motorcycle delivery — quick city drop" loading="lazy" class="gif"></div>
               <div class="meta">
                 <div class="title">Fast City Drops</div>
                 <div class="desc">Small parcels delivered in minutes</div>
@@ -501,7 +501,7 @@
           <div class="col-6 col-md-3" role="listitem">
             <div class="h-100 d-flex flex-column justify-content-between position-relative p-3 delivery-card" data-animate-child style="min-height:320px;">
               <span class="badge top-right">Optimized</span>
-              <div class="media-wrap mx-auto"><img src="../assets/abt2.gif" alt="Courier with map — optimized route and tracking" loading="lazy" class="gif"></div>
+              <div class="media-wrap mx-auto"><img src="assets/abt2.gif" alt="Courier with map — optimized route and tracking" loading="lazy" class="gif"></div>
               <div class="meta">
                 <div class="title">Smart Routing</div>
                 <div class="desc">Optimized routes for faster, cheaper delivery</div>
@@ -512,7 +512,7 @@
           <div class="col-6 col-md-3" role="listitem">
             <div class="h-100 d-flex flex-column justify-content-between position-relative p-3 delivery-card" data-animate-child style="min-height:320px;">
               <span class="badge top-right">Secure</span>
-              <div class="media-wrap mx-auto"><img src="../assets/abt3.gif" alt="Courier handing package to customer — safe handoff" loading="lazy" class="gif"></div>
+              <div class="media-wrap mx-auto"><img src="assets/abt3.gif" alt="Courier handing package to customer — safe handoff" loading="lazy" class="gif"></div>
               <div class="meta">
                 <div class="title">Safe Handoffs</div>
                 <div class="desc">Contactless or verified handovers for security</div>
@@ -523,7 +523,7 @@
           <div class="col-6 col-md-3" role="listitem">
             <div class="h-100 d-flex flex-column justify-content-between position-relative p-3 delivery-card" data-animate-child style="min-height:320px;">
               <span class="badge top-right">Guaranteed</span>
-              <div class="media-wrap mx-auto"><img src="../assets/abt4.gif" alt="Clock icon — delivery on-time guarantee" loading="lazy" class="gif"></div>
+              <div class="media-wrap mx-auto"><img src="assets/abt4.gif" alt="Clock icon — delivery on-time guarantee" loading="lazy" class="gif"></div>
               <div class="meta">
                 <div class="title">On-time Guarantee</div>
                 <div class="desc">Real-time ETA & status updates</div>
