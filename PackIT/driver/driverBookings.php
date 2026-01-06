@@ -26,6 +26,10 @@ function next_button_label($status) {
     };
 }
 
+function h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
+function money($n): string { return number_format((float)$n, 2); }
+function status_label(string $status): string { return strtoupper(str_replace('_', ' ', $status)); }
+
 /* Handle advance status */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
@@ -47,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($row)) {
             $_SESSION['flash_error'] = 'Booking not found or not assigned to you.';
         } else {
-            $current = $row[0]['tracking_status'];
+            $current = (string)$row[0]['tracking_status'];
             $nextMap = [
                 'accepted'   => 'picked_up',
                 'picked_up'  => 'in_transit',
@@ -55,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ];
 
             if (!isset($nextMap[$current])) {
-                $_SESSION['flash_error'] = 'Cannot advance status from "' . htmlspecialchars($current) . '".';
+                $_SESSION['flash_error'] = 'Cannot advance status from "' . h($current) . '".';
             } else {
                 $next = $nextMap[$current];
 
@@ -70,6 +74,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if ($updated) {
                     $_SESSION['flash_success'] = 'Booking status updated to ' . $next . '.';
+
+                    // If delivered, go back to dashboard
+                    if ($next === 'delivered') {
+                        header('Location: driver.php');
+                        exit;
+                    }
                 } else {
                     $_SESSION['flash_error'] = 'Failed to update booking status. Try again.';
                 }
@@ -86,9 +96,13 @@ $stmt = $db->executeQuery("SELECT first_name FROM drivers WHERE id = ? LIMIT 1",
 $rows = $db->fetch($stmt);
 $driverName = !empty($rows) ? $rows[0]['first_name'] : 'Driver';
 
-/* Fetch active bookings assigned to this driver */
+/* Fetch active bookings assigned to this driver (NOW includes user contact_number) */
 $stmtMine = $db->executeQuery(
-    "SELECT b.*, u.first_name AS user_first_name, u.last_name AS user_last_name
+    "SELECT b.*,
+            u.first_name AS user_first_name,
+            u.last_name AS user_last_name,
+            u.contact_number AS user_contact_number,
+            u.email AS user_email
      FROM bookings b
      JOIN users u ON b.user_id = u.id
      WHERE b.driver_id = ? AND b.tracking_status IN ('accepted','picked_up','in_transit')
@@ -103,73 +117,233 @@ $myBookings = $db->fetch($stmtMine);
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Driver Bookings | PackIT</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
     <style>
-        body { background-color: #f4f7f6; font-family: 'Inter', sans-serif; }
-        .booking-card { border-radius: 12px; padding: 1rem; margin-bottom: 1rem; background: white; }
-        .small-muted { font-size: .9rem; color: #6c757d; }
-        .list-container { max-height: 75vh; overflow-y: auto; padding-right: 8px; }
+        :root { --secondary-teal: #203a43; --card-border: #203a43; }
+
+        body {
+            background-color: #f4f6f8;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .main-content { flex: 1; padding: 3rem 1rem; }
+
+        .main-container {
+            background: #ffffff;
+            border-radius: 15px;
+            border: 2px solid var(--card-border);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            min-height: 500px;
+        }
+
+        .status-badge-green, .status-badge-gray {
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 6px 16px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        .status-badge-green { background-color: #c9f29d; color: #2c5206; }
+        .status-badge-gray  { background-color: #e9ecef; color: #495057; }
+
+        .detail-card {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            border: 1px solid #e9ecef;
+            padding: 1.25rem;
+        }
+
+        .kv {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px dashed rgba(0,0,0,0.08);
+        }
+        .kv:last-child { border-bottom: none; }
+        .kv .k {
+            color: #6c757d;
+            font-size: .85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+        .kv .v { color: #212529; font-weight: 700; text-align: right; }
+
+        .empty-state-container {
+            text-align: center;
+            padding: 4rem 1rem;
+            color: #6c757d;
+        }
+        .empty-state-img { width: 150px; margin-bottom: 1.5rem; opacity: 0.8; }
+
+        .list-scroll { max-height: 70vh; overflow: auto; padding-right: .25rem; }
     </style>
 </head>
 <body>
 
 <?php include __DIR__ . "/../frontend/components/driverNavbar.php"; ?>
 
-<div class="container py-4">
-    <h3 class="fw-bold mb-1">Your Active Deliveries</h3>
-    <p class="text-muted mb-4">Manage the booking(s) you are currently delivering.</p>
+<div class="main-content">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-xl-10">
+                <div class="main-container p-4 p-md-5">
 
-    <?php if (!empty($_SESSION['flash_success'])): ?>
-        <div class="alert alert-success"><?php echo htmlspecialchars($_SESSION['flash_success']); ?></div>
-        <?php unset($_SESSION['flash_success']); ?>
-    <?php endif; ?>
-
-    <?php if (!empty($_SESSION['flash_error'])): ?>
-        <div class="alert alert-danger"><?php echo htmlspecialchars($_SESSION['flash_error']); ?></div>
-        <?php unset($_SESSION['flash_error']); ?>
-    <?php endif; ?>
-
-    <div class="list-container">
-        <?php if (empty($myBookings)): ?>
-            <div class="alert alert-info">You have no active bookings right now.</div>
-        <?php else: ?>
-            <?php foreach ($myBookings as $b):
-                $status = $b['tracking_status'];
-                $btnLabel = next_button_label($status);
-                $statusLabel = ucwords(str_replace('_', ' ', $status));
-            ?>
-                <div class="booking-card shadow-sm">
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
                         <div>
-                            <h6 class="mb-1">
-                                Booking #<?php echo htmlspecialchars($b['id']); ?>
-                                — <small class="small-muted"><?php echo htmlspecialchars($statusLabel); ?></small>
-                            </h6>
-                            <div class="small-muted mb-2">
-                                Customer: <?php echo htmlspecialchars($b['user_first_name'] . ' ' . $b['user_last_name']); ?>
-                                — Amount: ₱<?php echo number_format($b['total_amount'], 2); ?>
+                            <h4 class="fw-bold mb-1" style="color: var(--secondary-teal);">
+                                <span class="material-symbols-outlined align-middle me-2">inventory_2</span>
+                                Active Booking Details
+                            </h4>
+                            <div class="text-muted small">
+                                Hi <?= h($driverName) ?> — update status and view complete booking details.
                             </div>
-                            <div><strong>Pickup:</strong> <span class="small-muted"><?php echo htmlspecialchars(implode(', ', array_filter([$b['pickup_house'], $b['pickup_barangay'], $b['pickup_municipality'], $b['pickup_province']]))); ?></span></div>
-                            <div><strong>Drop:</strong> <span class="small-muted"><?php echo htmlspecialchars(implode(', ', array_filter([$b['drop_house'], $b['drop_barangay'], $b['drop_municipality'], $b['drop_province']]))); ?></span></div>
                         </div>
 
-                        <div class="text-end align-self-center">
-                            <?php if ($btnLabel !== null): ?>
-                                <form method="post" style="display:inline-block;">
-                                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                                    <input type="hidden" name="booking_id" value="<?php echo (int)$b['id']; ?>">
-                                    <input type="hidden" name="action" value="advance">
-                                    <button type="submit" class="btn btn-success"><?php echo htmlspecialchars($btnLabel); ?></button>
-                                </form>
-                            <?php else: ?>
-                                <span class="badge bg-secondary">No actions</span>
-                            <?php endif; ?>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <a href="driver.php" class="btn btn-outline-dark fw-bold px-3 shadow-sm text-uppercase">
+                                <i class="bi bi-arrow-left me-1"></i> Dashboard
+                            </a>
                         </div>
                     </div>
+
+                    <?php if (!empty($_SESSION['flash_success'])): ?>
+                        <div class="alert alert-success"><?= h($_SESSION['flash_success']); ?></div>
+                        <?php unset($_SESSION['flash_success']); ?>
+                    <?php endif; ?>
+
+                    <?php if (!empty($_SESSION['flash_error'])): ?>
+                        <div class="alert alert-danger"><?= h($_SESSION['flash_error']); ?></div>
+                        <?php unset($_SESSION['flash_error']); ?>
+                    <?php endif; ?>
+
+                    <?php if (empty($myBookings)): ?>
+                        <div class="empty-state-container">
+                            <img src="../assets/box.png" alt="No bookings" class="empty-state-img">
+                            <h4 class="fw-bold text-dark">No Active Booking</h4>
+                            <p class="mb-0">Accept a booking from the dashboard to start delivering.</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="list-scroll">
+                            <?php foreach ($myBookings as $b):
+                                $status = (string)($b['tracking_status'] ?? '');
+                                $btnLabel = next_button_label($status);
+
+                                $pickupFull = implode(', ', array_filter([
+                                    $b['pickup_house'] ?? null,
+                                    $b['pickup_barangay'] ?? null,
+                                    $b['pickup_municipality'] ?? null,
+                                    $b['pickup_province'] ?? null,
+                                ]));
+
+                                $dropFull = implode(', ', array_filter([
+                                    $b['drop_house'] ?? null,
+                                    $b['drop_barangay'] ?? null,
+                                    $b['drop_municipality'] ?? null,
+                                    $b['drop_province'] ?? null,
+                                ]));
+
+                                $customerName = trim(($b['user_first_name'] ?? '') . ' ' . ($b['user_last_name'] ?? ''));
+                                $customerCp = (string)($b['user_contact_number'] ?? '');
+                            ?>
+                                <div class="detail-card mb-4">
+                                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+                                        <div>
+                                            <h5 class="fw-bold mb-1" style="color: var(--secondary-teal);">
+                                                Booking #<?= (int)$b['id'] ?>
+                                            </h5>
+                                            <div class="text-muted small">
+                                                Customer: <strong><?= h($customerName ?: '—') ?></strong>
+                                                <?php if ($customerCp !== ''): ?>
+                                                    • CP: <strong><?= h($customerCp) ?></strong>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                                            <span class="status-badge-gray">VEHICLE: <?= h($b['vehicle_type'] ?? '—') ?></span>
+                                            <span class="status-badge-green"><?= h(status_label($status)) ?></span>
+                                        </div>
+                                    </div>
+
+                                    <hr class="my-3 text-muted opacity-25">
+
+                                    <div class="row g-3">
+                                        <div class="col-12 col-md-6">
+                                            <div class="detail-card">
+                                                <div class="fw-bold mb-2"><i class="bi bi-geo-alt me-1"></i> Pickup</div>
+                                                <div class="text-muted small mb-2"><?= h($pickupFull ?: '—') ?></div>
+                                                <div class="kv"><div class="k">Province</div><div class="v"><?= h($b['pickup_province'] ?? '—') ?></div></div>
+                                                <div class="kv"><div class="k">Municipality</div><div class="v"><?= h($b['pickup_municipality'] ?? '—') ?></div></div>
+                                                <div class="kv"><div class="k">Barangay</div><div class="v"><?= h($b['pickup_barangay'] ?? '—') ?></div></div>
+                                                <div class="kv"><div class="k">House</div><div class="v"><?= h($b['pickup_house'] ?? '—') ?></div></div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 col-md-6">
+                                            <div class="detail-card">
+                                                <div class="fw-bold mb-2"><i class="bi bi-flag me-1"></i> Drop-off</div>
+                                                <div class="text-muted small mb-2"><?= h($dropFull ?: '—') ?></div>
+                                                <div class="kv"><div class="k">Province</div><div class="v"><?= h($b['drop_province'] ?? '—') ?></div></div>
+                                                <div class="kv"><div class="k">Municipality</div><div class="v"><?= h($b['drop_municipality'] ?? '—') ?></div></div>
+                                                <div class="kv"><div class="k">Barangay</div><div class="v"><?= h($b['drop_barangay'] ?? '—') ?></div></div>
+                                                <div class="kv"><div class="k">House</div><div class="v"><?= h($b['drop_house'] ?? '—') ?></div></div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12">
+                                            <div class="detail-card">
+                                                <div class="fw-bold mb-2"><i class="bi bi-receipt me-1"></i> Summary</div>
+                                                <div class="row g-3 align-items-center">
+                                                    <div class="col-md-7">
+                                                        <div class="kv"><div class="k">Total Amount</div><div class="v text-warning">₱ <?= h(money($b['total_amount'] ?? 0)) ?></div></div>
+                                                        <div class="kv"><div class="k">Payment Status</div><div class="v"><?= h($b['payment_status'] ?? '—') ?></div></div>
+                                                        <div class="kv"><div class="k">Created</div><div class="v"><?= h($b['created_at'] ?? '—') ?></div></div>
+                                                        <div class="kv"><div class="k">Updated</div><div class="v"><?= h($b['updated_at'] ?? '—') ?></div></div>
+                                                    </div>
+
+                                                    <div class="col-md-5 text-md-end">
+                                                        <?php if ($btnLabel !== null): ?>
+                                                            <form method="post" class="d-inline">
+                                                                <input type="hidden" name="csrf_token" value="<?= h($_SESSION['csrf_token']) ?>">
+                                                                <input type="hidden" name="booking_id" value="<?= (int)$b['id'] ?>">
+                                                                <input type="hidden" name="action" value="advance">
+                                                                <button type="submit" class="btn btn-warning fw-bold px-4 py-2 shadow-sm text-uppercase w-100 w-md-auto">
+                                                                    <?= h($btnLabel) ?>
+                                                                </button>
+                                                            </form>
+                                                        <?php else: ?>
+                                                            <span class="status-badge-gray">NO ACTIONS</span>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+
+                                                <?php if ($customerCp !== ''): ?>
+                                                    <div class="text-muted small mt-3">
+                                                        Tip: Use the customer CP number for pickup/drop-off coordination.
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+
                 </div>
-            <?php endforeach; ?>
-        <?php endif; ?>
+            </div>
+        </div>
     </div>
 </div>
 

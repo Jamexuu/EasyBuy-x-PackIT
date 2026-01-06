@@ -1,6 +1,8 @@
+
 <?php
 session_start();
 require_once __DIR__ . '/../api/classes/Database.php';
+require_once __DIR__ . '/../frontend/components/autorefresh.php';
 
 if (!isset($_SESSION['driver_id'])) {
     header("Location: login.php");
@@ -28,8 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $value = (isset($_POST['value']) && ((string)$_POST['value'] === '1')) ? 1 : 0;
-
-        // FIX: update only once
         $db->executeQuery("UPDATE drivers SET is_available = ? WHERE id = ?", [$value, $driverId]);
 
         header('Content-Type: application/json');
@@ -86,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($existingCount > 0) {
             $_SESSION['flash_error'] = 'You already have an active booking. Finish it before accepting another.';
-            header('Location: driver.php');
+            header('Location: driverBookings.php');
             exit;
         }
 
@@ -115,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-/* Fetch driver info (NO $driverName USED) */
+/* Fetch driver info */
 $stmt = $db->executeQuery(
     "SELECT d.is_available, d.active_vehicle_id, d.vehicle_type, v.name AS active_vehicle_name
      FROM drivers d
@@ -133,9 +133,8 @@ if (empty($rows)) {
 }
 
 $isAvailable = (int)($rows[0]['is_available'] ?? 0);
-$activeVehicleId = isset($rows[0]['active_vehicle_id']) ? (int)$rows[0]['active_vehicle_id'] : null;
 
-// Use vehicle_type if present; else fallback to vehicles.name; else empty string
+/* Use vehicle_type if present; else fallback to vehicles.name; else empty string */
 $activeVehicleName = '';
 if (!empty($rows[0]['vehicle_type'])) {
     $activeVehicleName = (string)$rows[0]['vehicle_type'];
@@ -143,18 +142,7 @@ if (!empty($rows[0]['vehicle_type'])) {
     $activeVehicleName = (string)$rows[0]['active_vehicle_name'];
 }
 
-/* Vehicles owned (optional display) */
-$stmt = $db->executeQuery(
-    "SELECT dv.id AS dv_id, dv.vehicle_id, v.name AS vehicle_name, dv.license_plate
-     FROM driver_vehicles dv
-     JOIN vehicles v ON dv.vehicle_id = v.id
-     WHERE dv.driver_id = ?
-     ORDER BY v.name ASC",
-    [$driverId]
-);
-$ownedVehicles = $db->fetch($stmt);
-
-/* Active booking check (disable accept) */
+/* Active booking check (disable accept / show CTA) */
 $stmt = $db->executeQuery(
     "SELECT COUNT(*) AS c
      FROM bookings
@@ -178,6 +166,11 @@ if ($isAvailable === 1 && $activeVehicleName !== '') {
     );
     $pendingBookings = $db->fetch($stmtPending);
 }
+
+/* Helpers */
+function h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
+function money($n): string { return number_format((float)$n, 2); }
+function badgeStatusLabel(int $isAvailable): string { return $isAvailable === 1 ? 'ONLINE' : 'OFFLINE'; }
 ?>
 <!doctype html>
 <html lang="en">
@@ -185,120 +178,225 @@ if ($isAvailable === 1 && $activeVehicleName !== '') {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Driver Dashboard | PackIT</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
     <style>
-        :root { --brand-yellow: #fce354; --brand-dark: #111; }
-        body { background-color: #f4f7f6; font-family: 'Inter', sans-serif; }
-        .status-toggle-card { background-color: var(--brand-dark); color: white; border-radius: 20px; padding: 15px 25px; }
-        .booking-card { border-radius: 12px; padding: 1rem; margin-bottom: 1rem; background: white; }
-        .small-muted { font-size: .9rem; color: #6c757d; }
-        .list-container { max-height: 65vh; overflow-y: auto; padding-right: 8px; }
-        @media (max-width: 767px) { .list-container { max-height: none; } }
-        .vehicle-pill { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; background:white; border:1px solid #e9ecef; margin-right:8px; }
-        .vehicle-active { border-color: var(--brand-yellow); box-shadow:0 2px 8px rgba(0,0,0,0.04); }
+        :root { --secondary-teal: #203a43; --card-border: #203a43; }
+
+        body {
+            background-color: #f4f6f8;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .main-content { flex: 1; padding: 3rem 1rem; }
+
+        .main-container {
+            background: #ffffff;
+            border-radius: 15px;
+            border: 2px solid var(--card-border);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            min-height: 500px;
+        }
+
+        .order-card-item {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            border: 1px solid #e9ecef;
+            transition: transform 0.2s;
+        }
+        .order-card-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .status-badge-green, .status-badge-gray, .status-badge-red {
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        .status-badge-green { background-color: #c9f29d; color: #2c5206; }
+        .status-badge-gray  { background-color: #e9ecef; color: #495057; }
+        .status-badge-red   { background-color: #ffd1d1; color: #842029; }
+
+        .empty-state-container {
+            text-align: center;
+            padding: 4rem 1rem;
+            color: #6c757d;
+        }
+        .empty-state-img { width: 150px; margin-bottom: 1.5rem; opacity: 0.8; }
+
+        .list-scroll { max-height: 68vh; overflow: auto; padding-right: .25rem; }
+        .form-check-input { cursor: pointer; }
     </style>
 </head>
 <body>
 
 <?php include __DIR__ . "/../frontend/components/driverNavbar.php"; ?>
 
-<div class="container py-4">
-    <div class="row align-items-center mb-4">
-        <div class="col-md-6">
-            <h2 class="fw-bold mb-0">Pending Bookings</h2>
-            <p class="text-muted">Home shows pending bookings only.</p>
-            <div class="mt-2">
-                <strong>Active vehicle:</strong>
-                <?php if ($activeVehicleName !== ''): ?>
-                    <span class="vehicle-pill vehicle-active"><?php echo htmlspecialchars($activeVehicleName); ?></span>
-                <?php else: ?>
-                    <span class="text-muted small">No active vehicle — set one in your profile to see bookings.</span>
-                <?php endif; ?>
-            </div>
-        </div>
-        <div class="col-md-6 text-md-end">
-            <div class="status-toggle-card d-inline-flex align-items-center shadow-sm">
-                <span class="me-3 fw-bold small">GO ONLINE</span>
-                <div class="form-check form-switch mb-0">
-                    <input class="form-check-input" type="checkbox" role="switch" id="onlineSwitch"
-                        <?php echo $isAvailable === 1 ? 'checked' : ''; ?>
-                        style="width: 2.5em; height: 1.25em; cursor: pointer;">
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="main-content">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-xl-10">
+                <div class="main-container p-4 p-md-5">
 
-    <?php if (!empty($_SESSION['flash_success'])): ?>
-        <div class="alert alert-success"><?php echo htmlspecialchars($_SESSION['flash_success']); ?></div>
-        <?php unset($_SESSION['flash_success']); ?>
-    <?php endif; ?>
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+                        <h4 class="fw-bold mb-0" style="color: var(--secondary-teal);">
+                            <span class="material-symbols-outlined align-middle me-2">local_shipping</span>
+                            Pending Bookings
+                        </h4>
 
-    <?php if (!empty($_SESSION['flash_error'])): ?>
-        <div class="alert alert-danger"><?php echo htmlspecialchars($_SESSION['flash_error']); ?></div>
-        <?php unset($_SESSION['flash_error']); ?>
-    <?php endif; ?>
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <?php if ($isAvailable === 1): ?>
+                                <span class="status-badge-green"><?= h(badgeStatusLabel($isAvailable)) ?></span>
+                            <?php else: ?>
+                                <span class="status-badge-red"><?= h(badgeStatusLabel($isAvailable)) ?></span>
+                            <?php endif; ?>
 
-    <div class="row g-4">
-        <div class="col-md-7">
-            <h5>Pending List</h5>
-            <div class="list-container">
-                <?php if ($isAvailable !== 1): ?>
-                    <div class="alert alert-warning">You are currently offline. Toggle <strong>GO ONLINE</strong> to see pending bookings.</div>
-                <?php else: ?>
-                    <?php if ($activeVehicleName === ''): ?>
-                        <div class="alert alert-info">You have no active vehicle selected. Go to Profile to set one.</div>
-                    <?php elseif ($hasActiveAssignment): ?>
-                        <div class="alert alert-secondary">
-                            You already have an active booking. You can’t accept a new one until you finish it.
-                            Go to <a href="driverBookings.php">Bookings</a>.
-                        </div>
-                    <?php elseif (empty($pendingBookings)): ?>
-                        <div class="alert alert-info">No pending bookings for your active vehicle at the moment.</div>
-                    <?php else: ?>
-                        <?php foreach ($pendingBookings as $b): ?>
-                            <div class="booking-card shadow-sm">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <h6 class="mb-1">Booking #<?php echo htmlspecialchars($b['id']); ?> — <small class="small-muted">Pending</small></h6>
-                                        <div class="small-muted mb-2">
-                                            Customer: <?php echo htmlspecialchars($b['user_first_name'] . ' ' . $b['user_last_name']); ?>
-                                            — Amount: ₱<?php echo number_format($b['total_amount'], 2); ?>
-                                        </div>
-                                        <div><strong>Pickup:</strong> <span class="small-muted"><?php echo htmlspecialchars(implode(', ', array_filter([$b['pickup_house'], $b['pickup_barangay'], $b['pickup_municipality'], $b['pickup_province']]))); ?></span></div>
-                                        <div><strong>Drop:</strong> <span class="small-muted"><?php echo htmlspecialchars(implode(', ', array_filter([$b['drop_house'], $b['drop_barangay'], $b['drop_municipality'], $b['drop_province']]))); ?></span></div>
-                                    </div>
-                                    <div class="text-end align-self-center">
-                                        <form method="post" style="display:inline-block;">
-                                            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                                            <input type="hidden" name="booking_id" value="<?php echo (int)$b['id']; ?>">
-                                            <input type="hidden" name="action" value="accept">
-                                            <button type="submit" class="btn btn-primary">Accept</button>
-                                        </form>
-                                    </div>
+                            <span class="status-badge-gray">
+                                ACTIVE VEHICLE: <?= $activeVehicleName !== '' ? h($activeVehicleName) : 'NOT SET' ?>
+                            </span>
+
+                            <div class="d-flex align-items-center gap-2 ms-md-2">
+                                <span class="small fw-bold text-muted">GO ONLINE</span>
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="onlineSwitch"
+                                        <?= $isAvailable === 1 ? 'checked' : '' ?>
+                                        style="width: 2.5em; height: 1.25em;">
                                 </div>
                             </div>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                <?php endif; ?>
-            </div>
-        </div>
-
-        <div class="col-md-5">
-            <h5>Your Vehicles</h5>
-            <?php if (empty($ownedVehicles)): ?>
-                <div class="alert alert-light">No vehicles registered. Add vehicles in your <a href="driverProfile.php">profile</a>.</div>
-            <?php else: ?>
-                <?php foreach ($ownedVehicles as $v): ?>
-                    <div class="vehicle-pill <?php echo ((int)$v['vehicle_id'] === $activeVehicleId) ? 'vehicle-active' : ''; ?>">
-                        <strong><?php echo htmlspecialchars($v['vehicle_name']); ?></strong>
-                        <?php if (!empty($v['license_plate'])): ?>
-                            <small class="text-muted"> — <?php echo htmlspecialchars($v['license_plate']); ?></small>
-                        <?php endif; ?>
+                        </div>
                     </div>
-                <?php endforeach; ?>
-                <div class="small text-muted mt-2">To add vehicles or change active vehicle, go to <a href="driverProfile.php">Profile</a>.</div>
-            <?php endif; ?>
+
+                    <?php if (!empty($_SESSION['flash_success'])): ?>
+                        <div class="alert alert-success"><?= h($_SESSION['flash_success']); ?></div>
+                        <?php unset($_SESSION['flash_success']); ?>
+                    <?php endif; ?>
+
+                    <?php if (!empty($_SESSION['flash_error'])): ?>
+                        <div class="alert alert-danger"><?= h($_SESSION['flash_error']); ?></div>
+                        <?php unset($_SESSION['flash_error']); ?>
+                    <?php endif; ?>
+
+                    <?php if ($hasActiveAssignment): ?>
+                        <div class="empty-state-container">
+                            <img src="../assets/box.png" alt="Active booking" class="empty-state-img">
+                            <h4 class="fw-bold text-dark">You Have an Active Booking</h4>
+                            <p class="mb-3">Finish your current booking before accepting a new one.</p>
+                            <a href="driverBookings.php" class="btn btn-warning fw-bold px-4 py-2 shadow-sm text-uppercase">
+                                Go to Active Booking
+                            </a>
+                        </div>
+
+                    <?php elseif ($isAvailable !== 1): ?>
+                        <div class="empty-state-container">
+                            <img src="../assets/box.png" alt="Offline" class="empty-state-img">
+                            <h4 class="fw-bold text-dark">You are Offline</h4>
+                            <p class="mb-0">Turn <strong>GO ONLINE</strong> on to start receiving pending bookings.</p>
+                        </div>
+
+                    <?php elseif ($activeVehicleName === ''): ?>
+                        <div class="empty-state-container">
+                            <img src="../assets/box.png" alt="No active vehicle" class="empty-state-img">
+                            <h4 class="fw-bold text-dark">No Active Vehicle</h4>
+                            <p class="mb-3">Set your active vehicle in your profile so we can show bookings that match your vehicle type.</p>
+                            <a href="driverProfile.php" class="btn btn-outline-dark fw-bold px-4 py-2 shadow-sm text-uppercase">
+                                Go to Profile
+                            </a>
+                        </div>
+
+                    <?php elseif (empty($pendingBookings)): ?>
+                        <div class="empty-state-container">
+                            <img src="../assets/box.png" alt="No bookings" class="empty-state-img">
+                            <h4 class="fw-bold text-dark">No Pending Bookings</h4>
+                            <p class="mb-0">There are no pending bookings for your active vehicle right now. Please check again later.</p>
+                        </div>
+
+                    <?php else: ?>
+                        <div class="list-scroll">
+                            <?php foreach ($pendingBookings as $b): ?>
+                                <div class="order-card-item p-4 mb-4">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-2 text-center mb-3 mb-md-0">
+                                            <div class="bg-white rounded p-3 d-inline-block shadow-sm">
+                                                <img src="../assets/box.png" alt="Package" style="width: 40px; height: 40px;">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-7 mb-3 mb-md-0">
+                                            <div class="mb-2">
+                                                <span class="status-badge-gray">
+                                                    PENDING BOOKING • ID <?= (int)$b['id'] ?>
+                                                </span>
+                                            </div>
+
+                                            <h6 class="fw-bold mb-0 text-dark">
+                                                <?= h(($b['user_first_name'] ?? '') . ' ' . ($b['user_last_name'] ?? '')) ?>
+                                            </h6>
+
+                                            <small class="text-muted">
+                                                VEHICLE TYPE: <?= h($b['vehicle_type'] ?? $activeVehicleName) ?>
+                                            </small>
+
+                                            <div class="small text-muted mt-1">
+                                                <?php
+                                                    $pickup = implode(', ', array_filter([
+                                                        $b['pickup_house'] ?? null,
+                                                        $b['pickup_barangay'] ?? null,
+                                                        $b['pickup_municipality'] ?? null,
+                                                        $b['pickup_province'] ?? null,
+                                                    ]));
+                                                    $drop = implode(', ', array_filter([
+                                                        $b['drop_house'] ?? null,
+                                                        $b['drop_barangay'] ?? null,
+                                                        $b['drop_municipality'] ?? null,
+                                                        $b['drop_province'] ?? null,
+                                                    ]));
+                                                ?>
+                                                <?= h($pickup) ?> → <?= h($drop) ?>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-3 text-md-end text-start">
+                                            <div class="fw-bold text-warning small text-uppercase" style="letter-spacing: 1px;">
+                                                ₱ <?= h(money($b['total_amount'] ?? 0)) ?>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <hr class="my-3 text-muted opacity-25">
+
+                                    <div class="row align-items-center">
+                                        <div class="col-md-6 text-muted small">
+                                            CREATED: <?= h($b['created_at'] ?? '') ?>
+                                        </div>
+
+                                        <div class="col-md-6 text-md-end">
+                                            <form method="post" class="d-inline">
+                                                <input type="hidden" name="csrf_token" value="<?= h($_SESSION['csrf_token']) ?>">
+                                                <input type="hidden" name="booking_id" value="<?= (int)$b['id'] ?>">
+                                                <input type="hidden" name="action" value="accept">
+                                                <button type="submit" class="btn btn-warning fw-bold px-4 shadow-sm text-uppercase">
+                                                    ACCEPT
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -315,7 +413,7 @@ document.addEventListener('DOMContentLoaded', function () {
         this.disabled = true;
 
         const params = new URLSearchParams();
-        params.append('csrf_token', '<?php echo $_SESSION['csrf_token']; ?>');
+        params.append('csrf_token', '<?= h($_SESSION['csrf_token']); ?>');
         params.append('action', 'toggle_availability');
         params.append('value', checked);
 

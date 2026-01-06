@@ -15,5 +15,5 @@
            console.log("User is typing, postponing refresh...");
            setTimeout(arguments.callee, 5000);
        }
-    }, 30000); // 30000 ms = 30 seconds
+    }, 10000); // 10000 ms = 10 seconds
 </script>
