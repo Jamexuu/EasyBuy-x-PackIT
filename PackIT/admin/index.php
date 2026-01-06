@@ -50,7 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!-- NAVBAR -->
 <?php
 $page = basename($_SERVER['PHP_SELF']);
-include __DIR__ . '/../frontend/components/navbar.php';
 ?>
 
 <!-- MAIN CONTENT -->
