@@ -29,6 +29,10 @@ function next_button_label($status) {
 function h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 function money($n): string { return number_format((float)$n, 2); }
 function status_label(string $status): string { return strtoupper(str_replace('_', ' ', $status)); }
+function fmtDims($l, $w, $h): string {
+    $fmt = fn($x) => rtrim(rtrim(number_format((float)$x, 1), '0'), '.');
+    return $fmt($l) . " x " . $fmt($w) . " x " . $fmt($h) . " m";
+}
 
 /* Handle advance status */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -75,7 +79,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($updated) {
                     $_SESSION['flash_success'] = 'Booking status updated to ' . $next . '.';
 
-                    // If delivered, go back to dashboard
                     if ($next === 'delivered') {
                         header('Location: driver.php');
                         exit;
@@ -96,7 +99,7 @@ $stmt = $db->executeQuery("SELECT first_name FROM drivers WHERE id = ? LIMIT 1",
 $rows = $db->fetch($stmt);
 $driverName = !empty($rows) ? $rows[0]['first_name'] : 'Driver';
 
-/* Fetch active bookings assigned to this driver (NOW includes user contact_number) */
+/* Fetch active bookings assigned to this driver (includes user contact_number) */
 $stmtMine = $db->executeQuery(
     "SELECT b.*,
             u.first_name AS user_first_name,
@@ -254,6 +257,11 @@ $myBookings = $db->fetch($stmtMine);
 
                                 $customerName = trim(($b['user_first_name'] ?? '') . ' ' . ($b['user_last_name'] ?? ''));
                                 $customerCp = (string)($b['user_contact_number'] ?? '');
+
+                                $pkgQty = (int)($b['package_quantity'] ?? 1);
+                                $pkgDesc = (string)($b['package_desc'] ?? '');
+                                $pkgType = (string)($b['package_type'] ?? '');
+                                $dims = fmtDims($b['size_length_m'] ?? 0, $b['size_width_m'] ?? 0, $b['size_height_m'] ?? 0);
                             ?>
                                 <div class="detail-card mb-4">
                                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
@@ -278,10 +286,22 @@ $myBookings = $db->fetch($stmtMine);
                                     <hr class="my-3 text-muted opacity-25">
 
                                     <div class="row g-3">
+                                        <div class="col-12">
+                                            <div class="detail-card">
+                                                <div class="fw-bold mb-2"><i class="bi bi-box-seam me-1"></i> Package</div>
+                                                <div class="kv"><div class="k">Quantity</div><div class="v"><?= (int)$pkgQty ?></div></div>
+                                                <div class="kv"><div class="k">Description</div><div class="v"><?= h($pkgDesc !== '' ? $pkgDesc : '—') ?></div></div>
+                                                <div class="kv"><div class="k">Type</div><div class="v"><?= h($pkgType !== '' ? $pkgType : '—') ?></div></div>
+                                                <div class="kv"><div class="k">Max KG</div><div class="v"><?= (int)($b['max_kg'] ?? 0) ?> kg</div></div>
+                                                <div class="kv"><div class="k">Size</div><div class="v"><?= h($dims) ?></div></div>
+                                            </div>
+                                        </div>
+
                                         <div class="col-12 col-md-6">
                                             <div class="detail-card">
                                                 <div class="fw-bold mb-2"><i class="bi bi-geo-alt me-1"></i> Pickup</div>
                                                 <div class="text-muted small mb-2"><?= h($pickupFull ?: '—') ?></div>
+                                                <div class="kv"><div class="k">Pickup Contact</div><div class="v"><?= h(($b['pickup_contact_name'] ?? '—') . ' • ' . ($b['pickup_contact_number'] ?? '—')) ?></div></div>
                                                 <div class="kv"><div class="k">Province</div><div class="v"><?= h($b['pickup_province'] ?? '—') ?></div></div>
                                                 <div class="kv"><div class="k">Municipality</div><div class="v"><?= h($b['pickup_municipality'] ?? '—') ?></div></div>
                                                 <div class="kv"><div class="k">Barangay</div><div class="v"><?= h($b['pickup_barangay'] ?? '—') ?></div></div>
@@ -293,6 +313,7 @@ $myBookings = $db->fetch($stmtMine);
                                             <div class="detail-card">
                                                 <div class="fw-bold mb-2"><i class="bi bi-flag me-1"></i> Drop-off</div>
                                                 <div class="text-muted small mb-2"><?= h($dropFull ?: '—') ?></div>
+                                                <div class="kv"><div class="k">Recipient</div><div class="v"><?= h(($b['drop_contact_name'] ?? '—') . ' • ' . ($b['drop_contact_number'] ?? '—')) ?></div></div>
                                                 <div class="kv"><div class="k">Province</div><div class="v"><?= h($b['drop_province'] ?? '—') ?></div></div>
                                                 <div class="kv"><div class="k">Municipality</div><div class="v"><?= h($b['drop_municipality'] ?? '—') ?></div></div>
                                                 <div class="kv"><div class="k">Barangay</div><div class="v"><?= h($b['drop_barangay'] ?? '—') ?></div></div>
@@ -302,36 +323,32 @@ $myBookings = $db->fetch($stmtMine);
 
                                         <div class="col-12">
                                             <div class="detail-card">
-                                                <div class="fw-bold mb-2"><i class="bi bi-receipt me-1"></i> Summary</div>
-                                                <div class="row g-3 align-items-center">
-                                                    <div class="col-md-7">
-                                                        <div class="kv"><div class="k">Total Amount</div><div class="v text-warning">₱ <?= h(money($b['total_amount'] ?? 0)) ?></div></div>
-                                                        <div class="kv"><div class="k">Payment Status</div><div class="v"><?= h($b['payment_status'] ?? '—') ?></div></div>
-                                                        <div class="kv"><div class="k">Created</div><div class="v"><?= h($b['created_at'] ?? '—') ?></div></div>
-                                                        <div class="kv"><div class="k">Updated</div><div class="v"><?= h($b['updated_at'] ?? '—') ?></div></div>
-                                                    </div>
+                                                <div class="fw-bold mb-2"><i class="bi bi-receipt me-1"></i> Fare & Payment</div>
 
-                                                    <div class="col-md-5 text-md-end">
-                                                        <?php if ($btnLabel !== null): ?>
-                                                            <form method="post" class="d-inline">
-                                                                <input type="hidden" name="csrf_token" value="<?= h($_SESSION['csrf_token']) ?>">
-                                                                <input type="hidden" name="booking_id" value="<?= (int)$b['id'] ?>">
-                                                                <input type="hidden" name="action" value="advance">
-                                                                <button type="submit" class="btn btn-warning fw-bold px-4 py-2 shadow-sm text-uppercase w-100 w-md-auto">
-                                                                    <?= h($btnLabel) ?>
-                                                                </button>
-                                                            </form>
-                                                        <?php else: ?>
-                                                            <span class="status-badge-gray">NO ACTIONS</span>
-                                                        <?php endif; ?>
-                                                    </div>
+                                                <div class="kv"><div class="k">Base Amount</div><div class="v">₱ <?= h(money($b['base_amount'] ?? 0)) ?></div></div>
+                                                <div class="kv"><div class="k">Distance Amount</div><div class="v">₱ <?= h(money($b['distance_amount'] ?? 0)) ?></div></div>
+                                                <div class="kv"><div class="k">Total Amount</div><div class="v text-warning">₱ <?= h(money($b['total_amount'] ?? 0)) ?></div></div>
+
+                                                <div class="kv"><div class="k">Payment Status</div><div class="v"><?= h($b['payment_status'] ?? '—') ?></div></div>
+                                                <div class="kv"><div class="k">Payment Method</div><div class="v"><?= h($b['payment_method'] ?? '—') ?></div></div>
+
+                                                <div class="kv"><div class="k">Created</div><div class="v"><?= h($b['created_at'] ?? '—') ?></div></div>
+                                                <div class="kv"><div class="k">Updated</div><div class="v"><?= h($b['updated_at'] ?? '—') ?></div></div>
+
+                                                <div class="mt-3 text-md-end">
+                                                    <?php if ($btnLabel !== null): ?>
+                                                        <form method="post" class="d-inline">
+                                                            <input type="hidden" name="csrf_token" value="<?= h($_SESSION['csrf_token']) ?>">
+                                                            <input type="hidden" name="booking_id" value="<?= (int)$b['id'] ?>">
+                                                            <input type="hidden" name="action" value="advance">
+                                                            <button type="submit" class="btn btn-warning fw-bold px-4 py-2 shadow-sm text-uppercase w-100 w-md-auto">
+                                                                <?= h($btnLabel) ?>
+                                                            </button>
+                                                        </form>
+                                                    <?php else: ?>
+                                                        <span class="status-badge-gray">NO ACTIONS</span>
+                                                    <?php endif; ?>
                                                 </div>
-
-                                                <?php if ($customerCp !== ''): ?>
-                                                    <div class="text-muted small mt-3">
-                                                        Tip: Use the customer CP number for pickup/drop-off coordination.
-                                                    </div>
-                                                <?php endif; ?>
                                             </div>
                                         </div>
 

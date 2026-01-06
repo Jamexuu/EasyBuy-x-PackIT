@@ -14,6 +14,7 @@ if ($driverId > 0) {
 
 $homeUrl = "driver.php";
 $bookingsUrl = "driverBookings.php";
+$transactionsUrl = "driverTransactions.php";
 $profileUrl = "driverProfile.php";
 ?>
 <style>
@@ -38,6 +39,7 @@ $profileUrl = "driverProfile.php";
                 <ul class="navbar-nav gap-lg-4">
                     <li class="nav-item"><a class="nav-link" href="<?php echo htmlspecialchars($homeUrl); ?>">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="<?php echo htmlspecialchars($bookingsUrl); ?>">Bookings</a></li>
+                    <li class="nav-item"><a class="nav-link" href="<?php echo htmlspecialchars($transactionsUrl); ?>">Transactions</a></li>
                     <li class="nav-item"><a class="nav-link" href="<?php echo htmlspecialchars($profileUrl); ?>">Profile</a></li>
                 </ul>
             </div>

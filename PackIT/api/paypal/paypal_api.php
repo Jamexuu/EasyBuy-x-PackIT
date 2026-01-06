@@ -28,9 +28,7 @@ function generateAccessToken(): string {
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
     $response = curl_exec($ch);
-    if (curl_errno($ch)) {
-        throw new Exception(curl_error($ch));
-    }
+    if (curl_errno($ch)) throw new Exception(curl_error($ch));
     curl_close($ch);
 
     $data = json_decode($response, true);
@@ -104,7 +102,6 @@ $action = $input['action'] ?? '';
 
 try {
     if ($action === 'create_order') {
-        // Require login before booking
         $userId = getLoggedInUserId();
         if (!$userId) {
             http_response_code(401);
@@ -114,15 +111,14 @@ try {
 
         $state = get_booking_state();
 
-        $base = (float)($state["base_amount"] ?? 0);
+        $base = (int)($state["base_amount"] ?? 0);
         $pRegion = isset($state["pickup_region"]) ? (string)$state["pickup_region"] : null;
         $dRegion = isset($state["drop_region"]) ? (string)$state["drop_region"] : null;
 
         $dist = compute_distance_fare($pRegion, $dRegion);
-        $door = get_door_to_door_amount((bool)($state["door_to_door"] ?? true));
         if ($dist === null) throw new Exception("Invalid Booking State: Distance fare not found.");
 
-        $totalAmount = compute_total_fare((int)$base, $dist, $door);
+        $totalAmount = compute_total_fare($base, $dist, 0);
 
         $order = createOrder($totalAmount);
         echo json_encode($order);
@@ -133,7 +129,6 @@ try {
         $orderId = (string)($input['orderID'] ?? '');
         if ($orderId === '') throw new Exception("Missing Order ID");
 
-        // Require login before booking
         $userId = getLoggedInUserId();
         if (!$userId) {
             http_response_code(401);
@@ -146,9 +141,24 @@ try {
         if (($capture['status'] ?? '') === 'COMPLETED') {
             $state = get_booking_state();
 
-            // Validate state
             if (empty($state['pickup_address']) || empty($state['drop_address']) || empty($state['vehicle_label'])) {
                 throw new Exception("Invalid Booking State: missing address/vehicle.");
+            }
+
+            // Required: user package desc + quantity
+            $packageDesc = trim((string)($state['package_desc'] ?? ''));
+            $packageQty  = (int)($state['package_quantity'] ?? 0);
+            if ($packageDesc === '' || $packageQty < 1) {
+                throw new Exception("Invalid Booking State: missing package description/quantity.");
+            }
+
+            // Required: contacts
+            $pickupContactName = trim((string)($state['pickup_contact_name'] ?? ''));
+            $pickupContactNum  = trim((string)($state['pickup_contact_number'] ?? ''));
+            $dropContactName   = trim((string)($state['drop_contact_name'] ?? ''));
+            $dropContactNum    = trim((string)($state['drop_contact_number'] ?? ''));
+            if ($pickupContactName === '' || $pickupContactNum === '' || $dropContactName === '' || $dropContactNum === '') {
+                throw new Exception("Invalid Booking State: missing pickup/drop contact info.");
             }
 
             $pickup = (array)$state['pickup_address'];
@@ -169,40 +179,45 @@ try {
             $dRegion = isset($state["drop_region"]) ? (string)$state["drop_region"] : null;
 
             $distanceAmount = compute_distance_fare($pRegion, $dRegion);
-            $doorToDoorAmount = get_door_to_door_amount((bool)($state["door_to_door"] ?? true));
             if ($distanceAmount === null) throw new Exception("Invalid Booking State: Distance fare not found.");
 
-            $totalAmount = compute_total_fare($baseAmount, $distanceAmount, $doorToDoorAmount);
+            $doorToDoorAmount = 0;
+            $totalAmount = compute_total_fare($baseAmount, $distanceAmount, 0);
 
-            // Package and vehicle details from session
             $vehicleType = (string)$state['vehicle_label'];
             $packageType = (string)($state['package_type'] ?? '');
             $maxKg       = (int)($state['max_kg'] ?? 0);
             $sizeL       = (float)($state['size_length_m'] ?? 0);
             $sizeW       = (float)($state['size_width_m'] ?? 0);
             $sizeH       = (float)($state['size_height_m'] ?? 0);
-            $packageDesc = (string)($state['package_desc'] ?? '');
 
             $db = new Database();
 
-            // Insert booking including package description/details
             $db->executeQuery(
                 "INSERT INTO bookings
                 (user_id, driver_id,
+                 pickup_contact_name, pickup_contact_number,
                  pickup_house, pickup_barangay, pickup_municipality, pickup_province,
                  drop_house, drop_barangay, drop_municipality, drop_province,
-                 vehicle_type, package_type, package_desc, max_kg, size_length_m, size_width_m, size_height_m,
+                 drop_contact_name, drop_contact_number,
+                 vehicle_type, package_type, package_desc, package_quantity,
+                 max_kg, size_length_m, size_width_m, size_height_m,
                  distance_km, base_amount, distance_amount, door_to_door_amount, total_amount,
                  payment_status, payment_method, tracking_status, created_at)
                 VALUES
                 (?, NULL,
+                 ?, ?,
                  ?, ?, ?, ?,
                  ?, ?, ?, ?,
-                 ?, ?, ?, ?, ?, ?, ?,
+                 ?, ?,
+                 ?, ?, ?, ?,
+                 ?, ?, ?, ?,
                  NULL, ?, ?, ?, ?,
                  'paid', 'paypal', 'pending', NOW())",
                 [
                     $userId,
+                    $pickupContactName,
+                    $pickupContactNum,
                     (string)($pickup['house'] ?? null),
                     (string)($pickup['barangay'] ?? null),
                     $pickupMunicipality,
@@ -211,9 +226,12 @@ try {
                     (string)($drop['barangay'] ?? null),
                     $dropMunicipality,
                     $dropProvince,
+                    $dropContactName,
+                    $dropContactNum,
                     $vehicleType,
                     $packageType,
                     $packageDesc,
+                    (string)$packageQty,
                     (string)$maxKg,
                     (string)$sizeL,
                     (string)$sizeW,
@@ -226,28 +244,17 @@ try {
             );
 
             $bookingId = (int)$db->lastInsertId();
-            if ($bookingId <= 0) {
-                throw new Exception("Failed to create booking record.");
-            }
+            if ($bookingId <= 0) throw new Exception("Failed to create booking record.");
 
-            // Insert payment
             $captureId = extractCaptureId($capture);
 
             $db->executeQuery(
                 "INSERT INTO payments (booking_id, paypal_order_id, paypal_capture_id, amount, currency, status, created_at)
                  VALUES (?, ?, ?, ?, 'PHP', 'completed', NOW())",
-                [
-                    $bookingId,
-                    $orderId,
-                    $captureId,
-                    (string)$totalAmount,
-                ]
+                [$bookingId, $orderId, $captureId, (string)$totalAmount]
             );
 
-            // Clear booking session only after DB insert success
             unset($_SESSION['booking']);
-
-            // Return capture + bookingId for debugging (optional)
             $capture['_packit_booking_id'] = $bookingId;
         }
 
