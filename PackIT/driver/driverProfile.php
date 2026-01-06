@@ -219,7 +219,7 @@ $hasActiveAssignment = driver_has_active_booking($db, $driverId);
                 <div class="menu-outline shadow-sm">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="fw-bold mb-0">Driver Vehicles & Settings</h5>
-                        <a href="driver.php" class="btn btn-outline-primary btn-sm">
+                        <a href="driver.php" class="btn btn-warning btn-sm">
                             <i class="bi bi-speedometer2 me-1"></i> Back to Dashboard
                         </a>
                     </div>
@@ -235,7 +235,7 @@ $hasActiveAssignment = driver_has_active_booking($db, $driverId);
                             <?php endforeach; ?>
                         </select>
                         <input type="text" name="license_plate" class="form-control" placeholder="License plate (optional)" style="max-width:220px;">
-                        <button class="btn btn-primary">Add Vehicle</button>
+                        <button class="btn btn-warning">Add Vehicle</button>
                     </form>
 
                     <!-- Active vehicle switcher (dropbox) -->
@@ -254,7 +254,7 @@ $hasActiveAssignment = driver_has_active_booking($db, $driverId);
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
-                                <button class="btn btn-primary" <?php echo $hasActiveAssignment ? 'disabled title="Finish current assignment before changing active vehicle."' : ''; ?>>Set Active</button>
+                                <button class="btn btn-warning" <?php echo $hasActiveAssignment ? 'disabled title="Finish current assignment before changing active vehicle."' : ''; ?>>Set Active</button>
                             </form>
                         <?php endif; ?>
                     </div>
