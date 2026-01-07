@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $hash = password_hash($password, PASSWORD_BCRYPT);
 
-                // Insert into drivers
+                // Insert into drivers (keep existing columns)
                 $db->executeQuery(
                     "INSERT INTO drivers 
                     (first_name, last_name, email, password, contact_number, house_number, street, province, city, barangay, vehicle_type, license_plate, is_available, created_at) 
@@ -78,14 +78,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ]
                 );
 
-                $driver_id = $db->lastInsertId();
+                $driver_id = (int)$db->lastInsertId();
+
+                /**
+                 * FIX: Make signup vehicle appear in driverProfile.php immediately.
+                 * - Insert into driver_vehicles
+                 * - Set drivers.active_vehicle_id
+                 */
+                try {
+                    // Map chosen vehicle type (string) -> vehicles.id
+                    $stmtV = $db->executeQuery(
+                        "SELECT id, name FROM vehicles WHERE name = ? LIMIT 1",
+                        [$vehicle_type]
+                    );
+                    $vRows = $db->fetch($stmtV);
+
+                    if (!empty($vRows)) {
+                        $vehicleId = (int)$vRows[0]['id'];
+
+                        // Insert into driver_vehicles (first vehicle)
+                        $db->executeQuery(
+                            "INSERT INTO driver_vehicles (driver_id, vehicle_id, license_plate)
+                             VALUES (?, ?, ?)",
+                            [$driver_id, $vehicleId, ($license_plate !== '' ? $license_plate : null)]
+                        );
+
+                        // Set active vehicle on drivers + keep vehicle_type in sync
+                        $db->executeQuery(
+                            "UPDATE drivers
+                             SET active_vehicle_id = ?, vehicle_type = ?
+                             WHERE id = ?",
+                            [$vehicleId, $vehicle_type, $driver_id]
+                        );
+                    }
+                } catch (Exception $e) {
+                    // Non-fatal: signup can still succeed even if this sync fails
+                }
 
                 // Send welcome email
                 try {
                     $subject = "Welcome to PackIT - Driver Partner Account Created";
                     $html = '
                         <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
-                            <h2 style="margin:0 0 10px;">Welcome to PackIT, ' . htmlspecialchars($firstName) . '!</h2>
+                            <h2 style="margin:0 0 10px;">Welcome to PackIT, ' . htmlspecialchars($first_name) . '!</h2>
                             <p>We’re excited to have you as a <strong>Driver Partner</strong>.</p>
                             <div style="background:#fce354; padding:14px; border-radius:12px; margin:14px 0;">
                                 <p style="margin:0;"><strong>Vehicle Type:</strong> ' . htmlspecialchars($vehicle_type) . '</p>
@@ -98,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 // Auto-login
-                $_SESSION['driver_id'] = (int)$driver_id;
+                $_SESSION['driver_id'] = $driver_id;
                 header("Location: driver.php");
                 exit;
             }
@@ -117,22 +152,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 
     <style>
-        /* Copied/adapted UI tokens and styles from the Create Account UI */
         :root {
             --packit-yellow: #f5d84b;
             --packit-blue: #f5d84b;
-            /* keep parity with original token — adjust if you prefer a blue */
         }
 
-        body {
-            background-color: #f8f9fa;
-        }
+        body { background-color: #f8f9fa; }
+        .card { border: none; }
 
-        .card {
-            border: none;
-        }
-
-        /* Header / section styles */
         .section-header {
             display: flex;
             align-items: center;
@@ -165,7 +192,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: .95rem;
         }
 
-        /* Inputs: rounded, subtle border, larger padding */
         .form-control {
             border-radius: .5rem;
             border: 1px solid #e6e9ee;
@@ -192,16 +218,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: #fff;
         }
 
-        label.form-label {
-            font-weight: 600;
-            margin-bottom: .4rem;
-            display: block;
-        }
+        label.form-label { font-weight: 600; margin-bottom: .4rem; display: block; }
 
-        .step-content {
-            min-height: 420px;
-            animation: fadeIn 0.35s;
-        }
+        .step-content { min-height: 420px; animation: fadeIn 0.35s; }
 
         .dot {
             height: 12px;
@@ -214,57 +233,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transition: background-color 0.3s, transform 0.2s;
         }
 
-        .dot.active {
-            background-color: var(--packit-yellow);
-            transform: scale(1.2);
-        }
+        .dot.active { background-color: var(--packit-yellow); transform: scale(1.2); }
 
-        .form-control:focus,
-        .form-select:focus {
+        .form-control:focus, .form-select:focus {
             border-color: var(--packit-yellow);
             box-shadow: 0 0 0 0.25rem rgba(245, 216, 75, 0.12);
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-            to {
-                opacity: 1;
-            }
-        }
+        .is-invalid { border-color: #dc3545 !important; background-image: none; }
+        .is-invalid:focus { box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.12) !important; }
+        .form-text.small { margin-top: .25rem; color: #6c757d; }
 
-        /* Validation overrides (keeps bootstrap invalid look but with stronger border) */
-        .is-invalid {
-            border-color: #dc3545 !important;
-            background-image: none;
-        }
+        .card-main { max-width: 700px; width: 100%; }
 
-        .is-invalid:focus {
-            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.12) !important;
-        }
-
-        .form-text.small {
-            margin-top: .25rem;
-            color: #6c757d;
-        }
-
-        /* Card sizing: use max-width and full width for responsiveness */
-        .card-main {
-            max-width: 700px;
-            width: 100%;
-        }
-
-        /* Small screens adjustments */
         @media (max-width: 576px) {
-            .section-header {
-                font-size: 1.1rem;
-            }
-
-            .form-control {
-                padding: .55rem .75rem;
-            }
+            .section-header { font-size: 1.1rem; }
+            .form-control { padding: .55rem .75rem; }
         }
     </style>
 </head>
@@ -319,7 +305,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </div>
 
                                     <div class="row mb-3">
-                                        <!-- Mobile: label above, input-group with +63 prefix and placeholder example -->
                                         <div class="col-12 col-lg-6 mb-3 mb-lg-0">
                                             <label for="contactVisible" class="form-label">Mobile Number *</label>
                                             <div class="input-group">
@@ -483,7 +468,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Stepper state
         let currentStep = 1;
         const totalSteps = 2;
 
@@ -498,36 +482,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         const firstNameInput = document.getElementById('firstName');
         const lastNameInput = document.getElementById('lastName');
 
-        if (firstNameInput) {
-            firstNameInput.addEventListener('input', function() {
-                capitalizeWords(this);
-            });
-        }
+        if (firstNameInput) firstNameInput.addEventListener('input', function() { capitalizeWords(this); });
+        if (lastNameInput) lastNameInput.addEventListener('input', function() { capitalizeWords(this); });
 
-        if (lastNameInput) {
-            lastNameInput.addEventListener('input', function() {
-                capitalizeWords(this);
-            });
-        }
-
-        /* ===============================
-       LICENSE PLATE FORMATTER
-       - Max 7 chars (spaces included)
-       - Uppercase
-       - Letters, numbers, space only
-    =============================== */
         const licensePlateInput = document.getElementById('licensePlate');
-
         if (licensePlateInput) {
             licensePlateInput.addEventListener('input', function() {
                 let value = this.value.toUpperCase();
-
-                // allow letters, numbers, and spaces only
                 value = value.replace(/[^A-Z0-9 ]/g, '');
-
-                // limit to 7 characters (including spaces)
                 this.value = value.slice(0, 8);
-
                 this.classList.remove('is-invalid');
             });
 
@@ -553,20 +516,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             document.getElementById('nextBtn').style.display = step === 1 ? 'block' : 'none';
             document.getElementById('submitBtn').style.display = step === totalSteps ? 'block' : 'none';
 
-            // hide profile header on step 2 (like original)
             const profileHeader = document.getElementById('profileHeader');
             if (profileHeader) profileHeader.style.display = (step === 1) ? 'flex' : 'none';
 
-            // scroll mobile-friendly
-            if (currentSection) currentSection.scrollIntoView({
-                behavior: 'smooth',
-                block: 'nearest'
-            });
-        }
-
-        // Validation helpers
-        function clearInvalid(container) {
-            container.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            if (currentSection) currentSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
         function validateStep1() {
@@ -577,57 +530,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const password = document.getElementById('password');
             const confirm = document.getElementById('confirmPassword');
             const contactVisible = document.getElementById('contactVisible');
-            const contactFeedback = document.getElementById('contactFeedback');
 
-            [firstName, lastName, email, password, confirm, contactVisible].forEach(el => {
-                if (el) el.classList.remove('is-invalid');
-            });
+            [firstName, lastName, email, password, confirm, contactVisible].forEach(el => el && el.classList.remove('is-invalid'));
 
-            if (!firstName.value.trim()) {
-                firstName.classList.add('is-invalid');
-                valid = false;
-            }
-            if (!lastName.value.trim()) {
-                lastName.classList.add('is-invalid');
-                valid = false;
-            }
-            if (!email.checkValidity()) {
-                email.classList.add('is-invalid');
-                valid = false;
-            }
+            if (!firstName.value.trim()) { firstName.classList.add('is-invalid'); valid = false; }
+            if (!lastName.value.trim()) { lastName.classList.add('is-invalid'); valid = false; }
+            if (!email.checkValidity()) { email.classList.add('is-invalid'); valid = false; }
 
-            // contact: must be exactly 10 digits visible (after +63)
             const contactVal = contactVisible.value.replace(/\D/g, '');
-            if (contactVal.length !== 10) {
-                contactVisible.classList.add('is-invalid');
-                if (contactFeedback) contactFeedback.textContent = "Please enter exactly 10 digits after +63 (e.g. 9913389514).";
-                valid = false;
-            }
+            if (contactVal.length !== 10) { contactVisible.classList.add('is-invalid'); valid = false; }
 
-            // password rules: at least 8 chars, letters and numbers
             const passVal = password.value;
             const passRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
-            if (!passRegex.test(passVal)) {
-                password.classList.add('is-invalid');
-                document.getElementById('passwordFeedback').textContent = "Password must be at least 8 characters and include both letters and numbers.";
-                valid = false;
-            }
+            if (!passRegex.test(passVal)) { password.classList.add('is-invalid'); valid = false; }
 
-            // confirm password match
-            if (confirm.value !== passVal || !confirm.value) {
-                confirm.classList.add('is-invalid');
-                document.getElementById('confirmFeedback').textContent = "Passwords do not match.";
-                valid = false;
-            }
+            if (confirm.value !== passVal || !confirm.value) { confirm.classList.add('is-invalid'); valid = false; }
 
             if (!valid) {
                 const firstInvalid = document.querySelector('.is-invalid');
-                if (firstInvalid) firstInvalid.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
+                if (firstInvalid) firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
-
             return valid;
         }
 
@@ -641,55 +563,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const vehicleType = document.getElementById('vehicleType');
             const licensePlate = document.getElementById('licensePlate');
 
-            [house, street, provinceSelect, citySelect, barangaySelect, vehicleType, licensePlate].forEach(el => {
-                if (el) el.classList.remove('is-invalid');
-            });
+            [house, street, provinceSelect, citySelect, barangaySelect, vehicleType, licensePlate].forEach(el => el && el.classList.remove('is-invalid'));
 
-            if (!house.value.trim()) {
-                house.classList.add('is-invalid');
-                valid = false;
-            }
-            if (!street.value.trim()) {
-                street.classList.add('is-invalid');
-                valid = false;
-            }
-            if (!provinceSelect.value) {
-                provinceSelect.classList.add('is-invalid');
-                valid = false;
-            }
-            if (!citySelect.value) {
-                citySelect.classList.add('is-invalid');
-                valid = false;
-            }
-            if (!barangaySelect.value) {
-                barangaySelect.classList.add('is-invalid');
-                valid = false;
-            }
-            if (!vehicleType.value) {
-                vehicleType.classList.add('is-invalid');
-                valid = false;
-            }
-            if (!licensePlate.value.trim()) {
-                licensePlate.classList.add('is-invalid');
-                valid = false;
-            }
+            if (!house.value.trim()) { house.classList.add('is-invalid'); valid = false; }
+            if (!street.value.trim()) { street.classList.add('is-invalid'); valid = false; }
+            if (!provinceSelect.value) { provinceSelect.classList.add('is-invalid'); valid = false; }
+            if (!citySelect.value) { citySelect.classList.add('is-invalid'); valid = false; }
+            if (!barangaySelect.value) { barangaySelect.classList.add('is-invalid'); valid = false; }
+            if (!vehicleType.value) { vehicleType.classList.add('is-invalid'); valid = false; }
+            if (!licensePlate.value.trim()) { licensePlate.classList.add('is-invalid'); valid = false; }
 
             if (!valid) {
                 const firstInvalid = document.querySelector('.is-invalid');
-                if (firstInvalid) firstInvalid.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
+                if (firstInvalid) firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
             return valid;
         }
 
-        // Next / Back handlers
         document.getElementById('nextBtn').addEventListener('click', function() {
             if (currentStep < totalSteps) {
                 if (currentStep === 1) {
                     if (!validateStep1()) return;
-                    // Prepare hidden contact field in server format: 0 + visible 10 digits
                     const visible = document.getElementById('contactVisible').value.replace(/\D/g, '').slice(0, 10);
                     document.getElementById('contact').value = visible ? '0' + visible : '';
                 }
@@ -705,9 +599,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         });
 
-        // Submit handler: validate step2 and ensure contact hidden is set
         form.addEventListener('submit', function(e) {
-            // If user is still on step 1, run step1 validation then advance
             if (currentStep === 1) {
                 e.preventDefault();
                 if (!validateStep1()) return;
@@ -718,18 +610,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 return;
             }
 
-            // Validate step2 before allowing submission
             if (!validateStep2()) {
                 e.preventDefault();
                 return;
             }
 
-            // Ensure contact hidden field is populated (final guard)
             const visible = document.getElementById('contactVisible').value.replace(/\D/g, '').slice(0, 10);
             document.getElementById('contact').value = visible ? '0' + visible : '';
         });
 
-        // Password toggle helpers — consistent icon state
         function togglePassword(buttonId, inputId, iconId) {
             const btn = document.getElementById(buttonId);
             if (!btn) return;
@@ -738,12 +627,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 const icon = document.getElementById(iconId);
                 const isHidden = input.type === 'password';
                 input.type = isHidden ? 'text' : 'password';
-
-                // reset classes then set correct icon
                 icon.classList.remove('bi-eye-fill', 'bi-eye-slash-fill');
                 icon.classList.add(isHidden ? 'bi-eye-fill' : 'bi-eye-slash-fill');
-
-                // accessibility: update aria-pressed and aria-label
                 btn.setAttribute('aria-pressed', isHidden ? 'true' : 'false');
                 btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
             });
@@ -751,15 +636,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         togglePassword('togglePassword', 'password', 'toggleIcon1');
         togglePassword('toggleConfirmPassword', 'confirmPassword', 'toggleIcon2');
 
-        // Contact input: only digits, max 10 visible digits (after +63). sanitize on paste & input
         const contactVisible = document.getElementById('contactVisible');
         if (contactVisible) {
             contactVisible.addEventListener('keydown', function(e) {
-                // Allow: backspace, delete, tab, escape, enter, arrow keys and digits
                 const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
-                if (allowedKeys.includes(e.key) || (e.key >= '0' && e.key <= '9')) {
-                    return;
-                }
+                if (allowedKeys.includes(e.key) || (e.key >= '0' && e.key <= '9')) return;
                 e.preventDefault();
             });
 
@@ -777,9 +658,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             });
         }
 
-        // Address dropdowns: load JSONs and populate selects (store names in hidden inputs)
         document.addEventListener('DOMContentLoaded', function() {
-            showStep(currentStep); // initialize UI
+            showStep(currentStep);
 
             const provinceSelect = document.getElementById('provinceSelect');
             const citySelect = document.getElementById('citySelect');
@@ -789,15 +669,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const cityInput = document.getElementById('city');
             const barangayInput = document.getElementById('barangay');
 
-            let provinces = [],
-                cities = [],
-                barangays = [];
-
-            const files = [
-                '../assets/json/province.json',
-                '../assets/json/city.json',
-                '../assets/json/barangay.json'
-            ];
+            let provinces = [], cities = [], barangays = [];
+            const files = ['../assets/json/province.json', '../assets/json/city.json', '../assets/json/barangay.json'];
 
             Promise.all(files.map(url => fetch(url).then(resp => {
                 if (!resp.ok) throw new Error(`Failed to load ${url}: ${resp.statusText}`);
@@ -806,12 +679,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 provinces = data[0];
                 cities = data[1];
                 barangays = data[2];
-
                 populateDropdown(provinceSelect, provinces, 'province_code', 'province_name');
-            }).catch(err => {
-                console.error("Error loading address data:", err);
-                // non-blocking: leave the selects with their default option
-            });
+            }).catch(err => console.error("Error loading address data:", err));
 
             function populateDropdown(dropdown, data, valueKey, textKey) {
                 dropdown.innerHTML = '<option value="" selected disabled>Select Option</option>';
@@ -841,7 +710,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     const filteredCities = cities.filter(c => c.province_code === code);
                     populateDropdown(citySelect, filteredCities, 'city_code', 'city_name');
 
-                    // reset below fields
                     if (cityInput) cityInput.value = '';
                     if (barangayInput) barangayInput.value = '';
                     resetDropdown(barangaySelect, "Select City first");
@@ -871,12 +739,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         });
 
-        // Remove invalid state when user edits fields
         document.querySelectorAll('input, select').forEach(el => {
             el.addEventListener('input', () => el.classList.remove('is-invalid'));
             el.addEventListener('change', () => el.classList.remove('is-invalid'));
         });
     </script>
 </body>
-
 </html>

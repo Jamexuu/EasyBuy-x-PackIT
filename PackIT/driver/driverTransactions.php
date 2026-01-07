@@ -1,7 +1,6 @@
 <?php
 session_start();
 require_once __DIR__ . '/../api/classes/Database.php';
-require_once __DIR__ . '/../frontend/components/autorefresh.php';
 
 if (!isset($_SESSION['driver_id'])) {
   header("Location: login.php");
