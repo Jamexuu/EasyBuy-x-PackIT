@@ -18,6 +18,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="../assets/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet">
 </head>
 
 <body>
@@ -63,7 +64,7 @@
                         <div class="card mb-5 rounded-4">
                             <div class="card-body">
                                 <div class="card-title">
-                                    <div class="h3 mb-3">Profile</div>
+                                    <div class="h3 mb-3" style="color: #6EC064;">Profile</div>
                                 </div>
                                 <div class="card-text">
                                     <p>Last Name : `+ data.last_name +`</p>
@@ -76,7 +77,7 @@
                         <div class="card mb-5  rounded-4">
                             <div class="card-body">
                                 <div class="card-title">
-                                    <div class="h3 mb-3">Address</div>
+                                    <div class="h3 mb-3" style="color: #6EC064;">Address</div>
                                 </div>
                                 <div class="card-text">
                                     <p>House No : `+ data.house_number +`</p>
@@ -85,6 +86,24 @@
                                     <p>Street: `+ data.street +`</p>
                                     <p>City: `+ data.city +`</p>
                                     <p>Postal Code: `+ data.postal_code +`</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card mb-5 rounded-4">
+                            <div class="card-body">
+                                <div class="card-title d-flex justify-content-between align-items-center">
+                                    <div class="h3 mb-3" style="color: #6EC064;">Orders</div>
+                                    <a href="#" class="text-decoration-none" style="color: #6EC064; font-size: 14px;">View order history ›</a>
+                                </div>
+                                <div class="card-text d-flex justify-content-center gap-5">
+                                    <button type="button" class="btn border-0 bg-transparent d-flex flex-column align-items-center">
+                                        <span class="material-symbols-rounded" style="font-size: 40px; color: #333;">package_2</span>
+                                        <span style="font-size: 14px; color: #333;">To Ship</span>
+                                    </button>
+                                    <button type="button" class="btn border-0 bg-transparent d-flex flex-column align-items-center">
+                                        <span class="material-symbols-rounded" style="font-size: 40px; color: #333;">local_shipping</span>
+                                        <span style="font-size: 14px; color: #333;">To Receive</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
