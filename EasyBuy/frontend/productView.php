@@ -23,6 +23,17 @@
             text-align: center;
             border: none;
             background: transparent;
+            padding: 0;
+        }
+
+        .qty-input::-webkit-inner-spin-button,
+        .qty-input::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .qty-input {
+            -moz-appearance: textfield;
         }
 
         #buyNowBtn:hover {
@@ -86,7 +97,7 @@
             <span class="material-symbols-rounded">arrow_back</span>
         </button>
 
-        <div class="row bg-white rounded-3 shadow-sm p-4">
+        <div class="row bg-white rounded-3 p-4 mb-4" style="box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); border: 1px solid #e8e8e8;">
             <div class="col-12 col-md-6 mb-3">
                 <div class="text-center"
                     style="border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
@@ -116,13 +127,13 @@
                     <form method="post" action="" class="d-inline">
                         <button type="button" id="addToCartBtn" class="btn"
                             onclick="addToCart(productId, getQuantity());"
-                            style="background-color: #6EC064; color: white; border: none; width: 45px; height: 45px; border-radius: 8px;">
+                            style="background-color: #6EC064; color: white; border: none; width: 45px; height: 45px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
                             <span class="material-symbols-rounded">shopping_cart</span>
                         </button>
                     </form>
                     <form method="post" action="" class="flex-grow-1">
                         <button type="button" id="buyNowBtn" class="btn w-100" onclick="buyNow()"
-                            style="background-color: #6EC064; color: white; border: none;">Buy Now</button>
+                            style="background-color: #6EC064; color: white; border: none; height: 45px;">Buy Now</button>
                     </form>
                 </div>
             </div>
