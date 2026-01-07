@@ -32,7 +32,7 @@
             <div class="col-md-4 col-lg-3 col-xl-3 mx-auto mb-md-0 mb-4">
                 <h6 class="text-uppercase fw-bold mb-4">Contact</h6>
                 <p class="mb-2"><i class="bi bi-geo-alt-fill me-3"></i> Tanauan, Batangas, PH</p>
-                <p class="mb-2"><i class="bi bi-envelope-at-fill me-3"></i> help@packit.ph</p>
+                <p class="mb-2"><i class="bi bi-envelope-at-fill me-3"></i> packit.notification@gmail.com</p>
                 <div class="d-flex gap-2 mt-4 justify-content-center justify-content-md-start">
                     <a href="#"
                         class="btn btn-light rounded-circle border-0 bg-white bg-opacity-50 d-inline-flex align-items-center justify-content-center"
