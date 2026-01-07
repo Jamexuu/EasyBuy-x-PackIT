@@ -14,6 +14,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 
 $user = Auth::requireAdmin();
 
+// cache for 5 minutes
+$cacheKey = 'emails_cache';
+$cacheTime = 300;
+
+if (isset($_SESSION[$cacheKey]) && (time() - $_SESSION[$cacheKey]['time']) < $cacheTime) {
+    echo json_encode(['success' => true, 'emails' => $_SESSION[$cacheKey]['data'], 'cached' => true]);
+    exit();
+}
 
 try{
     $imap = new Imap();
@@ -32,6 +40,12 @@ try{
             'isUnread' => !$email->hasFlag('Seen')
         ];
     }
+
+    // store in cache
+    $_SESSION[$cacheKey] = [
+        'data' => $emailList,
+        'time' => time()
+    ];
 
     echo json_encode(['success' => true, 'emails' => $emailList]);
 }catch (Exception $e) {

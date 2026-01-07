@@ -115,16 +115,14 @@
     <script>
         async function loadDashboardStats() {
             try {
-                const response = await fetch('../api/dashboard_stats.php');
+                const response = await fetch('../api/getAdminDashboardStats.php');
                 const data = await response.json();
 
-                if (data.success) {
-                    document.getElementById('allProducts').textContent = data.allProducts || 0;
-                    document.getElementById('placedOrders').textContent = data.placedOrders || 0;
-                    document.getElementById('pickedUp').textContent = data.pickedUp || 0;
-                    document.getElementById('unreadEmails').textContent = data.unreadEmails || 0;
-                    document.getElementById('unreadMessages').textContent = data.unreadMessages || 0;
-                }
+                document.getElementById('allProducts').textContent = data.allProducts || 0;
+                document.getElementById('placedOrders').textContent = data.placedOrderCount || 0;
+                document.getElementById('pickedUp').textContent = data.pickedUpOrderCount || 0;
+                document.getElementById('unreadEmails').textContent = data.unreadEmails || 0;
+                document.getElementById('unreadMessages').textContent = data.unreadMessages || 0;
             } catch (error) {
                 console.error('Error loading dashboard stats:', error);
             }
