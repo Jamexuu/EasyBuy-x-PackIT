@@ -37,7 +37,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $user = new User();
         $user->register($userData, $addressData);
 
-        //auto login after successful registration
         $loginResult = $user->login($userData['email'], $userData['password']);
 
         if ($loginResult) {
@@ -241,7 +240,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
     </div>
 
-    <!-- registration error -->
     <div id="errorModal" class="modal fade" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-4 rounded-5 shadow text-center border-0">
@@ -261,7 +259,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
     </div>
 
-    <!-- email already exist error -->
     <div id="userExistModal" class="modal fade" tabindex="-1" aria-labelledby="userExistModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -286,7 +283,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         crossorigin="anonymous"></script>
 
     <script>
-        // Initialize tooltips
         const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
         const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 
@@ -324,7 +320,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
 
-        // Next button handler
         document.getElementById('nextBtn').addEventListener('click', async function () {
             if (currentStep === 1) {
                 const email = document.getElementById('email').value;
@@ -364,7 +359,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         });
 
-        // Back button handler
         document.getElementById('backBtn').addEventListener('click', function () {
             if (currentStep > 1) {
                 currentStep--;
@@ -372,11 +366,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         });
 
-        // Submit button handler
         document.getElementById('submitBtn').addEventListener('click', function (e) {
             e.preventDefault();
             
-            // Validate password match
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirm_password').value;
 
@@ -385,11 +377,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 return false;
             }
 
-            // Submit the form
             document.getElementById('signupForm').submit();
         });
 
-        // Toggle password visibility
         document.getElementById('togglePassword').addEventListener('click', function () {
             const input = document.getElementById('password');
             const icon = document.getElementById('toggleIcon1');
@@ -399,7 +389,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             icon.classList.toggle('bi-eye-slash-fill', isHidden);
         });
 
-        // Toggle confirm password visibility
         document.getElementById('toggleConfirmPassword').addEventListener('click', function () {
             const input = document.getElementById('confirm_password');
             const icon = document.getElementById('toggleIcon2');
