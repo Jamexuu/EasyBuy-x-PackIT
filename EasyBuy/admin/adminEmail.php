@@ -1,6 +1,6 @@
 <?php
-    require_once '../api/classes/Auth.php';
-    Auth::requireAdmin();
+require_once '../api/classes/Auth.php';
+Auth::requireAdmin();
 ?>
 
 <!doctype html>
@@ -37,7 +37,7 @@
                     </div>
                 </ul>
             </div>
-            <div class="col-12 col-md-10">
+            <div class="col-12 col-md-10" id="mainContent">
                 <div class="row">
                     <div class="col-6 p-0">
                         <div class="btn w-100 h-100 p-4 rounded-0" id="inboxBtn" onclick="inboxClick();" style="background-color: #D9D9D9;">
@@ -86,6 +86,8 @@
         const unreadMailBtn = document.getElementById('unreadMailBtn');
         const emails = document.getElementById('emails');
         const sideMenu = document.getElementById('sideMenu');
+        const mainContent = document.getElementById('mainContent');
+        let emailsData = [];
 
         function inboxClick() {
             inboxBtn.style.backgroundColor = '#D9D9D9';
@@ -99,8 +101,50 @@
             fetchUnreadEmails();
         }
 
-        function redirectToEmail(emailId) {
-            window.location.href = `adminEmailView.php?id=${emailId}`;
+        function expandEmail(index) {
+            const email = emailsData[index];
+            mainContent.innerHTML = `
+                <div class="row">
+                    <div class="col">
+                        <div class="row" style="background-color: #F5F5F5;">
+                            <div class="col-1 py-4 d-flex flex-row justify-content-between">
+                                <span class="material-symbols-outlined" style="cursor: pointer;" onclick="location.reload();">
+                                    arrow_back
+                                </span>
+                                <span class="material-symbols-outlined">
+                                    archive
+                                </span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div class="h4 p-4">`+ email.subject +`</div>
+                                <div class="d-flex flex-row align-items-start gap-3 p-3">
+                                    <img src="../assets/placeholder.png" alt="Email Icon"
+                                        class="rounded-circle img-fluid" style="max-height: 40px;">
+                                    <div>
+                                        <h6 class="mb-0">`+ email.sender +`</h6>
+                                        <p class="text-muted mb-0">`+ email.email +`</p>
+                                    </div>
+                                </div>
+                                <div class="p-3 mx-2 rounded-4 fw-normal" style="background-color: #D9D9D9; overflow-wrap: break-word;">
+                                    `+ (email.htmlBody || email.body) +`
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col text-end p-5">
+                                <button class="btn rounded-pill text-white d-inline-flex align-items-center gap-2" style="background-color: #349C55;">
+                                    <span class="material-symbols-outlined">
+                                        reply
+                                    </span>
+                                    Reply
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
         async function fetchEmails() {
@@ -138,23 +182,24 @@
 
                 const data = await response.json();
 
+                emailsData = data.emails;
                 sideMenu.innerHTML = '';
                 emails.innerHTML = '';
 
-                data.emails.forEach(email => {
+                data.emails.forEach((email, index) => {
                     const checkUnread = email.isUnread === true ? 'fw-bold' : 'fw-normal';
                     sideMenu.innerHTML += `
                         <li class="my-3">
-                            <a href="#" onclick="redirectToEmail('`+ email.email + `'); return false;" class="text-decoration-none text-dark `+ checkUnread +`">`+ email.sender + `</a>
+                            <a href="#" onclick="expandEmail(${index}); return false;" class="text-decoration-none text-dark ` + checkUnread + `">` + email.sender + `</a>
                         </li>
 
                     `;
                 });
 
-                data.emails.forEach(email => {
+                data.emails.forEach((email, index) => {
                     const checkUnread = email.isUnread === true ? 'fw-bold' : 'fw-normal';
                     emails.innerHTML += `
-                        <tr onclick="redirectToEmail('`+ email.email + `')" style="cursor: pointer;" class="`+ checkUnread + `">
+                        <tr onclick="expandEmail(${index});" style="cursor: pointer;" class="` + checkUnread + `">
                             <td>`+ email.sender + `</td>
                             <td>`+ email.subject + `</td>
                             <td>`+ email.email + `</td>
@@ -210,25 +255,25 @@
                 }
 
                 const data = await response.json();
-
+                emailsData = data.emails;
                 sideMenu.innerHTML = '';
                 emails.innerHTML = '';
 
-                data.emails.forEach(email => {
+                data.emails.forEach((email, index) => {
                     sideMenu.innerHTML += `
                         <li class="my-3">
-                            <a href="#" onclick="redirectToEmail('`+ email.email + `'); return false;" class="text-decoration-none text-dark">`+ email.sender + `</a>
+                            <a href="#" onclick="expandEmail(${index}); return false;" class="text-decoration-none text-dark">` + email.sender + `</a>
                         </li>
 
                     `;
                 });
 
-                data.emails.forEach(email => {
+                data.emails.forEach((email, index) => {
                     emails.innerHTML += `
-                        <tr onclick="redirectToEmail('`+ email.email + `')" style="cursor: pointer;">
+                        <tr onclick="expandEmail(${index});" style="cursor: pointer;">
                             <td>`+ email.sender + `</td>
                             <td>`+ email.subject + `</td>
-                            <td>`+ email.email + `</td>
+                            <td>`+ email.email.slice(0, 20) + `</td>
                         </tr>
                     `;
                 });
