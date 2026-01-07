@@ -1,152 +1,178 @@
-<!doctype html>
+<?php
+session_start();
+
+require_once '../api/classes/Database.php';
+
+$db = new Database();
+
+// Fetch vehicles from DB
+$stmt = $db->executeQuery("SELECT * FROM vehicles ORDER BY id ASC");
+$vehicles = $db->fetch($stmt);
+
+function peso($amount) {
+  return '₱' . number_format((float)$amount, 0);
+}
+
+function meters3($l, $w, $h) {
+  $fmt = fn($x) => rtrim(rtrim(number_format((float)$x, 1), '0'), '.');
+  return $fmt($l) . ' x ' . $fmt($w) . ' x ' . $fmt($h) . ' Meter';
+}
+?>
+<! doctype html>
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Join PackIT - Delivery Solutions</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Join PackIT - Delivery Solutions</title>
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <!-- Hover Overlay Styles -->
-    <style>
-        .category-card {
-            position: relative;
-            cursor: pointer;
-        }
+  <style>
+    #categoriesContainer {
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      scroll-behavior: smooth;
+    }
+    #categoriesContainer::-webkit-scrollbar { display: none; }
 
-        .category-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.75);
-            color: #fff;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 1rem;
-        }
+    .vehicle-wrapper { flex: 0 0 auto; width: 85vw; }
+    @media (min-width: 768px) {
+      .vehicle-wrapper { width: min(85vw, 300px); }
+    }
 
-        .category-card:hover .category-overlay {
-            opacity: 1;
-        }
-    </style>
+    .vehicle-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: 2px solid transparent;
+      display: flex;
+      flex-direction: column;
+    }
+    .vehicle-card:hover {
+      transform: translateY(-5px);
+      border-color: #f8e14b;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+    }
+    .vehicle-card img {
+      width: 100%;
+      object-fit: contain;
+      height: 160px;
+    }
+
+    .scroll-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 10;
+      width: clamp(36px, 4vw, 45px);
+      height: clamp(36px, 4vw, 45px);
+      border-radius: 50%;
+      background-color: #fff;
+      border: 1px solid #eee;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .scroll-btn:hover {
+      background-color: #f8e14b;
+      border-color: #f8e14b;
+      color: #000;
+    }
+    .scroll-btn:active { transform: translateY(-50%) scale(0.95); }
+    .scroll-btn-left { left: clamp(4px, 1vw, 16px); }
+    .scroll-btn-right { right: clamp(4px, 1vw, 16px); }
+
+    @media (max-width: 768px) {
+      .scroll-btn { display: none; }
+      .scroll-container-wrapper { padding: 0 !important; }
+    }
+    @media (max-width: 576px) {
+      .vehicle-card img { height: 120px; }
+    }
+  </style>
 </head>
 
 <body>
 
-    <!-- CATEGORIES SECTION -->
-    <div class="container py-5 p-lg-5">
-        <div class="row">
-            <div class="col mb-4 d-flex justify-content-center justify-content-lg-start pt-4">
-                <div class="h1 fw-bold ps-3" style="color:#6EC064">
-                    Categories
-                </div>
-            </div>
-        </div>
+  <?php include 'components/navbar.php'; ?>
 
-        <div class="row g-3 g-md-4 justify-content-center" id="categoriesContainer"></div>
+  <div class="container-fluid py-5 p-lg-5">
+    <div class="row">
+      <div class="col mb-4 pt-4">
+        <h1 class="fw-bold ps-2 border-start border-5 border-warning text-dark">
+          Vehicle Type
+        </h1>
+      </div>
     </div>
 
-    <!-- Categories Script -->
-    <script>
-        var categories = [
-  {
-    name: "Motorcycle",
-    image: "motorcycle.png",
-    description: `
-      Package Type: Envelope / Bag<br>
-      Base Price: ₱100<br>
-      Max Weight: 20 kg<br>
-      Size: 0.5 x 0.4 x 0.5 m
-    `
-  },
-  {
-    name: "Tricycle",
-    image: "tricycle.png",
-    description: `
-      Package Type: Small Box<br>
-      Base Price: ₱150<br>
-      Max Weight: 50 kg<br>
-      Size: 0.7 x 0.5 x 0.5 m
-    `
-  },
-  {
-    name: "Sedan",
-    image: "sedan.png",
-    description: `
-      Package Type: Medium Box<br>
-      Base Price: ₱200<br>
-      Max Weight: 200 kg<br>
-      Size: 1.0 x 0.6 x 0.7 m
-    `
-  },
-  {
-    name: "Pick-up Truck",
-    image: "pickup.png",
-    description: `
-      Package Type: Big Box<br>
-      Base Price: ₱250<br>
-      Max Weight: 800 kg<br>
-      Size: 2.7 x 1.5 x 0.5 m
-    `
-  },
-  {
-    name: "Closed Van",
-    image: "van.png",
-    description: `
-      Package Type: Pallet (Perishable)<br>
-      Base Price: ₱300<br>
-      Max Weight: 1,000 kg<br>
-      Size: 2.1 x 1.3 x 1.3 m
-    `
-  },
-  {
-    name: "Forward Truck",
-    image: "forward-truck.png",
-    description: `
-      Package Type: Pallet (Non-Perishable)<br>
-      Base Price: ₱350<br>
-      Max Weight: 1,200 kg<br>
-      Size: 10.0 x 2.4 x 2.3 m
-    `
-  }
-];
+    <div class="position-relative scroll-container-wrapper">
+      <button class="scroll-btn scroll-btn-left" onclick="scrollContainer('left')" aria-label="Scroll Left">
+        <i class="bi bi-chevron-left fs-5"></i>
+      </button>
 
-        var container = document.getElementById("categoriesContainer");
+      <div class="d-flex flex-nowrap py-3 gap-3" id="categoriesContainer">
+        <?php foreach ($vehicles as $v): ?>
+          <?php
+            $name = $v['name'] ?? '';
+            $img  = $v['image_file'] ?? '';
 
-        categories.forEach(cat => {
-            container.innerHTML += `
-        <div class="col-6 col-lg-3">
-          <div class="card h-100 rounded-4 shadow-sm overflow-hidden category-card">
-
-          <img class="card-img-top p-3"
-     src="/EASYBUY-X-PACKIT/PackIT/assets/${cat.image}"
-     style="height:160px; object-fit:contain;"
-     alt="${cat.name}">
-
-
-            <div class="card-body text-center p-2" style="background-color:#DCDCDC;">
-              <h6 class="fw-bold mb-0">${cat.name}</h6>
+            $descHtml =
+              '<small class="text-muted">Type:</small> <strong>' . htmlspecialchars($v['package_type'] ??  '') . '</strong><br>' . 
+              '<small class="text-muted">Price:</small> <strong>' . htmlspecialchars(peso($v['fare'] ??  0)) . '</strong><br>' .
+              '<small class="text-muted">Max:</small> <strong>' . htmlspecialchars((string)($v['max_kg'] ?? 0)) . ' kg</strong><br>' .
+              '<small class="text-muted">Size:</small> <strong>' . htmlspecialchars(meters3($v['size_length_m'] ?? 0, $v['size_width_m'] ?? 0, $v['size_height_m'] ??  0)) . '</strong>';
+          ?>
+          <div class="vehicle-wrapper">
+            <div class="card rounded-4 shadow-sm vehicle-card">
+              <img class="card-img-top p-3 img-fluid"
+                   src="/EASYBUY-X-PACKIT/PackIT/assets/<?= htmlspecialchars($img) ?>"
+                   alt="<?= htmlspecialchars($name) ?>">
+              <div class="card-body border-top d-flex flex-column">
+                <h5 class="fw-bold mb-3 text-center" style="color:#333">
+                  <?= htmlspecialchars($name) ?>
+                </h5>
+                <div class="p-3 rounded-3 mt-auto" style="background-color:#f8f9fa;">
+                  <p class="card-text small mb-0" style="line-height: 1.6;">
+                    <?= $descHtml ?>
+                  </p>
+                </div>
+              </div>
             </div>
-
-            <div class="category-overlay">
-              <div>${cat.description}</div>
-            </div>
-
           </div>
-        </div>
-      `;
-        });
-    </script>
+        <?php endforeach; ?>
+      </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+      <button class="scroll-btn scroll-btn-right" onclick="scrollContainer('right')" aria-label="Scroll Right">
+        <i class="bi bi-chevron-right fs-5"></i>
+      </button>
+    </div>
+  </div>
 
+  <?php include 'components/footer.php'; ?>
+
+  <script>
+    const container = document.getElementById("categoriesContainer");
+
+    function scrollContainer(direction) {
+      const firstCard = container.querySelector('.vehicle-wrapper');
+      if (!firstCard) return;
+
+      const style = window.getComputedStyle(container);
+      const gap = parseInt(style.gap) || 0;
+      const scrollAmount = firstCard.offsetWidth + gap;
+
+      container.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>

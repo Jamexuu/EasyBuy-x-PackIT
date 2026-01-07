@@ -4,6 +4,9 @@ api/paypal/paypal_secrets.php
 # Ignore vendor folder completely
 /vendor/
 
+#ignore hash file
+admin/hash.php
+
 # Ignore Gmail API credentials/token + sendMail (contains app password)
 api/gmail/client.json
 api/gmail/token.json

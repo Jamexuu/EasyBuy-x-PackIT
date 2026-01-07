@@ -1,300 +1,228 @@
+<?php
+session_start();
+
+// If user is not logged in, redirect to login
+if (!isset($_SESSION['user']) || empty($_SESSION['user']['id'])) {
+    header('Location: login.php');
+    exit;
+}
+
+// CSRF token
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(24));
+}
+
+$user = $_SESSION['user'];
+$displayName = trim(($user['firstName'] ?? '') . ' ' . ($user['lastName'] ?? ''));
+$email = $user['email'] ?? '';
+$contact = $user['contact'] ?? '';
+$profileImage = $user['profile_image'] ?? null;
+
+// DB
+$pdo = new PDO(
+    "mysql:host=127.0.0.1;dbname=packit;charset=utf8mb4",
+    "root",
+    "",
+    [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    ]
+);
+
+// Address
+$stmt = $pdo->prepare("SELECT * FROM addresses WHERE user_id = ? ORDER BY id DESC LIMIT 1");
+$stmt->execute([$user['id']]);
+$address = $stmt->fetch();
+
+function formatAddress($addr) {
+    if (!$addr) return '--';
+    return implode(', ', array_filter([
+        $addr['house_number'] ?? null,
+        $addr['street'] ?? null,
+        $addr['subdivision'] ?? null,
+        $addr['barangay'] ?? null,
+        $addr['city'] ?? null,
+        $addr['province'] ?? null,
+        $addr['postal_code'] ?? null,
+    ]));
+}
+
+$displayAddress = formatAddress($address);
+
+// Default avatar
+$defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="100" fill="#e5e8ec"/>
+        <circle cx="100" cy="78" r="40" fill="#6c757d"/>
+        <path d="M35 170c0-36 29-55 65-55s65 19 65 55" fill="#6c757d"/>
+    </svg>'
+);
+?>
 <!doctype html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Profile Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
-        :root {
-            --brand-yellow: #fce354;
-        }
+        :root { --brand-yellow:#fce354; }
 
         body {
-            background-color: #ffffff;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            background:#fff;
+            min-height:100vh;
+            display:flex;
+            flex-direction:column;
         }
 
         .profile-card {
-            background-color: var(--brand-yellow);
-            border-radius: 40px;
-            padding: 50px 20px;
-            text-align: center;
+            background:var(--brand-yellow);
+            border-radius:40px;
+            padding:50px 20px;
+            text-align:center;
         }
 
         .profile-img-container {
-            position: relative;
-            width: 180px;
-            height: 180px;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 5px solid white;
-            background: #eee;
-            margin: 0 auto;
+            width:180px;
+            height:180px;
+            border-radius:50%;
+            overflow:hidden;
+            border:5px solid #fff;
+            background:#eee;
+            margin:auto;
         }
 
         #profileDisplay {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            width:100%;
+            height:100%;
+            object-fit:cover;
         }
 
         .camera-icon-button {
-            position: absolute;
-            bottom: 5px;
-            right: 15px;
-            background: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border: 2px solid var(--brand-yellow);
-            transition: transform 0.2s;
-            z-index: 10;
-        }
-
-        #userName[contenteditable="true"] {
-            background-color: transparent !important;
-            outline: none;
-            border-bottom: 2px dashed rgba(0, 0, 0, 0.2);
-            padding: 0 5px;
-        }
-
-        #userName:empty:not(:focus):before {
-            content: "Enter Name";
-            color: rgba(0, 0, 0, 0.3);
-            font-weight: normal;
-        }
-
-        /* --- Updated Status Styles --- */
-        .status-link {
-            text-decoration: none;
-            color: inherit;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: transform 0.2s ease;
-        }
-
-        .status-link:hover {
-            transform: translateY(-5px);
-            /* Lift effect on hover */
-            cursor: pointer;
-        }
-
-        .status-bubble {
-            background-color: var(--brand-yellow);
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 8px;
-            font-weight: bold;
-            font-size: 1.2rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position:absolute;
+            bottom:5px;
+            right:15px;
+            width:40px;
+            height:40px;
+            background:#fff;
+            border-radius:50%;
+            border:2px solid var(--brand-yellow);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            cursor:pointer;
         }
 
         .menu-outline {
-            border: 3px solid var(--brand-yellow);
-            border-radius: 35px;
-            padding: 30px;
-            margin-top: 30px;
+            border:3px solid var(--brand-yellow);
+            border-radius:35px;
+            padding:30px;
+            /* removed fixed top margin so it vertically centers with the profile card */
+            /* margin-top:96px; */
         }
 
         .menu-link {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            color: #212529;
-            text-decoration: none;
-            font-size: 1.25rem;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:12px 0;
+            text-decoration:none;
+            font-size:1.2rem;
+            color:#212529;
         }
 
-        .dropdown-item {
-            font-size: 1rem;
-            transition: all 0.2s;
+        .menu-link .icon {
+            transition:.2s;
+        }
+
+        .menu-link[aria-expanded="true"] .icon {
+            transform:rotate(180deg);
         }
 
         .dropdown-item:hover {
-            background-color: rgba(0, 0, 0, 0.05);
-            padding-left: 30px !important;
-        }
-
-        .menu-link[aria-expanded="true"] span:last-child {
-            transform: rotate(180deg);
-            display: inline-block;
-        }
-
-        .menu-link span:last-child {
-            transition: transform 0.3s;
+            background:rgba(0,0,0,.05);
+            padding-left:30px !important;
         }
     </style>
 </head>
 
 <body>
-    <?php include("components/navbar.php"); ?>
 
-    <div class="container my-5">
-        <div class="row g-5">
-            <div class="col-lg-4">
-                <div class="profile-card shadow-sm">
-                    <div class="position-relative mx-auto" style="width: 180px;">
-                        <div class="profile-img-container shadow-sm">
-                            <img id="profileDisplay" src="https://via.placeholder.com/200" alt="Profile">
-                        </div>
-                        <div class="camera-icon-button shadow" onclick="document.getElementById('fileInput').click();">
-                            <span>📷</span>
-                        </div>
-                    </div>
+<?php include("components/navbar.php"); ?>
 
-                    <input type="file" id="fileInput" style="display: none;" accept="image/*"
-                        onchange="previewImage(event)">
+<div class="container my-5">
+    <!-- Added align-items-center so the two columns vertically align with each other -->
+    <div class="row g-5 align-items-center">
 
-                    <div class="d-flex align-items-center justify-content-center mt-3 mb-1">
-                        <h2 id="userName" class="fw-bold mb-0" contenteditable="false" spellcheck="false"></h2>
-                        <button class="btn btn-link btn-sm text-dark p-0 ms-2 text-decoration-none"
-                            onclick="toggleEdit()">
-                            <span id="editIcon">✎</span>
-                        </button>
+        <!-- LEFT -->
+        <div class="col-lg-4">
+            <div class="profile-card shadow-sm">
+                <div class="position-relative" style="width:180px;margin:auto">
+                    <div class="profile-img-container">
+                        <img id="profileDisplay"
+                             src="<?= htmlspecialchars($profileImage ?: $defaultAvatar) ?>"
+                             onerror="this.src='<?= $defaultAvatar ?>'">
                     </div>
-
-                    <p id="userEmail" class="text-muted small mb-4">MIEL.GANDA@GMAIL.COM</p>
-
-                    <div class="mt-4">
-                        <h4 class="mb-1 fw-normal">+63 01823918</h4>
-                        <h4 class="fw-normal">SAN JUAN BATS</h4>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-8">
-                <div class="row text-center mb-4">
-                    <div class="col-4">
-                        <a href="#" class="status-link">
-                            <div class="status-bubble">0</div>
-                            <div class="status-label small fw-bold">To Receive</div>
-                        </a>
-                    </div>
-                    <div class="col-4">
-                        <a href="#" class="status-link">
-                            <div class="status-bubble">0</div>
-                            <div class="status-label small fw-bold">To Deliver</div>
-                        </a>
-                    </div>
-                    <div class="col-4">
-                        <a href="#" class="status-link">
-                            <div class="status-bubble">0</div>
-                            <div class="status-label small fw-bold">Cancelled</div>
-                        </a>
-                    </div>
+                    <div class="camera-icon-button" onclick="fileInput.click()">📷</div>
                 </div>
 
-                <div class="menu-outline">
-                    <a href="#collapseAccount" class="menu-link" data-bs-toggle="collapse" role="button"
-                        aria-expanded="false">
-                        <span>Account & Security</span> <span>V</span>
-                    </a>
-                    <div class="collapse" id="collapseAccount">
-                        <ul class="list-unstyled ps-4 pb-2 border-bottom mb-2">
-                            <li><a class="dropdown-item py-2" href="#">Password Settings</a></li>
-                            <li><a class="dropdown-item py-2" href="#">Two-Factor Auth</a></li>
-                        </ul>
-                    </div>
+                <form id="avatarForm" class="d-none" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                    <input type="file" id="fileInput" name="avatar" accept="image/*">
+                </form>
 
-                    <a href="#collapseAccessibility" class="menu-link" data-bs-toggle="collapse" role="button"
-                        aria-expanded="false">
-                        <span>Accessibility</span> <span>V</span>
-                    </a>
-                    <div class="collapse" id="collapseAccessibility">
-                        <ul class="list-unstyled ps-4 pb-2 border-bottom mb-2">
-                            <li><a class="dropdown-item py-2" href="#">Regular link</a></li>
-                            <li><a class="dropdown-item py-2 active bg-warning text-dark rounded" href="#"
-                                    aria-current="true">Active link</a></li>
-                            <li><a class="dropdown-item py-2" href="#">Another link</a></li>
-                        </ul>
-                    </div>
-
-                    <a href="#collapseFeedback" class="menu-link" data-bs-toggle="collapse" role="button"
-                        aria-expanded="false">
-                        <span>Feedback</span> <span>V</span>
-                    </a>
-                    <div class="collapse" id="collapseFeedback">
-                        <ul class="list-unstyled ps-4 pb-2 border-bottom mb-2">
-                            <li><a class="dropdown-item py-2" href="#">Report a Bug</a></li>
-                            <li><a class="dropdown-item py-2" href="#">Suggest a Feature</a></li>
-                        </ul>
-                    </div>
-
-                    <a href="#collapseAbout" class="menu-link" data-bs-toggle="collapse" role="button"
-                        aria-expanded="false">
-                        <span>About</span> <span>V</span>
-                    </a>
-                    <div class="collapse" id="collapseAbout">
-                        <ul class="list-unstyled ps-4 pb-2 border-bottom mb-2">
-                            <li><a class="dropdown-item py-2" href="#">App Version 1.0</a></li>
-                            <li><a class="dropdown-item py-2" href="#">Privacy Policy</a></li>
-                        </ul>
-                    </div>
-
-                    <a href="#" class="menu-link mt-4 text-secondary">Logout</a>
-                </div>
+                <h2 class="fw-bold mt-3"><?= htmlspecialchars($displayName) ?></h2>
+                <p class="text-muted"><?= htmlspecialchars($email) ?></p>
+                <h5><?= htmlspecialchars($contact ?: '--') ?></h5>
+                <h6><?= htmlspecialchars($displayAddress) ?></h6>
             </div>
         </div>
+
+        <!-- RIGHT -->
+        <div class="col-lg-8">
+            <div class="menu-outline">
+
+                <!-- Account -->
+                <a class="menu-link" data-bs-toggle="collapse" href="#account">
+                    Account & Security <span class="icon">▾</span>
+                </a>
+                <div class="collapse" id="account">
+                    <a class="dropdown-item py-2" href="#">Change Password</a>
+                </div>
+
+                <!-- Accessibility (RESTORED) -->
+                <a class="menu-link mt-3" data-bs-toggle="collapse" href="#accessibility">
+                    Accessibility <span class="icon">▾</span>
+                </a>
+                <!-- Feedback -->
+                <a class="menu-link mt-3" data-bs-toggle="collapse" href="#feedback">
+                    Feedback <span class="icon">▾</span>
+                </a>
+                <div class="collapse" id="feedback">
+                    <a class="dropdown-item py-2" href="#">Create Feedback</a>
+                </div>
+
+                <!-- About -->
+                <a class="menu-link mt-3" data-bs-toggle="collapse" href="#about">
+                    About <span class="icon">▾</span>
+                </a>
+                <div class="collapse" id="about">
+                    <a class="dropdown-item py-2" href="#">App Version 1.0</a>
+                    <a class="dropdown-item py-2" href="#">Privacy Policy</a>
+                </div>
+
+                <a href="logout.php" class="btn btn-warning w-100 mt-4">Logout</a>
+            </div>
+        </div>
+
     </div>
+</div>
 
-    <?php include("components/footer.php"); ?>
-    <?php include("../frontend/components/chat.php"); ?>
+<?php include("components/footer.php"); ?>
+<?php include("../frontend/components/chat.php"); ?>
 
-    <script>
-        function previewImage(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function () {
-                    document.getElementById('profileDisplay').src = reader.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function toggleEdit() {
-            const nameField = document.getElementById('userName');
-            const editIcon = document.getElementById('editIcon');
-            const isEditing = nameField.contentEditable === "true";
-
-            if (!isEditing) {
-                nameField.contentEditable = "true";
-                nameField.focus();
-                editIcon.innerText = "✔";
-                editIcon.style.color = "green";
-            } else {
-                nameField.contentEditable = "false";
-                editIcon.innerText = "✎";
-                editIcon.style.color = "black";
-            }
-        }
-
-        document.getElementById('userName').addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                toggleEdit();
-            }
-        });
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>

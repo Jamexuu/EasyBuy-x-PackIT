@@ -1,4 +1,4 @@
-<! doctype html>
+<!doctype html>
 <html lang="en">
 
 <head>
@@ -11,113 +11,203 @@
 
     <style>
         :root {
-            --packit-blue:#0d6efd;
-            --packit-dark:#0a58ca;
+            --packit-yellow: #f5d84b;
+            --packit-blue: #f5d84b;
         }
 
         body {
-            background-color:#f8f9fa;
-        }
-
-        .gradient-banner {
-            background:linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
-            height:100%;
-            min-height:20px;
+            background-color: #f8f9fa;
         }
 
         .dot {
-            height:12px;
-            width:12px;
-            margin:0 4px;
-            background-color:#ddd;
-            border-radius:50%;
-            display:inline-block;
-            cursor:pointer;
-            transition:background-color 0.3s;
+            height: 12px;
+            width: 12px;
+            margin: 0 4px;
+            background-color: #ddd;
+            border-radius: 50%;
+            display: inline-block;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
 
         .dot.active {
-            background-color:var(--packit-blue);
-            transform:scale(1.2);
+            background-color: var(--packit-yellow);
+            transform: scale(1.2);
         }
 
         .step-content {
-            min-height:400px;
-            animation:fadeIn 0.5s;
+            min-height: 400px;
+            animation: fadeIn 0.5s;
         }
 
         .form-control:focus,
         .form-select:focus {
-            border-color:var(--packit-blue);
-            box-shadow:0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+            border-color: var(--packit-yellow);
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.08);
         }
 
         @keyframes fadeIn {
-            from { opacity:0; }
-            to { opacity:1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Header style to match the provided image */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            color: var(--packit-yellow);
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-bottom: .5rem;
+        }
+
+        .section-header .bi {
+            background: rgba(245, 216, 75, 0.12);
+            border-radius: 50%;
+            padding: .25rem;
+            font-size: 1.35rem;
+            color: var(--packit-yellow);
+        }
+
+        .section-submeta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: .75rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-submeta .required {
+            color: #6c757d;
+            font-size: .95rem;
+        }
+
+        /* Inputs: rounded, subtle border, bigger padding like the image */
+        .form-control {
+            border-radius: .5rem;
+            border: 1px solid #e6e9ee;
+            padding: .75rem 1rem;
+            background-color: #fff;
+        }
+
+        .input-group .form-control {
+            border-top-left-radius: .5rem;
+            border-bottom-left-radius: .5rem;
+            border-left: none;
+        }
+
+        .input-group .input-group-text {
+            border-radius: .5rem 0 0 .5rem;
+            border: 1px solid #e6e9ee;
+            background: #fff;
+        }
+
+        label.form-label {
+            font-weight: 600;
+            margin-bottom: .4rem;
+            display: block;
+        }
+
+        /* Ensure input-group height matches plain .form-control */
+        .input-group .form-control,
+        .input-group .input-group-text {
+            min-height: calc(1.5em + .75rem + 2px);
+            display: flex;
+            align-items: center;
+            padding: .75rem 1rem;
+        }
+
+        /* Slight spacing for helper text to match the style */
+        .form-text.small {
+            margin-top: .25rem;
+            color: #6c757d;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 576px) {
+            .section-header {
+                font-size: 1.25rem;
+            }
+
+            .form-control {
+                padding: .55rem .75rem;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="container-fluid p-0">
-        <div class="row g-0">
-            <div class="col">
-                <div class="p-2 gradient-banner"></div>
-            </div>
-        </div>
-    </div>
 
     <div class="container-fluid h-100">
         <div class="row h-100 align-items-center">
 
-            <div class="col-12 col-lg-5 col-md-12 p-5 text-center d-flex flex-column justify-content-center align-items-center bg-white shadow-sm">
-                <img src="../assets/packit-poster.svg" class="img-fluid mb-3" alt="PackIT Delivery Logo"
-                    style="max-height:500px; width:auto; object-fit:contain;">
-
-                <h2 class="fw-bold text-primary">PackIT</h2>
-                <p class="text-muted lead">Fast.Reliable.Everywhere.</p>
-            </div>
-
-            <div class="col-12 col-lg-7 col-md-12 p-lg-5">
+            <div class="col-12 py-5">
                 <div class="d-flex justify-content-center">
-                    <div class="card border-0 rounded-4" style="max-width:700px; width:100%;">
+                    <div class="card border-0 rounded-4" style="max-width:700px; width:1500px;">
                         <div class="card-body p-4 p-md-5">
 
                             <h1 class="text-center fw-bold mb-2">Create Account</h1>
                             <p class="text-center text-muted mb-5">Start shipping with PackIT today</p>
 
-                            <form action="signUpProcess.php" method="POST" id="signUpForm">
+                            <form action="signUpProcess.php" method="POST" id="signUpForm" novalidate>
 
-                                <div id="step1" class="step-content">
-                                    <div class="d-flex align-items-baseline mb-4 border-bottom pb-2">
-                                        <h3 class="text-start mb-0 me-2 text-primary"><i class="bi bi-person-badge"></i> Profile</h3>
-                                        <small class="text-muted fw-normal ms-auto">*Required Fields</small>
+
+
+                                <div id="profileHeader" class="section-submeta">
+                                    <div class="section-header">
+                                        <i class="bi bi-person-circle"></i>
+                                        <span>Profile &amp; Security</span>
                                     </div>
+                                    <div class="required">*Required</div>
+                                </div>
 
+                                <!-- STEP 1 -->
+                                <div id="step1" class="step-content">
                                     <div class="row mb-3">
                                         <div class="col-12 col-lg-6 mb-3 mb-lg-0">
                                             <label for="firstName" class="form-label">First Name *</label>
                                             <input type="text" class="form-control" id="firstName" name="firstName"
-                                                placeholder="e.g.Juan" required>
+                                                placeholder="e.g. Juan" required>
+                                            <div class="invalid-feedback">Please enter your first name.</div>
                                         </div>
                                         <div class="col-12 col-lg-6">
                                             <label for="lastName" class="form-label">Last Name *</label>
                                             <input type="text" class="form-control" id="lastName" name="lastName"
-                                                placeholder="e.g.Dela Cruz" required>
+                                                placeholder="e.g. Dela Cruz" required>
+                                            <div class="invalid-feedback">Please enter your last name.</div>
                                         </div>
                                     </div>
 
                                     <div class="row mb-3">
+                                        <!-- Mobile: label above, input-group with +63 prefix and placeholder example -->
                                         <div class="col-12 col-lg-6 mb-3 mb-lg-0">
-                                            <label for="contact" class="form-label">Mobile Number *</label>
-                                            <input type="tel" class="form-control" id="contact" name="contact"
-                                                placeholder="0912 345 6789" required>
+                                            <label for="contactVisible" class="form-label">Mobile Number *</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">+63</span>
+                                                <input type="tel" inputmode="numeric" pattern="\d{10}"
+                                                    class="form-control" id="contactVisible"
+                                                    placeholder="e.g. 9913389514" maxlength="10" required
+                                                    aria-describedby="contactFeedback">
+                                            </div>
+                                            <!-- hidden field to be submitted -->
+                                            <input type="hidden" id="contact" name="contact" value="">
+                                            <!-- Invalid feedback element (was missing) -->
+                                            <div class="invalid-feedback" id="contactFeedback">Please enter exactly 10 digits after +63 (e.g. 9913389514).</div>
+                                            <div class="form-text small">Do not type the leading 0 — enter the number after +63 (e.g. 9913389514).</div>
                                         </div>
+
                                         <div class="col-12 col-lg-6">
                                             <label for="email" class="form-label">Email Address *</label>
                                             <input type="email" class="form-control" id="email" name="email"
-                                                placeholder="name@example.com" required>
+                                                placeholder="e.g. name@example.com" required>
+                                            <div class="invalid-feedback">Please enter a valid email address.</div>
                                         </div>
                                     </div>
 
@@ -131,9 +221,8 @@
                                                     <i id="toggleIcon1" class="bi bi-eye-fill"></i>
                                                 </button>
                                             </div>
-                                            <small class="text-muted d-block mt-1 ms-2 fw-normal" style="font-size:0.8rem;">
-                                                Must be at least 8 characters with letters and numbers.
-                                            </small>
+                                            <div class="form-text small mt-1">Must be at least 8 characters with letters and numbers.</div>
+                                            <div class="invalid-feedback" id="passwordFeedback">Password must be at least 8 characters and include letters and numbers.</div>
                                         </div>
                                     </div>
 
@@ -147,26 +236,33 @@
                                                     <i id="toggleIcon2" class="bi bi-eye-fill"></i>
                                                 </button>
                                             </div>
+                                            <div class="invalid-feedback" id="confirmFeedback">Passwords do not match.</div>
                                         </div>
                                     </div>
                                 </div>
 
+                                <!-- STEP 2 (unchanged structure, preserved floating selects) -->
+
+
                                 <div id="step2" class="step-content" style="display:none;">
-                                    <div class="d-flex align-items-baseline mb-4 border-bottom pb-2">
-                                        <h3 class="text-start mb-0 me-2 text-primary"><i class="bi bi-geo-alt-fill"></i> Main Address</h3>
-                                        <small class="text-muted fw-normal ms-auto">For pickups & deliveries</small>
+                                    <div class="section-header mb-3">
+                                        <i class="bi bi-geo-alt-fill"></i>
+                                        <span>Main &amp; Address</span>
+                                        <small class="text-muted fw-normal ms-auto fs-6">For pickups & deliveries</small>
                                     </div>
 
                                     <div class="row mb-3">
                                         <div class="col-12 col-lg-6 mb-3 mb-lg-0">
                                             <label for="houseNumber" class="form-label">House/Unit No.*</label>
                                             <input type="text" class="form-control" id="houseNumber"
-                                                name="houseNumber" placeholder="#42 or Unit 101" required>
+                                                name="houseNumber" placeholder="e.g. #42 or Unit 101" required>
+                                            <div class="invalid-feedback">Please enter a house or unit number.</div>
                                         </div>
                                         <div class="col-12 col-lg-6">
                                             <label for="street" class="form-label">Street Name *</label>
                                             <input type="text" class="form-control" id="street" name="street"
-                                                placeholder="Main Avenue" required>
+                                                placeholder="e.g. Main Avenue" required>
+                                            <div class="invalid-feedback">Please enter a street name.</div>
                                         </div>
                                     </div>
 
@@ -174,47 +270,54 @@
                                         <div class="col-12 col-lg-6 mb-3 mb-lg-0">
                                             <label for="subdivision" class="form-label">Subdivision/Village</label>
                                             <input type="text" class="form-control" id="subdivision" name="subdivision"
-                                                placeholder="Greenfield Estate">
+                                                placeholder="e.g. Greenfield Estate">
                                         </div>
                                         <div class="col-12 col-lg-6">
                                             <label for="landmark" class="form-label">Nearest Landmark (Optional)</label>
                                             <input type="text" class="form-control" id="landmark" name="landmark"
-                                                placeholder="Near the Blue Gate">
+                                                placeholder="e.g. Near the Blue Gate">
                                         </div>
                                     </div>
 
                                     <div class="row mb-3">
                                         <div class="col-12 col-lg-6 mb-3 mb-lg-0">
-                                            <label for="provinceSelect" class="form-label">Province *</label>
-                                            <select class="form-select" id="provinceSelect" required>
-                                                <option value="" selected disabled>Loading...</option>
-                                            </select>
-                                            <!-- Hidden field to store the province NAME -->
+                                            <div class="form-floating">
+                                                <select class="form-select" id="provinceSelect" required>
+                                                    <option value="" selected disabled>Loading...</option>
+                                                </select>
+                                                <label for="provinceSelect">Province *</label>
+                                                <div class="invalid-feedback">Please choose a province.</div>
+                                            </div>
+                                            <!-- Hidden field to store the province NAME (only one, kept here) -->
                                             <input type="hidden" id="province" name="province" value="">
                                         </div>
                                         <div class="col-12 col-lg-6">
-                                            <label for="citySelect" class="form-label">City/Municipality *</label>
-                                            <select class="form-select" id="citySelect" disabled required>
-                                                <option value="" selected disabled>Select Province first</option>
-                                            </select>
-                                            <!-- Hidden field to store the city NAME -->
+                                            <div class="form-floating">
+                                                <select class="form-select" id="citySelect" disabled required>
+                                                    <option value="" selected disabled>Select Province first</option>
+                                                </select>
+                                                <label for="citySelect">City/Municipality *</label>
+                                                <div class="invalid-feedback">Please choose a city/municipality.</div>
+                                            </div>
                                             <input type="hidden" id="city" name="city" value="">
                                         </div>
                                     </div>
 
                                     <div class="row mb-3">
                                         <div class="col-12 col-lg-6 mb-3 mb-lg-0">
-                                            <label for="barangaySelect" class="form-label">Barangay *</label>
-                                            <select class="form-select" id="barangaySelect" disabled required>
-                                                <option value="" selected disabled>Select City first</option>
-                                            </select>
-                                            <!-- Hidden field to store the barangay NAME -->
+                                            <div class="form-floating">
+                                                <select class="form-select" id="barangaySelect" disabled required>
+                                                    <option value="" selected disabled>Select City first</option>
+                                                </select>
+                                                <label for="barangaySelect">Barangay *</label>
+                                                <div class="invalid-feedback">Please choose a barangay.</div>
+                                            </div>
                                             <input type="hidden" id="barangay" name="barangay" value="">
                                         </div>
                                         <div class="col-12 col-lg-6">
                                             <label for="postal" class="form-label">Zip Code</label>
                                             <input type="text" class="form-control" id="postal" name="postal"
-                                                placeholder="4234">
+                                                placeholder="e.g. 4234">
                                         </div>
                                     </div>
 
@@ -237,11 +340,11 @@
                                         <i class="bi bi-arrow-left"></i> Back
                                     </button>
 
-                                    <button type="button" id="nextBtn" class="btn btn-primary px-4 py-2 ms-auto">
+                                    <button type="button" id="nextBtn" class="btn btn-warning px-4 py-2 ms-auto">
                                         Next <i class="bi bi-arrow-right"></i>
                                     </button>
 
-                                    <button type="submit" id="submitBtn" class="btn btn-primary px-5 py-2 ms-auto"
+                                    <button type="submit" id="submitBtn" class="btn btn-warning px-5 py-2 ms-auto"
                                         style="display:none;">
                                         Create Account
                                     </button>
@@ -261,9 +364,33 @@
         crossorigin="anonymous"></script>
 
     <script>
-        // --- 1.Stepper Logic ---
+        // --- Stepper Logic + validation before advancing ---
         var currentStep = 1;
         const totalSteps = 2;
+
+        const form = document.getElementById('signUpForm');
+
+        function capitalizeWords(input) {
+            input.value = input.value
+                .toLowerCase()
+                .replace(/\b\w/g, char => char.toUpperCase());
+        }
+
+        const firstNameInput = document.getElementById('firstName');
+        const lastNameInput = document.getElementById('lastName');
+
+        if (firstNameInput) {
+            firstNameInput.addEventListener('input', function() {
+                capitalizeWords(this);
+            });
+        }
+
+        if (lastNameInput) {
+            lastNameInput.addEventListener('input', function() {
+                capitalizeWords(this);
+            });
+        }
+
 
         function showStep(step) {
             document.querySelectorAll('.step-content').forEach(el => el.style.display = 'none');
@@ -281,6 +408,12 @@
             const nextBtn = document.getElementById('nextBtn');
             const submitBtn = document.getElementById('submitBtn');
 
+            // Hide the profile header when user is in step 2 (Main Address)
+            const profileHeader = document.getElementById('profileHeader');
+            if (profileHeader) {
+                profileHeader.style.display = (step === 1) ? 'flex' : 'none';
+            }
+
             if (step === 1) {
                 backBtn.style.display = 'none';
                 nextBtn.style.display = 'block';
@@ -290,53 +423,131 @@
                 nextBtn.style.display = 'none';
                 submitBtn.style.display = 'block';
             }
+
+            // scroll to top of card on step change (mobile-friendly)
+            currentSection.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest'
+            });
         }
 
-        document.getElementById('nextBtn').addEventListener('click', function () {
+        document.getElementById('nextBtn').addEventListener('click', function() {
             if (currentStep < totalSteps) {
+                if (currentStep === 1) {
+                    if (!validateStep1()) return;
+                }
                 currentStep++;
                 showStep(currentStep);
             }
         });
 
-        document.getElementById('backBtn').addEventListener('click', function () {
+        document.getElementById('backBtn').addEventListener('click', function() {
             if (currentStep > 1) {
                 currentStep--;
                 showStep(currentStep);
             }
         });
 
-        // --- 2.Password Toggle Logic ---
-        document.getElementById('togglePassword').addEventListener('click', function () {
+        // --- Password Toggle Logic ---
+        document.getElementById('togglePassword').addEventListener('click', function() {
             const input = document.getElementById('password');
             const icon = document.getElementById('toggleIcon1');
             const isHidden = input.type === 'password';
-            input.type = isHidden ? 'text' :'password';
-            icon.classList.toggle('bi-eye-fill', ! isHidden);
-            icon.classList.toggle('bi-eye-slash-fill', isHidden);
-        });
-
-        document.getElementById('toggleConfirmPassword').addEventListener('click', function () {
-            const input = document.getElementById('confirm_password');
-            const icon = document.getElementById('toggleIcon2');
-            const isHidden = input.type === 'password';
-            input.type = isHidden ? 'text' :'password';
+            input.type = isHidden ? 'text' : 'password';
             icon.classList.toggle('bi-eye-fill', !isHidden);
             icon.classList.toggle('bi-eye-slash-fill', isHidden);
         });
 
-        // --- 3.JSON Address Dropdown Logic (FIXED - saves names, not codes) ---
+        document.getElementById('toggleConfirmPassword').addEventListener('click', function() {
+            const input = document.getElementById('confirm_password');
+            const icon = document.getElementById('toggleIcon2');
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            icon.classList.toggle('bi-eye-fill', !isHidden);
+            icon.classList.toggle('bi-eye-slash-fill', isHidden);
+        });
+
+        // --- Contact input: only digits, max 10 visible digits (after +63).
+        // --- Prevent leading 0 in the visible field; on submit we'll store the '0'-prefixed value in the hidden field.
+        const contactVisible = document.getElementById('contactVisible');
+        const contactHidden = document.getElementById('contact');
+        const contactFeedback = document.getElementById('contactFeedback');
+
+        // Keydown: allow control/navigation, digits, block leading zero typing at caret position 0 (no selection)
+        contactVisible.addEventListener('keydown', function(e) {
+            const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'Home', 'End',
+                'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'
+            ];
+
+            // allow navigation/control keys and clipboard shortcuts
+            if (allowedKeys.includes(e.key) || e.ctrlKey || e.metaKey) return;
+
+            // allow digits but block typing '0' at start when there's no selection
+            if (e.key >= '0' && e.key <= '9') {
+                const selStart = this.selectionStart ?? 0;
+                const selEnd = this.selectionEnd ?? 0;
+
+                // block leading '0' when inserting at position 0 with no selection
+                if (e.key === '0' && selStart === 0 && selEnd === selStart) {
+                    e.preventDefault();
+                    return;
+                }
+
+                // enforce max 10 digits if no selection replacing digits
+                const currDigits = this.value.replace(/\D/g, '');
+                const selectionLength = selEnd - selStart;
+                if (currDigits.length - selectionLength >= 10 && selectionLength === 0) {
+                    e.preventDefault();
+                    return;
+                }
+
+                return;
+            }
+
+            // block everything else
+            e.preventDefault();
+        });
+
+        // On paste: strip non-digits, remove leading zeros, limit to 10 digits
+        contactVisible.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text');
+            let digits = text.replace(/\D/g, '');
+            digits = digits.replace(/^0+/, ''); // remove leading zeros
+            digits = digits.slice(0, 10);
+            // insert at caret position respecting selection
+            const selStart = this.selectionStart ?? 0;
+            const selEnd = this.selectionEnd ?? 0;
+            const before = this.value.slice(0, selStart).replace(/\D/g, '');
+            const after = this.value.slice(selEnd).replace(/\D/g, '');
+            let newDigits = (before + digits + after).slice(0, 10);
+            // ensure no leading zero
+            newDigits = newDigits.replace(/^0+/, '');
+            this.value = newDigits;
+        });
+
+        // Input guard: ensure only digits, remove leading zeros and trim to 10
+        contactVisible.addEventListener('input', function() {
+            let digits = this.value.replace(/\D/g, '').slice(0, 10);
+            digits = digits.replace(/^0+/, ''); // remove leading zeros for visible input
+            if (this.value !== digits) this.value = digits;
+            this.classList.remove('is-invalid');
+        });
+
+        // --- JSON Address Dropdown Logic (saves names, not codes) ---
         document.addEventListener("DOMContentLoaded", () => {
             const provinceSelect = document.getElementById('provinceSelect');
             const citySelect = document.getElementById('citySelect');
             const barangaySelect = document.getElementById('barangaySelect');
-            
+
             // Hidden fields to store the actual names
             const provinceInput = document.getElementById('province');
             const cityInput = document.getElementById('city');
             const barangayInput = document.getElementById('barangay');
 
-            let provinces = [], cities = [], barangays = [];
+            let provinces = [],
+                cities = [],
+                barangays = [];
 
             const files = [
                 '../assets/json/province.json',
@@ -345,9 +556,9 @@
             ];
 
             Promise.all(files.map(url => fetch(url).then(resp => {
-                if (!resp.ok) throw new Error(`Failed to load ${url}:${resp.statusText}`);
-                return resp.json();
-            })))
+                    if (!resp.ok) throw new Error(`Failed to load ${url}:${resp.statusText}`);
+                    return resp.json();
+                })))
                 .then(data => {
                     provinces = data[0];
                     cities = data[1];
@@ -358,7 +569,7 @@
                 })
                 .catch(err => {
                     console.error("Error loading address data:", err);
-                    alert("Error:Could not load location data.Please check the Console (F12) for file path errors.");
+                    alert("Error: Could not load location data. Please check the Console (F12) for file path errors.");
                 });
 
             function populateDropdown(dropdown, data, valueKey, textKey) {
@@ -381,45 +592,177 @@
                 dropdown.disabled = true;
             }
 
-            // --- Event Listeners (FIXED - now saves names to hidden fields) ---
-            provinceSelect.addEventListener('change', function () {
+            provinceSelect.addEventListener('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
                 const selectedProvinceCode = this.value;
                 const selectedProvinceName = selectedOption.dataset.name || selectedOption.textContent;
-                
-                // Save the NAME to hidden field
+
                 provinceInput.value = selectedProvinceName;
-                
+
                 const filteredCities = cities.filter(c => c.province_code === selectedProvinceCode);
                 populateDropdown(citySelect, filteredCities, 'city_code', 'city_name');
-                
+
                 // Reset city and barangay
                 cityInput.value = '';
                 barangayInput.value = '';
                 resetDropdown(barangaySelect, "Select City first");
             });
 
-            citySelect.addEventListener('change', function () {
+            citySelect.addEventListener('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
                 const selectedCityCode = this.value;
                 const selectedCityName = selectedOption.dataset.name || selectedOption.textContent;
-                
-                // Save the NAME to hidden field
+
                 cityInput.value = selectedCityName;
-                
+
                 const filteredBarangays = barangays.filter(b => b.city_code === selectedCityCode);
                 populateDropdown(barangaySelect, filteredBarangays, 'brgy_code', 'brgy_name');
-                
+
                 // Reset barangay
                 barangayInput.value = '';
             });
 
-            barangaySelect.addEventListener('change', function () {
+            barangaySelect.addEventListener('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
                 const selectedBarangayName = selectedOption.dataset.name || selectedOption.textContent;
-                
-                // Save the NAME to hidden field
+
                 barangayInput.value = selectedBarangayName;
+            });
+
+            // initialize UI
+            showStep(currentStep);
+        });
+
+        // --- Validation functions ---
+        function validateStep1() {
+            let valid = true;
+
+            // simple HTML5 validity for built-in checks
+            const firstName = document.getElementById('firstName');
+            const lastName = document.getElementById('lastName');
+            const email = document.getElementById('email');
+            const password = document.getElementById('password');
+            const confirm = document.getElementById('confirm_password');
+
+            [firstName, lastName, email, password, confirm].forEach(el => {
+                el.classList.remove('is-invalid');
+            });
+
+            if (!firstName.value.trim()) {
+                firstName.classList.add('is-invalid');
+                valid = false;
+            }
+            if (!lastName.value.trim()) {
+                lastName.classList.add('is-invalid');
+                valid = false;
+            }
+            // email: rely on HTML5
+            if (!email.checkValidity()) {
+                email.classList.add('is-invalid');
+                valid = false;
+            }
+
+            // contact: must be exactly 10 digits in visible input
+            const contactVal = contactVisible.value.replace(/\D/g, '');
+            if (contactVal.length !== 10) {
+                contactVisible.classList.add('is-invalid');
+                if (contactFeedback) contactFeedback.textContent = "Please enter exactly 10 digits after +63 (e.g. 9913389514).";
+                valid = false;
+            }
+
+            // password rules: at least 8 chars, letters and numbers
+            const passVal = password.value;
+            const passRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+            if (!passRegex.test(passVal)) {
+                password.classList.add('is-invalid');
+                document.getElementById('passwordFeedback').textContent = "Password must be at least 8 characters and include both letters and numbers.";
+                valid = false;
+            }
+
+            // confirm password match
+            if (confirm.value !== passVal || !confirm.value) {
+                confirm.classList.add('is-invalid');
+                document.getElementById('confirmFeedback').textContent = "Passwords do not match.";
+                valid = false;
+            }
+
+            return valid;
+        }
+
+        function validateStep2() {
+            let valid = true;
+            const houseNumber = document.getElementById('houseNumber');
+            const street = document.getElementById('street');
+            const provinceSelect = document.getElementById('provinceSelect');
+            const citySelect = document.getElementById('citySelect');
+            const barangaySelect = document.getElementById('barangaySelect');
+
+            [houseNumber, street, provinceSelect, citySelect, barangaySelect].forEach(el => {
+                el.classList.remove('is-invalid');
+            });
+
+            if (!houseNumber.value.trim()) {
+                houseNumber.classList.add('is-invalid');
+                valid = false;
+            }
+            if (!street.value.trim()) {
+                street.classList.add('is-invalid');
+                valid = false;
+            }
+            if (!provinceSelect.value) {
+                provinceSelect.classList.add('is-invalid');
+                valid = false;
+            }
+            if (!citySelect.value) {
+                citySelect.classList.add('is-invalid');
+                valid = false;
+            }
+            if (!barangaySelect.value) {
+                barangaySelect.classList.add('is-invalid');
+                valid = false;
+            }
+
+            return valid;
+        }
+
+        // --- Final submit handler: validate step2, set contact hidden value to local format start with 0 ---
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // If user is still on step 1, validate and show step2
+            if (currentStep === 1) {
+                if (!validateStep1()) return;
+                currentStep = 2;
+                showStep(currentStep);
+                return;
+            }
+
+            // Validate step2
+            if (!validateStep2()) {
+                // if invalid, scroll to first invalid
+                const firstInvalid = form.querySelector('.is-invalid');
+                if (firstInvalid) firstInvalid.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+                return;
+            }
+
+            // Prepare contact hidden field: convert +63 9913... -> 0 + 9913...
+            const visible = contactVisible.value.replace(/\D/g, '').slice(0, 10);
+            contactHidden.value = visible ? '0' + visible : '';
+
+            // Now submit normally
+            form.submit();
+        });
+
+        // Remove invalid state when user types/corrects
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('input', () => {
+                el.classList.remove('is-invalid');
+            });
+            el.addEventListener('change', () => {
+                el.classList.remove('is-invalid');
             });
         });
     </script>
