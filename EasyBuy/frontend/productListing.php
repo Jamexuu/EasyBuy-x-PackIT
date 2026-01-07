@@ -5,26 +5,34 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Products</title>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=shopping_cart" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=shopping_cart"
+        rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="../assets/css/style.css" rel="stylesheet">
     <style>
-        .addToCartBtn, .dropdown-item:active, .dropdown-item:focus, 
-        #nextBtn, #prevBtn {
+        .addToCartBtn,
+        .dropdown-item:active,
+        .dropdown-item:focus,
+        #nextBtn,
+        #prevBtn {
             background-color: #6EC064;
             color: #FFFFFF;
         }
 
-        .addToCartBtn:hover, #nextBtn:hover, #prevBtn:hover {
+        .addToCartBtn:hover,
+        #nextBtn:hover,
+        #prevBtn:hover {
             background-color: lightgray;
             color: dimgray
         }
 
-        .dropdown-item:active, .dropdown-item:focus {
+        .dropdown-item:active,
+        .dropdown-item:focus {
             border-radius: 5px;
             padding: 5px;
         }
-        
+
         .badge {
             background-color: #FFC107;
         }
@@ -104,6 +112,7 @@
             products = await response.json();
             filteredProducts = products;
             getProducts();
+            paginationArea.style.display = filteredProducts.length > cardSize ? 'block' : 'none';
         }
 
         function getProducts() {
@@ -114,8 +123,8 @@
             const end = start + cardSize;
 
             filteredProducts.slice(start, end).forEach(product => {
-                const isSale = product.Price <= 50;
-                
+                const isSale = parseFloat(product.price) <= 50;
+
                 contentArea.innerHTML += `
                 <div class="col-12 col-md-4 col-lg-3 mb-4">
                     <div class="card rounded-4 h-100" style="cursor: pointer;" onclick="window.location.href='productView.php?id=${product.id}'">
@@ -140,74 +149,78 @@
             });
         }
 
+        let currentPriceFilter = '';
+        let currentCategoryFilter = '';
+        let currentSalesFilter = '';
+
         document.getElementById('priceOptions').addEventListener('change', function () {
-            const value = this.value;
-            priceFilter(value);
+            currentPriceFilter = this.value;
+            applyFilters();
         });
         document.getElementById('categoryOptions').addEventListener('change', function () {
-            const value = this.value;
-            categoryFilter(value);
+            currentCategoryFilter = this.value;
+            applyFilters();
         });
         document.getElementById('salesOptions').addEventListener('change', function () {
-            const value = this.value;
-            salesFilter(value);
+            currentSalesFilter = this.value;
+            applyFilters();
         });
 
-        function priceFilter(value) {
+        function applyFilters() {
             page = 1;
+            filteredProducts = products;
 
-            if (value === "") {
-                filteredProducts = products;
-            } else if (value === "below-100") {
-                filteredProducts = products.filter(product => product.Price < 100);
-            } else if (value === "100-200") {
-                filteredProducts = products.filter(product => product.Price >= 100 && product.Price < 200);
-            } else if (value === "200-300") {
-                filteredProducts = products.filter(product => product.Price >= 200 && product.Price < 300);
-            } else if (value === "300-400") {
-                filteredProducts = products.filter(product => product.Price >= 300 && product.Price < 400);
-            } else if (value === "above-500") {
-                filteredProducts = products.filter(product => product.Price > 500);
+            console.log('Applying filters:', {
+                category: currentCategoryFilter,
+                price: currentPriceFilter,
+                sales: currentSalesFilter,
+                totalProducts: products.length
+            });
+
+            if (currentCategoryFilter !== "" && currentCategoryFilter !== "all") {
+                if (currentCategoryFilter === 'produce') {
+                    filteredProducts = filteredProducts.filter(product => product.category && product.category.toLowerCase() === 'produce');
+                } else if (currentCategoryFilter === 'meat') {
+                    filteredProducts = filteredProducts.filter(product => product.category && product.category.toLowerCase() === 'meat and seafood');
+                } else if (currentCategoryFilter === 'dairy') {
+                    filteredProducts = filteredProducts.filter(product => product.category && product.category.toLowerCase() === 'dairy');
+                } else if (currentCategoryFilter === 'frozen') {
+                    filteredProducts = filteredProducts.filter(product => product.category && product.category.toLowerCase() === 'frozen goods');
+                } else if (currentCategoryFilter === 'condiments') {
+                    filteredProducts = filteredProducts.filter(product => product.category && product.category.toLowerCase() === 'condiments and sauces');
+                } else if (currentCategoryFilter === 'snacks') {
+                    filteredProducts = filteredProducts.filter(product => product.category && product.category.toLowerCase() === 'snacks');
+                } else if (currentCategoryFilter === 'beverages') {
+                    filteredProducts = filteredProducts.filter(product => product.category && product.category.toLowerCase() === 'beverages');
+                } else if (currentCategoryFilter === 'personal') {
+                    filteredProducts = filteredProducts.filter(product => product.category && (product.category.toLowerCase() === 'personal' || product.category.toLowerCase() === 'health and personal care'));
+                }
+                console.log('After category filter:', filteredProducts.length);
             }
-            getProducts();
-            paginationArea.style.display = filteredProducts.length > cardSize ? 'block' : 'none';
-        }
 
-        function categoryFilter(value) {
-            page = 1;
-
-            if (value === 'all') {
-                filteredProducts = products;
-            } else if (value === 'produce') {
-                filteredProducts = products.filter(product => product.Category === 'Produce');
-            } else if (value === 'meat') {
-                filteredProducts = products.filter(product => product.Category === 'Meat and Seafood');
-            } else if (value === 'dairy') {
-                filteredProducts = products.filter(product => product.Category === 'Dairy');
-            } else if (value === 'frozen') {
-                filteredProducts = products.filter(product => product.Category === 'Frozen Goods');
-            } else if (value === 'condiments') {
-                filteredProducts = products.filter(product => product.Category === 'Condiments and Sauces');
-            } else if (value === 'snacks') {
-                filteredProducts = products.filter(product => product.Category === 'Snacks');
-            } else if (value === 'beverages') {
-                filteredProducts = products.filter(product => product.Category === 'Beverages');
-            } else if (value === 'personal') {
-                filteredProducts = products.filter(product => product.Category === 'Personal');
+            if (currentPriceFilter !== "") {
+                if (currentPriceFilter === "below-100") {
+                    filteredProducts = filteredProducts.filter(product => parseFloat(product.price) < 100);
+                } else if (currentPriceFilter === "100-200") {
+                    filteredProducts = filteredProducts.filter(product => parseFloat(product.price) >= 100 && parseFloat(product.price) < 200);
+                } else if (currentPriceFilter === "200-300") {
+                    filteredProducts = filteredProducts.filter(product => parseFloat(product.price) >= 200 && parseFloat(product.price) < 300);
+                } else if (currentPriceFilter === "300-400") {
+                    filteredProducts = filteredProducts.filter(product => parseFloat(product.price) >= 300 && parseFloat(product.price) < 400);
+                } else if (currentPriceFilter === "above-500") {
+                    filteredProducts = filteredProducts.filter(product => parseFloat(product.price) > 500);
+                }
+                console.log('After price filter:', filteredProducts.length);
             }
-            getProducts();
-            paginationArea.style.display = filteredProducts.length > cardSize ? 'block' : 'none';
-        }
 
-        function salesFilter(value) {
-            page = 1;
-            
-            if (value === "") {
-                filteredProducts = products;
-            } else if (value === 'all') {
-                filteredProducts = products.filter(product => product.Price <= 50);
-            }      
-            getProducts(); 
+            if (currentSalesFilter === 'all') {
+                filteredProducts = filteredProducts.filter(product => parseFloat(product.price) <= 50);
+                console.log('After sales filter:', filteredProducts.length);
+            }
+
+            console.log('Final filtered products:', filteredProducts.map(p => ({ name: p.product_name, category: p.category, price: p.price })));
+
+            getProducts();
             paginationArea.style.display = filteredProducts.length > cardSize ? 'block' : 'none';
         }
 
@@ -229,7 +242,7 @@
     </script>
 
     <?php include './components/footer.php'; ?>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
