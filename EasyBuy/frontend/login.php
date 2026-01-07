@@ -47,8 +47,8 @@
     <div class="container">
         <div class="row">
             <div class="col d-flex justify-content-center align-items-center">
-                <img src="../assets/Group 21987.svg" alt="Badge"
-                    style="height: 350px; width: 350px; object-fit: cover;">
+                <img src="../assets/easybuylogo.svg" alt="Badge"
+                    style="height: 370px; width: 370px; object-fit: cover;">
             </div>
         </div>
     </div>
