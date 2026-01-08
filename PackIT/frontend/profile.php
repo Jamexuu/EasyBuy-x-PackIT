@@ -124,8 +124,7 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
                 <p class="text-secondary mb-2"><?= htmlspecialchars($email) ?></p>
                 <h5 class="fw-medium text-dark mb-1"><?= htmlspecialchars($contact ?: '--') ?></h5>
                 <small class="text-secondary d-block mb-3"><?= htmlspecialchars($displayAddress) ?></small>
-                
-                </div>
+            </div>
         </div>
 
         <div class="col-12 col-lg-8">
@@ -332,4 +331,3 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
 
 </body>
 </html>
-}
