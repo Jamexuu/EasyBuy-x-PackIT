@@ -90,6 +90,7 @@
 
 <body>
     <?php include './components/navbar.php'; ?>
+    <?php include './components/addToCart.php'; ?>
 
     <div class="container mt-5 p-4">
         <button class="back-btn mb-3" onclick="window.history.back()"
@@ -97,7 +98,8 @@
             <span class="material-symbols-rounded">arrow_back</span>
         </button>
 
-        <div class="row bg-white rounded-3 p-4 mb-4" style="box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); border: 1px solid #e8e8e8;">
+        <div class="row bg-white rounded-3 p-4 mb-4"
+            style="box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); border: 1px solid #e8e8e8;">
             <div class="col-12 col-md-6 mb-3">
                 <div class="text-center"
                     style="border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
@@ -126,14 +128,15 @@
                 <div class="d-flex gap-2">
                     <form method="post" action="" class="d-inline">
                         <button type="button" id="addToCartBtn" class="btn"
-                            onclick="addToCart(productId, getQuantity());"
+                            onclick="addToCartWithModal(productId, getQuantity());"
                             style="background-color: #6EC064; color: white; border: none; width: 45px; height: 45px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
                             <span class="material-symbols-rounded">shopping_cart</span>
                         </button>
                     </form>
                     <form method="post" action="" class="flex-grow-1">
                         <button type="button" id="buyNowBtn" class="btn w-100" onclick="buyNow()"
-                            style="background-color: #6EC064; color: white; border: none; height: 45px;">Buy Now</button>
+                            style="background-color: #6EC064; color: white; border: none; height: 45px;">Buy
+                            Now</button>
                     </form>
                 </div>
             </div>
@@ -146,7 +149,107 @@
         </div>
     </div>
 
-    <script src="../assets/js/addToCart.js"></script>
+    <div id="noItem" class="modal fade" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-4 rounded-5 shadow text-center border-0"
+                style="width: 85%; max-width: 320px; margin: auto;">
+                <div class="h5 fw-bold mb-2">Error</div>
+                <p class="mb-4">No product selected</p>
+                <div class="d-flex justify-content-center">
+                    <button type="button" class="btn px-4 text-white" style="background-color: #6EC064;"
+                        data-bs-dismiss="modal">
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="noProductData" class="modal fade" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-4 rounded-5 shadow text-center border-0"
+                style="width: 85%; max-width: 320px; margin: auto;">
+                <div class="h5 fw-bold mb-2">Error</div>
+                <p class="mb-4">Error loading product data</p>
+                <div class="d-flex justify-content-center">
+                    <button type="button" class="btn px-4 text-white" style="background-color: #6EC064;"
+                        data-bs-dismiss="modal">
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="buyingModal" class="modal fade" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-4 rounded-5 shadow text-center border-0"
+                style="width: 85%; max-width: 320px; margin: auto;">
+                <div class="h5 fw-bold mb-2">Successfully bought: </div>
+                <p class="mb-4"></p>
+                <div class="d-flex justify-content-center">
+                    <button type="button" class="btn px-4 text-white" style="background-color: #6EC064;"
+                        data-bs-dismiss="modal">
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="addToCartModal" class="modal fade" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-4 rounded-5 shadow text-center border-0"
+                style="width: 85%; max-width: 320px; margin: auto;">
+                <div class="h5 fw-bold mb-2">Success</div>
+                <p class="mb-4" id="addToCartMessage"></p>
+                <div class="d-flex justify-content-center">
+                    <button type="button" class="btn px-4 text-white" style="background-color: #6EC064;"
+                        data-bs-dismiss="modal">
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="addToCartErrorModal" class="modal fade" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-4 rounded-5 shadow text-center border-0"
+                style="width: 85%; max-width: 320px; margin: auto;">
+                <div class="h5 fw-bold mb-2">Error</div>
+                <p class="mb-4" id="addToCartErrorMessage">Failed to add item to cart</p>
+                <div class="d-flex justify-content-center">
+                    <button type="button" class="btn px-4 text-white" style="background-color: #6EC064;"
+                        data-bs-dismiss="modal">
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loginRequiredModal" class="modal fade" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-4 rounded-5 shadow text-center border-0"
+                style="width: 85%; max-width: 320px; margin: auto;">
+                <div class="h5 fw-bold mb-2">Login Required</div>
+                <p class="mb-4">Please log in to add items to your cart</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <button type="button" class="btn px-4" style="background-color: #e8e8e8; color: #666;"
+                        data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="button" class="btn px-4 text-white" style="background-color: #6EC064;"
+                        onclick="window.location.href='login.php'">
+                        Login
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <script>
         let currentProduct = null;
         let allProducts = [];
@@ -155,11 +258,10 @@
         var qtyInput = document.getElementById('quantity');
 
         async function loadProduct() {
-
-
             if (!productId) {
-                alert('No product selected!');
-                window.history.back();
+                const noItemModal = new bootstrap.Modal(document.getElementById("noItem"));
+                noItemModal.show();
+                setTimeout(() => window.history.back(), 2000);
                 return;
             }
 
@@ -169,8 +271,9 @@
                 currentProduct = allProducts.find(p => p["Product ID"] == productId);
 
                 if (!currentProduct) {
-                    alert('Product not found!');
-                    window.history.back();
+                    const noItemModal = new bootstrap.Modal(document.getElementById("noItem"));
+                    noItemModal.show();
+                    setTimeout(() => window.history.back(), 2000);
                     return;
                 }
 
@@ -178,7 +281,8 @@
                 displaySimilarProducts();
             } catch (error) {
                 console.error('Error loading product:', error);
-                alert('Error loading product data!');
+                const noProductModal = new bootstrap.Modal(document.getElementById("noProductData"));
+                noProductModal.show();
             }
         }
 
@@ -205,7 +309,11 @@
 
         function buyNow() {
             const qty = document.getElementById('quantity').value;
-            alert(`Buying ${qty} x ${currentProduct["Product Name"]}`);
+            const buyingModal = document.getElementById("buyingModal");
+            buyingModal.querySelector('.h5').textContent = 'Successfully bought:';
+            buyingModal.querySelector('p').textContent = `${currentProduct["Product Name"]} (Qty: ${qty})`;
+            const buyModal = new bootstrap.Modal(buyingModal);
+            buyModal.show();
         }
 
         function displaySimilarProducts() {
@@ -220,7 +328,7 @@
             similarProducts.forEach((product, index) => {
                 const col = document.createElement('div');
                 col.className = 'col-6 col-md-3';
-                
+
                 const badgeHtml = index === 0 ? '<span style="background-color: #6EC064; color: white; padding: 3px 8px; border-radius: 5px; font-size: 10px; position: absolute; top: 10px; right: 10px;">NEW</span>' : '';
 
                 col.innerHTML = `
@@ -232,7 +340,7 @@
                             <span style="color: #FFC107; font-size: 12px;">★★★★★</span>
                         </div>
                         <div style="color: #6EC064; font-weight: bold; font-size: 16px; margin-bottom: 10px;">₱${product.Price.toFixed(2)}</div>
-                        <button class="add-to-cart-icon" onclick="event.stopPropagation(); addToCart(${product["Product ID"]}, 1);" style="background-color: #6EC064; color: white; border-radius: 5px; padding: 8px 12px; border: none; cursor: pointer;">
+                        <button class="add-to-cart-icon" onclick="event.stopPropagation(); addToCartWithModal(${product["Product ID"]}, 1);" style="background-color: #6EC064; color: white; border-radius: 5px; padding: 8px 12px; border: none; cursor: pointer;">
                             <span class="material-symbols-rounded" style="font-size: 18px; vertical-align: middle;">shopping_cart</span>
                         </button>
                     </div>
@@ -240,8 +348,31 @@
 
                 container.appendChild(col);
             });
-            
-            }
+        }
+
+        function addToCartWithModal(productId, quantity) {
+            addToCart(productId, quantity).then(data => {
+                const product = allProducts.find(p => p["Product ID"] == productId);
+                const productName = product ? product["Product Name"] : "Product";
+
+                let modalId;
+
+                if (data.requiresLogin) {
+                    modalId = "loginRequiredModal";
+                } else if (data.message) {
+                    modalId = "addToCartModal";
+                    document.getElementById("addToCartMessage").textContent = `${productName} (Qty: ${quantity}) added to cart!`;
+                } else if (data.error) {
+                    modalId = "addToCartErrorModal";
+                    document.getElementById("addToCartErrorMessage").textContent = data.error;
+                }
+
+                if (modalId) new bootstrap.Modal(document.getElementById(modalId)).show();
+            }).catch(() => {
+                document.getElementById("addToCartErrorMessage").textContent = "Failed to add product to cart. Please try again.";
+                new bootstrap.Modal(document.getElementById("addToCartErrorModal")).show();
+            });
+        }
 
         window.onload = loadProduct;
     </script>
