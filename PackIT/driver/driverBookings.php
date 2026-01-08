@@ -2,6 +2,10 @@
 session_start();
 require_once __DIR__ . '/../api/classes/Database.php';
 require_once __DIR__ . '/../frontend/components/autorefresh.php';
+require_once __DIR__ . '/../api/sms/SmsNotificationService.php'; // Import the SMS service
+
+// Define $action to avoid undefined variable issues
+$action = $_POST['action'] ?? $_GET['action'] ?? null;
 
 if (!isset($_SESSION['driver_id'])) {
     header("Location: login.php");
@@ -54,40 +58,88 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty($row)) {
             $_SESSION['flash_error'] = 'Booking not found or not assigned to you.';
-        } else {
-            $current = (string)$row[0]['tracking_status'];
-            $nextMap = [
-                'accepted'   => 'picked_up',
-                'picked_up'  => 'in_transit',
-                'in_transit' => 'delivered',
-            ];
+            header('Location: driverBookings.php');
+            exit;
+        }
 
-            if (!isset($nextMap[$current])) {
-                $_SESSION['flash_error'] = 'Cannot advance status from "' . h($current) . '".';
-            } else {
-                $next = $nextMap[$current];
+        $current = (string)$row[0]['tracking_status'];
+        $nextMap = [
+            'accepted'   => 'picked_up',
+            'picked_up'  => 'in_transit',
+            'in_transit' => 'delivered',
+        ];
 
-                $stmt2 = $db->executeQuery(
-                    "UPDATE bookings
-                     SET tracking_status = ?, updated_at = CURRENT_TIMESTAMP()
-                     WHERE id = ? AND driver_id = ?",
-                    [$next, $bookingId, $driverId]
-                );
+        if (!isset($nextMap[$current])) {
+            $_SESSION['flash_error'] = 'Cannot advance status from "' . h($current) . '".';
+            header('Location: driverBookings.php');
+            exit;
+        }
 
-                $updated = (mysqli_stmt_affected_rows($stmt2) > 0);
+        $next = $nextMap[$current];
 
-                if ($updated) {
-                    $_SESSION['flash_success'] = 'Booking status updated to ' . $next . '.';
+        $stmt2 = $db->executeQuery(
+            "UPDATE bookings
+             SET tracking_status = ?, updated_at = CURRENT_TIMESTAMP()
+             WHERE id = ? AND driver_id = ?",
+            [$next, $bookingId, $driverId]
+        );
 
-                    if ($next === 'delivered') {
-                        header('Location: driver.php');
-                        exit;
-                    }
-                } else {
-                    $_SESSION['flash_error'] = 'Failed to update booking status. Try again.';
+        $updated = (mysqli_stmt_affected_rows($stmt2) > 0);
+
+        if ($updated) {
+            $_SESSION['flash_success'] = 'Booking status updated to ' . $next . '.';
+
+            // ---------- SMS notifications per status ----------
+            $stmtBooking = $db->executeQuery(
+                "SELECT b.pickup_contact_number, b.drop_contact_number, d.first_name AS driver_name
+                 FROM bookings b
+                 JOIN drivers d ON b.driver_id = d.id
+                 WHERE b.id = ? AND b.driver_id = ? LIMIT 1",
+                [$bookingId, $driverId]
+            );
+            $bookingDetails = $db->fetch($stmtBooking)[0] ?? null;
+
+            if ($bookingDetails) {
+                $smsService = new SmsNotificationService();
+
+                $recipients = [];
+                if (!empty($bookingDetails['pickup_contact_number'])) {
+                    $recipients[] = $bookingDetails['pickup_contact_number'];
+                }
+                if (!empty($bookingDetails['drop_contact_number'])) {
+                    $recipients[] = $bookingDetails['drop_contact_number'];
+                }
+
+                // Determine template key based on $next
+                $templateKey = $next; // picked_up / in_transit / delivered
+
+                if (!empty($recipients)) {
+                    $smsService->notify(
+                        $recipients,
+                        $smsService->getTemplate($templateKey, [
+                            'booking_id'  => $bookingId,
+                            'driver_name' => $bookingDetails['driver_name'] ?? '',
+                        ]),
+                        [
+                            'booking_id' => $bookingId,
+                            'driver_id'  => $driverId,
+                            'status'     => $templateKey,
+                        ]
+                    );
                 }
             }
+            // ------------------------------------------------------
+
+            if ($next === 'delivered') {
+                header('Location: driver.php');
+                exit;
+            }
+        } else {
+            $_SESSION['flash_error'] = 'Failed to update booking status. Try again.';
         }
+
+        header('Location: driverBookings.php');
+        exit;
     }
 
     header('Location: driverBookings.php');
