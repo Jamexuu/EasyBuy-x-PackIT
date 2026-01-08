@@ -122,6 +122,10 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
                 <p class="text-secondary mb-2"><?= htmlspecialchars($email) ?></p>
                 <h5 class="fw-medium text-dark mb-1"><?= htmlspecialchars($contact ?: '--') ?></h5>
                 <small class="text-secondary d-block mb-3"><?= htmlspecialchars($displayAddress) ?></small>
+                
+                <button class="btn btn-dark rounded-pill btn-sm px-4" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                    <i class="bi bi-pencil-fill me-1"></i> Edit Details
+                </button>
             </div>
         </div>
 
@@ -185,6 +189,87 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
 
     </div>
 </main>
+
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0">
+            <form action="editProfileProcess.php" method="POST">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+                
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="editProfileLabel">Edit Profile Information</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                
+                <div class="modal-body p-4">
+                    <h6 class="text-uppercase text-muted small fw-bold mb-3">Personal Details</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label small">First Name</label>
+                            <input type="text" class="form-control" name="firstName" value="<?= htmlspecialchars($userDetails['first_name'] ?? '') ?>" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Last Name</label>
+                            <input type="text" class="form-control" name="lastName" value="<?= htmlspecialchars($userDetails['last_name'] ?? '') ?>" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Mobile Number</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white text-muted">+63</span>
+                                <input type="text" class="form-control" name="contact" value="<?= htmlspecialchars($userDetails['contact_number'] ?? '') ?>" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Email (Cannot be changed)</label>
+                            <input type="text" class="form-control bg-light" value="<?= htmlspecialchars($userDetails['email'] ?? '') ?>" disabled>
+                        </div>
+                    </div>
+
+                    <h6 class="text-uppercase text-muted small fw-bold mb-3">Address Information</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label small">House/Unit No.</label>
+                            <input type="text" class="form-control" name="houseNumber" value="<?= htmlspecialchars($userDetails['house_number'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label small">Street</label>
+                            <input type="text" class="form-control" name="street" value="<?= htmlspecialchars($userDetails['street'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Subdivision</label>
+                            <input type="text" class="form-control" name="subdivision" value="<?= htmlspecialchars($userDetails['subdivision'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Barangay</label>
+                            <input type="text" class="form-control" name="barangay" value="<?= htmlspecialchars($userDetails['barangay'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">City/Municipality</label>
+                            <input type="text" class="form-control" name="city" value="<?= htmlspecialchars($userDetails['city'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Province</label>
+                            <input type="text" class="form-control" name="province" value="<?= htmlspecialchars($userDetails['province'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Postal Code</label>
+                            <input type="text" class="form-control" name="postal" value="<?= htmlspecialchars($userDetails['postal_code'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label small">Landmark</label>
+                            <input type="text" class="form-control" name="landmark" value="<?= htmlspecialchars($userDetails['landmark'] ?? '') ?>">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer border-top-0 pt-0 pb-4 pe-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <?php include("components/footer.php"); ?>
 <?php include("../frontend/components/chat.php"); ?>

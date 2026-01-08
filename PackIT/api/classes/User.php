@@ -89,6 +89,51 @@ class User {
         return $result[0] ?? null;
     }
 
+    // --- New Method: Update Profile ---
+    function updateProfile(int $userId, array $userData, array $addressData) {
+        // 1. Update Basic Info
+        $sqlUser = "UPDATE users SET first_name = ?, last_name = ?, contact_number = ? WHERE id = ?";
+        $paramsUser = [
+            $userData['firstName'], 
+            $userData['lastName'], 
+            $userData['contactNumber'], 
+            (string)$userId
+        ];
+        $stmt = $this->db->executeQuery($sqlUser, $paramsUser);
+        mysqli_stmt_close($stmt);
+
+        // 2. Update or Insert Address
+        // Check if user has an address entry
+        $check = $this->db->executeQuery("SELECT id FROM addresses WHERE user_id = ? ORDER BY id DESC LIMIT 1", [(string)$userId]);
+        $rows = $this->db->fetch($check);
+        mysqli_stmt_close($check);
+
+        if (!empty($rows)) {
+            // Update existing
+            $addrId = $rows[0]['id'];
+            $sqlAddr = "UPDATE addresses SET house_number=?, street=?, subdivision=?, landmark=?, barangay=?, city=?, province=?, postal_code=? WHERE id=?";
+            $paramsAddr = [
+                $addressData['houseNumber'],
+                $addressData['street'],
+                $addressData['subdivision'],
+                $addressData['landmark'],
+                $addressData['barangay'],
+                $addressData['city'],
+                $addressData['province'],
+                $addressData['postalCode'],
+                (string)$addrId
+            ];
+            $stmtAddr = $this->db->executeQuery($sqlAddr, $paramsAddr);
+            mysqli_stmt_close($stmtAddr);
+        } else {
+            // Insert new
+            $addressData['userId'] = $userId;
+            $this->insertAddress($addressData);
+        }
+
+        return true;
+    }
+
     function emailExists($email){
         $sql = "SELECT id FROM users WHERE email = ?";
         $stmt = $this->db->executeQuery($sql, [$email]);
