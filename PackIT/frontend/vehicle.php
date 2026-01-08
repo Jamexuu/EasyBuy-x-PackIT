@@ -18,7 +18,7 @@ function meters3($l, $w, $h) {
   return $fmt($l) . ' x ' . $fmt($w) . ' x ' . $fmt($h) . ' Meter';
 }
 ?>
-<! doctype html>
+<!doctype html>
 <html lang="en">
 
 <head>
@@ -26,145 +26,134 @@ function meters3($l, $w, $h) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Join PackIT - Delivery Solutions</title>
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
   <style>
-    #categoriesContainer {
-      overflow-x: auto;
-      overflow-y: hidden;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-      scroll-behavior: smooth;
-    }
-    #categoriesContainer::-webkit-scrollbar { display: none; }
-
-    .vehicle-wrapper { flex: 0 0 auto; width: 85vw; }
-    @media (min-width: 768px) {
-      .vehicle-wrapper { width: min(85vw, 300px); }
-    }
-
+    /* Custom Hover Effects (Cannot be done purely with Bootstrap utilities) */
     .vehicle-card {
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      border: 2px solid transparent;
-      display: flex;
-      flex-direction: column;
+      transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+      border: 2px solid transparent; /* Invisible border to prevent layout shift */
     }
     .vehicle-card:hover {
-      transform: translateY(-5px);
-      border-color: #f8e14b;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+      transform: translateY(-8px); /* Lift up effect */
+      box-shadow: 0 1rem 3rem rgba(0,0,0,.15)!important;
+      border-color: #f8e14b !important; /* Brand Yellow Border */
     }
-    .vehicle-card img {
-      width: 100%;
-      object-fit: contain;
-      height: 160px;
+    
+    /* Hide scrollbar but keep functionality */
+    #categoriesContainer {
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none;  /* IE 10+ */
     }
-
-    .scroll-btn {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 10;
-      width: clamp(36px, 4vw, 45px);
-      height: clamp(36px, 4vw, 45px);
-      border-radius: 50%;
-      background-color: #fff;
-      border: 1px solid #eee;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .scroll-btn:hover {
-      background-color: #f8e14b;
-      border-color: #f8e14b;
-      color: #000;
-    }
-    .scroll-btn:active { transform: translateY(-50%) scale(0.95); }
-    .scroll-btn-left { left: clamp(4px, 1vw, 16px); }
-    .scroll-btn-right { right: clamp(4px, 1vw, 16px); }
-
-    @media (max-width: 768px) {
-      .scroll-btn { display: none; }
-      .scroll-container-wrapper { padding: 0 !important; }
-    }
-    @media (max-width: 576px) {
-      .vehicle-card img { height: 120px; }
+    #categoriesContainer::-webkit-scrollbar { 
+      display: none; /* Chrome/Safari */
     }
   </style>
 </head>
 
-<body>
+<body class="d-flex flex-column min-vh-100 bg-light font-sans-serif">
 
   <?php include 'components/navbar.php'; ?>
 
-  <div class="container-fluid py-5 p-lg-5">
-    <div class="row">
-      <div class="col mb-4 pt-4">
-        <h1 class="fw-bold ps-2 border-start border-5 border-warning text-dark">
-          Vehicle Type
-        </h1>
+  <main class="container-fluid py-5 px-lg-5 flex-grow-1">
+    
+    <div class="row mb-4 pt-4">
+      <div class="col">
+        <div class="ps-3 border-start border-5 border-warning">
+          <h1 class="fw-bold text-dark m-0">Vehicle Type</h1>
+        </div>
       </div>
     </div>
 
-    <div class="position-relative scroll-container-wrapper">
-      <button class="scroll-btn scroll-btn-left" onclick="scrollContainer('left')" aria-label="Scroll Left">
+    <div class="position-relative">
+      
+      <button class="btn btn-light rounded-circle shadow position-absolute top-50 start-0 translate-middle-y z-2 d-flex align-items-center justify-content-center border-0" 
+              style="width: 48px; height: 48px; margin-left: -10px;" 
+              onclick="scrollContainer('left')" 
+              aria-label="Scroll Left">
         <i class="bi bi-chevron-left fs-5"></i>
       </button>
 
-      <div class="d-flex flex-nowrap py-3 gap-3" id="categoriesContainer">
+      <div id="categoriesContainer" 
+           class="d-flex flex-nowrap gap-4 overflow-x-auto px-2 pb-5 pt-3" 
+           style="scroll-behavior: smooth;">
+        
         <?php foreach ($vehicles as $v): ?>
           <?php
             $name = $v['name'] ?? '';
             $img  = $v['image_file'] ?? '';
-
-            $descHtml =
-              '<small class="text-muted">Type:</small> <strong>' . htmlspecialchars($v['package_type'] ??  '') . '</strong><br>' . 
-              '<small class="text-muted">Price:</small> <strong>' . htmlspecialchars(peso($v['fare'] ??  0)) . '</strong><br>' .
-              '<small class="text-muted">Max:</small> <strong>' . htmlspecialchars((string)($v['max_kg'] ?? 0)) . ' kg</strong><br>' .
-              '<small class="text-muted">Size:</small> <strong>' . htmlspecialchars(meters3($v['size_length_m'] ?? 0, $v['size_width_m'] ?? 0, $v['size_height_m'] ??  0)) . '</strong>';
+            // Pre-calculate data
+            $type = htmlspecialchars($v['package_type'] ?? '');
+            $fare = peso($v['fare'] ?? 0);
+            $max  = htmlspecialchars((string)($v['max_kg'] ?? 0));
+            $size = htmlspecialchars(meters3($v['size_length_m'] ?? 0, $v['size_width_m'] ?? 0, $v['size_height_m'] ?? 0));
           ?>
-          <div class="vehicle-wrapper">
-            <div class="card rounded-4 shadow-sm vehicle-card">
-              <img class="card-img-top p-3 img-fluid"
-                   src="/EASYBUY-X-PACKIT/PackIT/assets/<?= htmlspecialchars($img) ?>"
-                   alt="<?= htmlspecialchars($name) ?>">
-              <div class="card-body border-top d-flex flex-column">
-                <h5 class="fw-bold mb-3 text-center" style="color:#333">
-                  <?= htmlspecialchars($name) ?>
-                </h5>
-                <div class="p-3 rounded-3 mt-auto" style="background-color:#f8f9fa;">
-                  <p class="card-text small mb-0" style="line-height: 1.6;">
-                    <?= $descHtml ?>
-                  </p>
+          
+          <div class="flex-shrink-0" style="width: 85vw; max-width: 320px;">
+            <div class="card h-100 shadow-sm rounded-4 vehicle-card">
+              
+              <div class="p-4 d-flex align-items-center justify-content-center bg-white rounded-top-4" style="height: 200px;">
+                 <img class="img-fluid object-fit-contain" 
+                      src="/EASYBUY-X-PACKIT/PackIT/assets/<?= htmlspecialchars($img) ?>" 
+                      alt="<?= htmlspecialchars($name) ?>"
+                      style="max-height: 100%;">
+              </div>
+
+              <div class="card-body d-flex flex-column border-top bg-white rounded-bottom-4">
+                <h5 class="fw-bold text-center mb-3 text-dark"><?= htmlspecialchars($name) ?></h5>
+                
+                <div class="p-3 rounded-3 mt-auto bg-light">
+                  <div class="small lh-lg">
+                    <div class="d-flex justify-content-between">
+                      <span class="text-secondary">Type:</span>
+                      <span class="fw-semibold text-dark"><?= $type ?></span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                      <span class="text-secondary">Price:</span>
+                      <span class="fw-semibold text-dark"><?= $fare ?></span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                      <span class="text-secondary">Max:</span>
+                      <span class="fw-semibold text-dark"><?= $max ?> kg</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                      <span class="text-secondary">Size:</span>
+                      <span class="fw-semibold text-dark text-end"><?= $size ?></span>
+                    </div>
+                  </div>
                 </div>
               </div>
+
             </div>
           </div>
         <?php endforeach; ?>
       </div>
 
-      <button class="scroll-btn scroll-btn-right" onclick="scrollContainer('right')" aria-label="Scroll Right">
+      <button class="btn btn-light rounded-circle shadow position-absolute top-50 end-0 translate-middle-y z-2 d-flex align-items-center justify-content-center border-0" 
+              style="width: 48px; height: 48px; margin-right: -10px;" 
+              onclick="scrollContainer('right')" 
+              aria-label="Scroll Right">
         <i class="bi bi-chevron-right fs-5"></i>
       </button>
-    </div>
-  </div>
 
+    </div>
+  </main>
+
+  <?php include("../frontend/components/chat.php"); ?>
   <?php include 'components/footer.php'; ?>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
     const container = document.getElementById("categoriesContainer");
 
     function scrollContainer(direction) {
-      const firstCard = container.querySelector('.vehicle-wrapper');
-      if (!firstCard) return;
-
-      const style = window.getComputedStyle(container);
-      const gap = parseInt(style.gap) || 0;
-      const scrollAmount = firstCard.offsetWidth + gap;
+      // Calculate width of card + gap
+      const card = container.querySelector('.flex-shrink-0');
+      if (!card) return;
+      
+      const scrollAmount = card.offsetWidth + 24; // Width + gap (1.5rem = 24px)
 
       container.scrollBy({
         left: direction === 'left' ? -scrollAmount : scrollAmount,
@@ -172,7 +161,5 @@ function meters3($l, $w, $h) {
       });
     }
   </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

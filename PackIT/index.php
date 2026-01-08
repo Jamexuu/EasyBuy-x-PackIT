@@ -9,6 +9,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <?php include("frontend/components/chatModal.php"); ?>
 </head>
 
 <body id="top" class="min-vh-100 d-flex flex-column" style="font-family: 'Segoe UI', sans-serif; background: linear-gradient(180deg, #ffffff 0%, #fcfcfd 100%); overflow-x: hidden;">
@@ -18,15 +19,12 @@
 
   <main class="container-fluid my-1 py-lg-2 flex-grow-1">
     <div class="row align-items-center gy-5">
-      
       <div class="col-12 col-lg-6 d-flex justify-content-center justify-content-lg-start position-relative z-1">
         <img src="assets/duck.png" class="img-fluid" alt="Duck Mascot" style="max-width:520px; transition: transform .25s ease;">
       </div>
-
       <div class="col-12 col-lg-6 d-flex align-items-center text-center text-lg-start ms-lg-n5 z-2">
         <div class="mx-auto mx-lg-0" style="max-width:44ch;">
           <h1 class="display-1 fw-bold text-uppercase mb-3" style="letter-spacing: -0.02em; line-height: 0.95; color: #111;">PACK IT</h1>
-
           <p class="lead mb-3" style="color: #555;">
             The gold standard of PH logistics.🏆<br>
             Bridging gaps and breaking records, one delivery at a time.
@@ -36,7 +34,6 @@
     </div>
     
     <?php include("frontend/components/aboutUs.php"); ?>
-
   </main>
 
   <div id="floatingActions" 
@@ -62,7 +59,7 @@
         <img src="assets/tracking.png" alt="tracking" style="width: 48px; height: 48px; object-fit: contain;">
         <span>Tracking</span>
       </a>
-      <a href="../PackIT/frontend/chatai.php" id="chatbotLauncher" class="text-decoration-none text-dark d-flex flex-column align-items-center fw-bold small">
+      <a href="#" id="chatbotLauncher" class="text-decoration-none text-dark d-flex flex-column align-items-center fw-bold small">
         <img src="assets/chatbot.png" alt="Chatbot" style="width: 48px; height: 48px; object-fit: contain;">
         <span>Chatbot</span>
       </a>
@@ -71,32 +68,39 @@
 
   <?php include("frontend/components/footer.php"); ?>
 
-  <div class="modal fade" id="chatModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="false">
-    <div class="modal-dialog shadow-lg rounded-4" style="position: fixed; right: 20px; bottom: 90px; margin: 0; z-index: 1060; max-width: 420px;">
+  <div class="modal fade poc-chat-modal" id="pocChatModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="false">
+    <div class="modal-dialog shadow-lg rounded-3">
       <div class="modal-content border-0">
-        <div class="modal-header border-bottom-0 bg-light rounded-top-4">
+        
+        <div class="modal-header bg-light py-2 border-bottom-0 rounded-top-3">
           <div class="d-flex align-items-center gap-2">
-            <img src="assets/chatbot.png" alt="bot" style="width: 36px; height: 36px;">
-            <div>
-              <div class="fw-bold">Pack IT Assistant</div>
-              <div class="small text-secondary">Ask about bookings, tracking, and packaging</div>
+            <img src="assets/chatbot.png" alt="Bot" width="32" height="32" class="object-fit-contain">
+            <div class="lh-1">
+              <div class="fw-bold fs-6">PackIT Assistant</div>
+              <small class="text-muted" style="font-size: 0.75rem;">Online</small>
             </div>
           </div>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
+
         <div class="modal-body p-0">
-          <div class="d-flex flex-column" style="height: 520px;">
-            <div id="chatMessages" class="flex-grow-1 p-3 overflow-auto d-flex flex-column gap-3" style="background: linear-gradient(180deg, #f8f9fa, #fff);"></div>
-            <div class="p-2 bg-white border-top">
-              <form id="chatForm" onsubmit="return false;">
+          <div class="poc-chat-window" role="region" aria-label="Chat messages">
+            <div class="poc-chat-messages" id="pocChatMessages" aria-live="polite">
+              </div>
+
+            <div class="poc-chat-input">
+              <form id="pocChatForm" onsubmit="return false;">
                 <div class="d-flex gap-2 align-items-center">
-                  <textarea id="chatInput" class="form-control" placeholder="Type your message..." style="height: 46px; resize: none;"></textarea>
-                  <button id="sendBtn" class="btn btn-warning" type="button"><i class="bi bi-send"></i></button>
+                  <textarea id="pocChatInput" class="form-control form-control-sm" placeholder="Type a message..." style="resize: none; height: 42px; font-size: 0.95rem;"></textarea>
+                  <button id="pocSendBtn" class="btn btn-primary btn-sm rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" type="button">
+                    <i class="bi bi-send-fill"></i>
+                  </button>
                 </div>
               </form>
             </div>
           </div>
         </div>
+
       </div>
     </div>
   </div>
@@ -105,136 +109,144 @@
 
   <script>
     (function() {
-      // --- FLOATING ACTION SLIDE LOGIC ---
+      // --- FLOATING ACTION MENU LOGIC ---
       const floatingActions = document.getElementById('floatingActions');
       const toggleBtn = document.getElementById('actionsToggleBtn');
       const toggleIcon = document.getElementById('toggleIcon');
       const actionLinks = document.getElementById('actionLinks');
-
       let isExpanded = false;
 
       function setMenuState(open) {
         if (open) {
-          // --- OPEN (SLIDE OUT TO LEFT) ---
-          // Width: 110px
-          // Max-Height: 500px (allows full vertical expansion)
           floatingActions.style.width = '110px';
           floatingActions.style.maxHeight = '500px'; 
           floatingActions.style.padding = '1rem';
           floatingActions.style.borderRadius = 'var(--bs-border-radius-xl)';
-          
           actionLinks.style.opacity = '1';
-          
           toggleIcon.classList.remove('bi-list');
           toggleIcon.classList.add('bi-x-lg');
           isExpanded = true;
         } else {
-          // --- CLOSED (SLIDE IN TO RIGHT) ---
-          // Width: 56px (Same as button)
-          // Max-Height: 56px (Same as button)
           floatingActions.style.width = '56px'; 
           floatingActions.style.maxHeight = '56px'; 
           floatingActions.style.padding = '0';
           floatingActions.style.borderRadius = '50px';
-          
           actionLinks.style.opacity = '0';
-          
           toggleIcon.classList.remove('bi-x-lg');
           toggleIcon.classList.add('bi-list');
           isExpanded = false;
         }
       }
 
-      toggleBtn.addEventListener('click', () => {
-        setMenuState(!isExpanded);
-      });
+      toggleBtn.addEventListener('click', () => setMenuState(!isExpanded));
 
-      // Responsive Check: Desktop always open, Mobile starts closed
       function checkScreen() {
         if (window.innerWidth >= 992) {
-          // Desktop: Force Open
           floatingActions.style.width = '110px';
           floatingActions.style.maxHeight = '500px'; 
           floatingActions.style.padding = '1rem';
           floatingActions.style.borderRadius = 'var(--bs-border-radius-xl)';
           actionLinks.style.opacity = '1';
         } else {
-          // Mobile: Start Closed (Only on first load)
           if (!floatingActions.hasAttribute('data-init')) {
              setMenuState(false);
              floatingActions.setAttribute('data-init', 'true');
           }
         }
       }
-
       window.addEventListener('resize', checkScreen);
       checkScreen();
 
-      // --- CHAT LOGIC ---
+      // --- INTEGRATED CHAT LOGIC ---
+      // This part now uses the code from chat.php, but listens to 'chatbotLauncher'
       const launcher = document.getElementById('chatbotLauncher');
-      const chatModalEl = document.getElementById('chatModal');
-      const chatMessages = document.getElementById('chatMessages');
-      const chatInput = document.getElementById('chatInput');
-      const sendBtn = document.getElementById('sendBtn');
-      const chatEndpoint = launcher ? launcher.getAttribute('href') : 'frontend/chatai.php';
+      const modalEl = document.getElementById('pocChatModal');
+      const messagesEl = document.getElementById('pocChatMessages');
+      const inputEl = document.getElementById('pocChatInput');
+      const sendBtn = document.getElementById('pocSendBtn');
+      
+      // Update this path to where your chatai.php actually lives
+      const chatEndpoint = "frontend/chatai.php"; 
+
       let modal;
 
       function appendMessage(text, who = 'bot') {
         const wrapper = document.createElement('div');
-        wrapper.className = `d-flex gap-2 align-items-end ${who === 'user' ? 'justify-content-end' : ''}`;
-        const avatar = `<div class="d-flex align-items-center justify-content-center fw-bold bg-light rounded-circle border" style="width:36px;height:36px;flex:0 0 36px;">${who === 'user' ? 'U' : 'AI'}</div>`;
-        const bubbleStyle = who === 'user' ? 'background-color: #0d6efd; color: white;' : 'background-color: #f1f3ff; color: #111;';
-        const bubble = `<div class="shadow-sm p-2 rounded-3" style="max-width: 78%; ${bubbleStyle}">${text.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]))}</div>`;
+        wrapper.className = `poc-chat-msg ${who}`;
+        
+        const avatar = `<div class="avatar">${who === 'user' ? 'U' : 'AI'}</div>`;
+        const bubble = `<div class="poc-chat-bubble">${text.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]))}</div>`;
+
         wrapper.innerHTML = who === 'user' ? (bubble + avatar) : (avatar + bubble);
-        chatMessages.appendChild(wrapper);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        messagesEl.appendChild(wrapper);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
       }
 
       function appendTypingIndicator() {
         const wrap = document.createElement('div');
-        wrap.className = 'd-flex gap-2 align-items-end';
-        wrap.innerHTML = `<div class="d-flex align-items-center justify-content-center fw-bold bg-light rounded-circle border" style="width:36px;height:36px;">AI</div><div class="shadow-sm p-2 rounded-3 bg-light text-muted">typing...</div>`;
-        chatMessages.appendChild(wrap);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        wrap.className = 'poc-chat-msg bot';
+        wrap.innerHTML = `<div class="avatar">AI</div><div class="poc-chat-bubble"><div class="poc-chat-typing"></div></div>`;
+        messagesEl.appendChild(wrap);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
         return wrap;
       }
 
+      async function sendMessage(text) {
+        if (!text || !text.trim()) return;
+        const message = text.trim();
+
+        appendMessage(message, 'user');
+        inputEl.value = '';
+        inputEl.disabled = true;
+        sendBtn.disabled = true;
+
+        const typingNode = appendTypingIndicator();
+
+        try {
+          const fd = new FormData();
+          fd.append('prompt', message);
+
+          const res = await fetch(chatEndpoint, { method: 'POST', body: fd });
+          const textResp = await res.text();
+
+          typingNode.remove();
+
+          if (!res.ok) appendMessage('System error. Please try again.', 'bot');
+          else appendMessage(textResp, 'bot');
+          
+        } catch (err) {
+          typingNode.remove();
+          appendMessage('Network error. Check connection.', 'bot');
+        } finally {
+          inputEl.disabled = false;
+          sendBtn.disabled = false;
+          inputEl.focus();
+        }
+      }
+
+      // Event Listeners for Chat
       if (launcher) {
         launcher.addEventListener('click', function(ev) {
           ev.preventDefault();
-          if (!modal) modal = new bootstrap.Modal(chatModalEl);
+          if (!modal) modal = new bootstrap.Modal(modalEl);
           modal.show();
         });
       }
 
-      chatModalEl.addEventListener('shown.bs.modal', function() {
-        chatInput.focus();
-        if (chatMessages.children.length === 0) appendMessage('Hi! I am Pack IT Assistant. How can I help you today?', 'bot');
-      });
-
       if (sendBtn) {
-        sendBtn.addEventListener('click', async () => {
-          const txt = chatInput.value.trim();
-          if(!txt) return;
-          appendMessage(txt, 'user');
-          chatInput.value = '';
-          const typing = appendTypingIndicator();
-          try {
-              const fd = new FormData(); fd.append('prompt', txt);
-              const res = await fetch(chatEndpoint, { method: 'POST', body: fd });
-              const respTxt = await res.text();
-              typing.remove();
-              appendMessage(respTxt || 'Error', 'bot');
-          } catch(e) {
-              typing.remove();
-              appendMessage('Network error', 'bot');
-          }
-        });
-        
-         chatInput.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendBtn.click(); }
+        sendBtn.addEventListener('click', () => sendMessage(inputEl.value));
+        inputEl.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(inputEl.value); }
         });
       }
+
+      modalEl.addEventListener('shown.bs.modal', function() {
+        inputEl.focus();
+        if (messagesEl.children.length === 0) {
+          appendMessage('Hi! I am Pack IT Assistant. How can I help you today?', 'bot');
+        }
+      });
+
     })();
   </script>
 </body>

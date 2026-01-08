@@ -2,7 +2,6 @@
 declare(strict_types=1);
 session_start();
 
-// FIX: Correct path to Database.php
 require_once __DIR__ . "/../api/classes/Database.php";
 
 // 1. Authentication Check
@@ -29,7 +28,6 @@ function formatMoney($n): string {
     return number_format((float)$n, 2);
 }
 
-// Helper to color-code statuses
 function getStatusColor($status) {
     return match (strtolower($status ?? '')) {
         'completed', 'delivered' => 'text-success',
@@ -40,9 +38,8 @@ function getStatusColor($status) {
     };
 }
 
-// 2. Fetch All Transactions (List View Only)
+// 2. Fetch Transactions
 $transactions = [];
-
 $stmt = $db->executeQuery(
     "SELECT b.id, b.created_at, b.updated_at, b.vehicle_type, b.total_amount, b.tracking_status,
             p.amount AS paid_amount, p.currency, p.status AS payment_status
@@ -72,131 +69,149 @@ foreach ($rows as $r) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Transaction History</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <style>
         :root {
             --brand-yellow: #f8e14b;
             --bg-light:  #f8f9fa;
-            --text-muted: #6c757d;
         }
 
         body {
             background-color: var(--bg-light);
-            padding-bottom: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
         }
 
-        main {
-            flex: 1;
-            width: 100%;
-            margin-bottom: 30px;
-        }
-
+        /* --- Retained UI Styles --- */
         .transaction-container {
             background-color: #ffffff;
-            border:  3px solid var(--brand-yellow);
+            border: 3px solid var(--brand-yellow);
             border-radius: 28px;
-            padding: 40px;
-            box-shadow:  0 8px 20px rgba(0,0,0,0.06);
-            margin-top: 30px;
+            /* Use Bootstrap padding classes for responsive padding, 
+               but keep min-padding for the look */
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
         }
 
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .search-bar {
+        /* Search Bar Style */
+        .custom-search-bar {
             background-color: #f1f3f5;
             border: none;
             border-radius: 20px;
-            padding: 8px 18px;
-            width: 240px;
+            padding: 10px 20px;
+            transition: all 0.2s;
+        }
+        .custom-search-bar:focus {
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(248, 225, 75, 0.2); /* Brand yellow glow */
+            outline: none;
         }
 
-        .table thead th {
-            background-color:  var(--brand-yellow);
+        /* Custom Table Styling to match original Look */
+        .custom-table {
+            border-collapse: separate; 
+            border-spacing: 0 10px; /* Gap between rows */
+        }
+
+        .custom-table thead th {
+            background-color: var(--brand-yellow);
             border: none;
             padding: 14px;
             font-weight: 600;
+            white-space: nowrap; /* Prevent headers wrapping too aggressively */
         }
 
-        .table tbody tr {
+        /* First and Last header rounding */
+        .custom-table thead th:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+        .custom-table thead th:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+
+        .custom-table tbody tr {
             background-color: #ffffff;
             box-shadow: 0 3px 8px rgba(0,0,0,0.05);
-            border-radius: 12px;
             transition: transform 0.2s;
         }
-        
-        .table tbody tr:hover {
-            transform: translateY(-2px);
-            background-color: #fffdf0;
+
+        .custom-table tbody tr td {
+            background-color: #fff; /* Needed for border-radius on tr to work visually in some browsers */
+            border: none;
+            padding: 16px;
+            vertical-align: middle;
         }
 
-        .table tbody td {
-            padding: 14px;
-            border: none;
-            vertical-align: middle;
+        /* Rounding the row edges */
+        .custom-table tbody tr td:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+        .custom-table tbody tr td:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+
+        .custom-table tbody tr:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.08);
         }
     </style>
 </head>
 
-<body>
-    <?php include __DIR__ . "/components/navbar.php"; ?>
+<body class="d-flex flex-column min-vh-100">
+    <?php include 'components/navbar.php'; ?>
 
-    <main class="container transaction-container">
-        
-        <div class="page-header">
-            <h3>TRANSACTION HISTORY</h3>
-            <input id="search" type="text" class="search-bar form-control" placeholder="🔍 Search orders...">
-        </div>
+    <main class="flex-grow-1 py-4">
+        <div class="container">
+            
+            <div class="transaction-container p-4 p-md-5">
+                
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+                    <h3 class="fw-bold m-0">TRANSACTION HISTORY</h3>
+                    
+                    <div class="w-100 w-md-auto" style="max-width: 300px;">
+                        <input id="search" type="text" class="form-control custom-search-bar" placeholder="🔍 Search orders...">
+                    </div>
+                </div>
 
-        <div class="table-responsive">
-            <table class="table align-middle" style="border-collapse: separate; border-spacing: 0 10px;">
-                <thead>
-                    <tr>
-                        <th class="rounded-start-3">Date</th>
-                        <th>Order ID</th>
-                        <th>Service</th>
-                        <th>Amount</th>
-                        <th>Vehicle</th>
-                        <th class="rounded-end-3">Status</th>
-                    </tr>
-                </thead>
-                <tbody id="tx-body">
-                    <?php if (empty($transactions)): ?>
-                        <tr><td colspan="6" class="text-center text-muted py-5">No orders found.</td></tr>
-                    <?php else: ?>
-                        <?php foreach ($transactions as $t): ?>
+                <div class="table-responsive">
+                    <table class="table custom-table">
+                        <thead>
                             <tr>
-                                <td><?= h(date('M d, Y', strtotime($t['date']))) ?></td>
-                                <td class="fw-bold">#<?= (int)$t['id'] ?></td>
-                                <td>Logistics</td>
-                                <td class="fw-bold">₱ <?= h(formatMoney($t['amount'])) ?></td>
-                                <td><?= h(ucfirst($t['vehicle'])) ?></td>
-                                <td class="fw-bold <?= getStatusColor($t['status']) ?>">
-                                    <?= h(ucwords(str_replace('_', ' ', $t['status']))) ?>
-                                </td>
+                                <th>Date</th>
+                                <th>Order ID</th>
+                                <th>Service</th>
+                                <th>Amount</th>
+                                <th>Vehicle</th>
+                                <th>Status</th>
                             </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+                        </thead>
+                        <tbody id="tx-body">
+                            <?php if (empty($transactions)): ?>
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-5 rounded-3">
+                                        No orders found.
+                                    </td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($transactions as $t): ?>
+                                    <tr>
+                                        <td class="text-secondary"><?= h(date('M d, Y', strtotime($t['date']))) ?></td>
+                                        <td class="fw-bold">#<?= (int)$t['id'] ?></td>
+                                        <td>Logistics</td>
+                                        <td class="fw-bold">₱ <?= h(formatMoney($t['amount'])) ?></td>
+                                        <td><?= h(ucfirst($t['vehicle'])) ?></td>
+                                        <td class="fw-bold <?= getStatusColor($t['status']) ?>">
+                                            <?= h(ucwords(str_replace('_', ' ', $t['status']))) ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
         </div>
-
     </main>
+    <?php include("../frontend/components/chat.php"); ?>
+    <?php include 'components/footer.php'; ?>
 
-    <?php include __DIR__ . '/components/footer.php'; ?>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-    // Simple frontend search filter
+    // Search Filter
     document.getElementById('search')?.addEventListener('input', function (e) {
         const q = e.target.value.toLowerCase().trim();
         const rows = document.querySelectorAll('#tx-body tr');
@@ -210,7 +225,5 @@ foreach ($rows as $r) {
         });
     });
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

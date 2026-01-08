@@ -276,6 +276,7 @@ $pkgQty = (int)($state["package_quantity"] ?? 1);
 </head>
 
 <body>
+  <?php include("../components/navbar.php"); ?>
   <div class="container py-5">
     <div class="row justify-content-center">
       <div class="col-lg-9 col-md-11">
@@ -418,251 +419,255 @@ $pkgQty = (int)($state["package_quantity"] ?? 1);
     </div>
   </div>
 
-<script>
-  let REGION_MAP = {};
+  <?php include("../components/chat.php"); ?>
+  <?php include("../components/footer.php"); ?>
 
-  async function fetchData(params) {
-    try {
-      const res = await fetch(`?${params}`);
-      return await res.json();
-    } catch (e) {
-      console.error(e);
-      return [];
-    }
-  }
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let REGION_MAP = {};
 
-  function populate(selectEl, data, codeKey, nameKey, datasetAttrs = {}) {
-    selectEl.innerHTML = '<option value="">Select Option</option>';
-    selectEl.disabled = false;
-    data.sort((a, b) => (a[nameKey] || '').localeCompare((b[nameKey] || '')));
-    data.forEach(item => {
-      const opt = document.createElement('option');
-      opt.value = item[codeKey];
-      opt.textContent = item[nameKey];
-      opt.dataset.name = item[nameKey] || '';
-      for (const [key, field] of Object.entries(datasetAttrs)) {
-        opt.dataset[key] = item[field] || '';
-      }
-      selectEl.appendChild(opt);
-    });
-  }
-
-  function reset(selectEl) {
-    selectEl.innerHTML = '<option value="">Select Option</option>';
-    selectEl.disabled = true;
-  }
-
-  function updateHiddenName(selectEl, hiddenEl) {
-    const opt = selectEl.options[selectEl.selectedIndex];
-    hiddenEl.value = (opt && opt.dataset && opt.dataset.name) ? opt.dataset.name : '';
-  }
-
-  async function updateLiveFare() {
-    const pRegion = document.getElementById("pickup_region_code").value;
-    const dRegion = document.getElementById("drop_region_code").value;
-    if (!pRegion || !dRegion) return;
-
-    const params = new URLSearchParams({
-      action: "calculate_fare",
-      pickup_region: pRegion,
-      drop_region: dRegion
-    });
-
-    const data = await fetchData(params.toString());
-    if (data.valid) {
-      document.getElementById("disp_base").textContent = "₱" + data.base;
-      document.getElementById("disp_distance").textContent = "₱" + data.distance;
-      document.getElementById("disp_total").textContent = "₱" + data.total;
-      document.getElementById("btnNext").disabled = false;
-    } else {
-      document.getElementById("disp_distance").textContent = "--";
-      document.getElementById("disp_total").textContent = "₱--";
-      document.getElementById("btnNext").disabled = true;
-    }
-  }
-
-  async function setupSelector(prefix, saved) {
-    const provinceEl = document.getElementById(prefix + "_province");
-    const cityEl = document.getElementById(prefix + "_city");
-    const barangayEl = document.getElementById(prefix + "_barangay");
-
-    const hiddenRegionCode = document.getElementById(prefix + "_region_code");
-    const hiddenRegionName = document.getElementById(prefix + "_region_name");
-    const hiddenProvince = document.getElementById(prefix + "_province_name");
-    const hiddenCity = document.getElementById(prefix + "_city_name");
-    const hiddenBarangay = document.getElementById(prefix + "_barangay_name");
-
-    const provinces = await fetchData("action=get_provinces");
-    populate(provinceEl, provinces, "province_code", "province_name", { regionCode: "region_code" });
-
-    if (saved.province_code) {
-      provinceEl.value = saved.province_code;
-      handleProvinceChange(provinceEl.value);
-    }
-
-    provinceEl.addEventListener("change", function() {
-      handleProvinceChange(this.value);
-    });
-
-    async function handleProvinceChange(provCode) {
-      reset(cityEl);
-      reset(barangayEl);
-      updateHiddenName(provinceEl, hiddenProvince);
-
-      if (!provCode) {
-        hiddenRegionCode.value = "";
-        hiddenRegionName.value = "";
-        return;
-      }
-
-      const selectedOpt = provinceEl.options[provinceEl.selectedIndex];
-      const regCode = selectedOpt.dataset.regionCode;
-      if (regCode) {
-        const regName = REGION_MAP[regCode] || regCode;
-        hiddenRegionCode.value = regCode;
-        hiddenRegionName.value = regName;
-      }
-
-      updateLiveFare();
-
-      const cities = await fetchData(`action=get_cities&province_code=${encodeURIComponent(provCode)}`);
-      populate(cityEl, cities, "city_code", "city_name");
-
-      if (saved.city_code && cities.some(c => c.city_code === saved.city_code)) {
-        cityEl.value = saved.city_code;
-        cityEl.dispatchEvent(new Event("change"));
-        saved.city_code = null;
+    async function fetchData(params) {
+      try {
+        const res = await fetch(`?${params}`);
+        return await res.json();
+      } catch (e) {
+        console.error(e);
+        return [];
       }
     }
 
-    cityEl.addEventListener("change", async function() {
-      const code = this.value;
-      reset(barangayEl);
-      updateHiddenName(this, hiddenCity);
-      if (!code) return;
-      const b = await fetchData(`action=get_barangays&city_code=${encodeURIComponent(code)}`);
-      populate(barangayEl, b, "brgy_code", "brgy_name");
-      if (saved.brgy_code) {
-        barangayEl.value = saved.brgy_code;
-        barangayEl.dispatchEvent(new Event("change"));
-      }
-    });
+    function populate(selectEl, data, codeKey, nameKey, datasetAttrs = {}) {
+      selectEl.innerHTML = '<option value="">Select Option</option>';
+      selectEl.disabled = false;
+      data.sort((a, b) => (a[nameKey] || '').localeCompare((b[nameKey] || '')));
+      data.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item[codeKey];
+        opt.textContent = item[nameKey];
+        opt.dataset.name = item[nameKey] || '';
+        for (const [key, field] of Object.entries(datasetAttrs)) {
+          opt.dataset[key] = item[field] || '';
+        }
+        selectEl.appendChild(opt);
+      });
+    }
 
-    barangayEl.addEventListener("change", function() {
-      updateHiddenName(this, hiddenBarangay);
-    });
-  }
+    function reset(selectEl) {
+      selectEl.innerHTML = '<option value="">Select Option</option>';
+      selectEl.disabled = true;
+    }
 
-  (async function init() {
-    const regionsData = await fetchData("action=get_regions");
-    regionsData.forEach(r => { REGION_MAP[r.region_code] = r.region_name; });
+    function updateHiddenName(selectEl, hiddenEl) {
+      const opt = selectEl.options[selectEl.selectedIndex];
+      hiddenEl.value = (opt && opt.dataset && opt.dataset.name) ? opt.dataset.name : '';
+    }
 
-    setupSelector("pickup", {
-      province_code: "<?= h((string)($pickup["province_code"] ?? "")) ?>",
-      city_code: "<?= h((string)($pickup["city_code"] ?? "")) ?>",
-      brgy_code: "<?= h((string)($pickup["brgy_code"] ?? "")) ?>"
-    });
+    async function updateLiveFare() {
+      const pRegion = document.getElementById("pickup_region_code").value;
+      const dRegion = document.getElementById("drop_region_code").value;
+      if (!pRegion || !dRegion) return;
 
-    setupSelector("drop", {
-      province_code: "<?= h((string)($drop["province_code"] ?? "")) ?>",
-      city_code: "<?= h((string)($drop["city_code"] ?? "")) ?>",
-      brgy_code: "<?= h((string)($drop["brgy_code"] ?? "")) ?>"
-    });
-  })();
+      const params = new URLSearchParams({
+        action: "calculate_fare",
+        pickup_region: pRegion,
+        drop_region: dRegion
+      });
 
-  // Smart matching
-  function normalize(str) {
-    if (!str) return "";
-    return str.toLowerCase()
-      .replace(/\(.*\)/g, "")
-      .replace("city of", "")
-      .replace("municipality of", "")
-      .replace("brgy", "")
-      .replace("barangay", "")
-      .trim();
-  }
-
-  function findOptionBySmartMatch(selectEl, searchStr) {
-    if (!searchStr) return null;
-    const target = normalize(searchStr);
-    return Array.from(selectEl.options).find(o => {
-      const optText = normalize(o.text);
-      return optText === target || optText.includes(target) || target.includes(optText);
-    });
-  }
-
-  // UPDATED BUTTON: fill BOTH address + contact from DB
-  document.getElementById("useDefaultPickupBtn").addEventListener("click", async () => {
-    try {
-      const res = await fetch("?action=get_user_profile_defaults");
-      const data = await res.json();
-
-      if (!data) {
-        alert("No profile defaults found (user or address missing).");
-        return;
-      }
-
-      // Fill contact
-      if (data.contact) {
-        const name = data.contact.name || "";
-        const cp = data.contact.contact_number || "";
-        document.getElementById("pickup_contact_name").value = name;
-        document.getElementById("pickup_contact_number").value = cp;
-      }
-
-      // Fill address
-      const p = data.address;
-      if (!p) {
-        alert("No address found in your database profile.");
-        return;
-      }
-
-      // 1. Fill House
-      document.getElementById("pickup_house").value = p.house || "";
-
-      // 2. Province
-      const provSelect = document.getElementById("pickup_province");
-      const provOpt = findOptionBySmartMatch(provSelect, p.province);
-
-      if (provOpt) {
-        provSelect.value = provOpt.value;
-        provSelect.dispatchEvent(new Event("change"));
-
-        // 3. City
-        const waitForCities = setInterval(() => {
-          const citySelect = document.getElementById("pickup_city");
-          if (citySelect.options.length > 1 && !citySelect.disabled) {
-            clearInterval(waitForCities);
-
-            const cityOpt = findOptionBySmartMatch(citySelect, p.municipality);
-            if (cityOpt) {
-              citySelect.value = cityOpt.value;
-              citySelect.dispatchEvent(new Event("change"));
-
-              // 4. Barangay
-              const waitForBrgy = setInterval(() => {
-                const brgySelect = document.getElementById("pickup_barangay");
-                if (brgySelect.options.length > 1 && !brgySelect.disabled) {
-                  clearInterval(waitForBrgy);
-                  const brgyOpt = findOptionBySmartMatch(brgySelect, p.barangay);
-                  if (brgyOpt) {
-                    brgySelect.value = brgyOpt.value;
-                    brgySelect.dispatchEvent(new Event("change"));
-                  }
-                }
-              }, 100);
-            }
-          }
-        }, 100);
+      const data = await fetchData(params.toString());
+      if (data.valid) {
+        document.getElementById("disp_base").textContent = "₱" + data.base;
+        document.getElementById("disp_distance").textContent = "₱" + data.distance;
+        document.getElementById("disp_total").textContent = "₱" + data.total;
+        document.getElementById("btnNext").disabled = false;
       } else {
-        alert(`Could not find province "${p.province}"`);
+        document.getElementById("disp_distance").textContent = "--";
+        document.getElementById("disp_total").textContent = "₱--";
+        document.getElementById("btnNext").disabled = true;
+      }
+    }
+
+    async function setupSelector(prefix, saved) {
+      const provinceEl = document.getElementById(prefix + "_province");
+      const cityEl = document.getElementById(prefix + "_city");
+      const barangayEl = document.getElementById(prefix + "_barangay");
+
+      const hiddenRegionCode = document.getElementById(prefix + "_region_code");
+      const hiddenRegionName = document.getElementById(prefix + "_region_name");
+      const hiddenProvince = document.getElementById(prefix + "_province_name");
+      const hiddenCity = document.getElementById(prefix + "_city_name");
+      const hiddenBarangay = document.getElementById(prefix + "_barangay_name");
+
+      const provinces = await fetchData("action=get_provinces");
+      populate(provinceEl, provinces, "province_code", "province_name", { regionCode: "region_code" });
+
+      if (saved.province_code) {
+        provinceEl.value = saved.province_code;
+        handleProvinceChange(provinceEl.value);
       }
 
-    } catch (e) {
-      console.error("Error fetching profile defaults", e);
-      alert("Failed to load profile defaults.");
+      provinceEl.addEventListener("change", function() {
+        handleProvinceChange(this.value);
+      });
+
+      async function handleProvinceChange(provCode) {
+        reset(cityEl);
+        reset(barangayEl);
+        updateHiddenName(provinceEl, hiddenProvince);
+
+        if (!provCode) {
+          hiddenRegionCode.value = "";
+          hiddenRegionName.value = "";
+          return;
+        }
+
+        const selectedOpt = provinceEl.options[provinceEl.selectedIndex];
+        const regCode = selectedOpt.dataset.regionCode;
+        if (regCode) {
+          const regName = REGION_MAP[regCode] || regCode;
+          hiddenRegionCode.value = regCode;
+          hiddenRegionName.value = regName;
+        }
+
+        updateLiveFare();
+
+        const cities = await fetchData(`action=get_cities&province_code=${encodeURIComponent(provCode)}`);
+        populate(cityEl, cities, "city_code", "city_name");
+
+        if (saved.city_code && cities.some(c => c.city_code === saved.city_code)) {
+          cityEl.value = saved.city_code;
+          cityEl.dispatchEvent(new Event("change"));
+          saved.city_code = null;
+        }
+      }
+
+      cityEl.addEventListener("change", async function() {
+        const code = this.value;
+        reset(barangayEl);
+        updateHiddenName(this, hiddenCity);
+        if (!code) return;
+        const b = await fetchData(`action=get_barangays&city_code=${encodeURIComponent(code)}`);
+        populate(barangayEl, b, "brgy_code", "brgy_name");
+        if (saved.brgy_code) {
+          barangayEl.value = saved.brgy_code;
+          barangayEl.dispatchEvent(new Event("change"));
+        }
+      });
+
+      barangayEl.addEventListener("change", function() {
+        updateHiddenName(this, hiddenBarangay);
+      });
     }
-  });
-</script>
+
+    (async function init() {
+      const regionsData = await fetchData("action=get_regions");
+      regionsData.forEach(r => { REGION_MAP[r.region_code] = r.region_name; });
+
+      setupSelector("pickup", {
+        province_code: "<?= h((string)($pickup["province_code"] ?? "")) ?>",
+        city_code: "<?= h((string)($pickup["city_code"] ?? "")) ?>",
+        brgy_code: "<?= h((string)($pickup["brgy_code"] ?? "")) ?>"
+      });
+
+      setupSelector("drop", {
+        province_code: "<?= h((string)($drop["province_code"] ?? "")) ?>",
+        city_code: "<?= h((string)($drop["city_code"] ?? "")) ?>",
+        brgy_code: "<?= h((string)($drop["brgy_code"] ?? "")) ?>"
+      });
+    })();
+
+    // Smart matching
+    function normalize(str) {
+      if (!str) return "";
+      return str.toLowerCase()
+        .replace(/\(.*\)/g, "")
+        .replace("city of", "")
+        .replace("municipality of", "")
+        .replace("brgy", "")
+        .replace("barangay", "")
+        .trim();
+    }
+
+    function findOptionBySmartMatch(selectEl, searchStr) {
+      if (!searchStr) return null;
+      const target = normalize(searchStr);
+      return Array.from(selectEl.options).find(o => {
+        const optText = normalize(o.text);
+        return optText === target || optText.includes(target) || target.includes(optText);
+      });
+    }
+
+    // UPDATED BUTTON: fill BOTH address + contact from DB
+    document.getElementById("useDefaultPickupBtn").addEventListener("click", async () => {
+      try {
+        const res = await fetch("?action=get_user_profile_defaults");
+        const data = await res.json();
+
+        if (!data) {
+          alert("No profile defaults found (user or address missing).");
+          return;
+        }
+
+        // Fill contact
+        if (data.contact) {
+          const name = data.contact.name || "";
+          const cp = data.contact.contact_number || "";
+          document.getElementById("pickup_contact_name").value = name;
+          document.getElementById("pickup_contact_number").value = cp;
+        }
+
+        // Fill address
+        const p = data.address;
+        if (!p) {
+          alert("No address found in your database profile.");
+          return;
+        }
+
+        // 1. Fill House
+        document.getElementById("pickup_house").value = p.house || "";
+
+        // 2. Province
+        const provSelect = document.getElementById("pickup_province");
+        const provOpt = findOptionBySmartMatch(provSelect, p.province);
+
+        if (provOpt) {
+          provSelect.value = provOpt.value;
+          provSelect.dispatchEvent(new Event("change"));
+
+          // 3. City
+          const waitForCities = setInterval(() => {
+            const citySelect = document.getElementById("pickup_city");
+            if (citySelect.options.length > 1 && !citySelect.disabled) {
+              clearInterval(waitForCities);
+
+              const cityOpt = findOptionBySmartMatch(citySelect, p.municipality);
+              if (cityOpt) {
+                citySelect.value = cityOpt.value;
+                citySelect.dispatchEvent(new Event("change"));
+
+                // 4. Barangay
+                const waitForBrgy = setInterval(() => {
+                  const brgySelect = document.getElementById("pickup_barangay");
+                  if (brgySelect.options.length > 1 && !brgySelect.disabled) {
+                    clearInterval(waitForBrgy);
+                    const brgyOpt = findOptionBySmartMatch(brgySelect, p.barangay);
+                    if (brgyOpt) {
+                      brgySelect.value = brgyOpt.value;
+                      brgySelect.dispatchEvent(new Event("change"));
+                    }
+                  }
+                }, 100);
+              }
+            }
+          }, 100);
+        } else {
+          alert(`Could not find province "${p.province}"`);
+        }
+
+      } catch (e) {
+        console.error("Error fetching profile defaults", e);
+        alert("Failed to load profile defaults.");
+      }
+    });
+  </script>
 </body>
 </html>
