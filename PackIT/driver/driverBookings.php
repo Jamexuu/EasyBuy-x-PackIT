@@ -2,7 +2,7 @@
 session_start();
 require_once __DIR__ . '/../api/classes/Database.php';
 require_once __DIR__ . '/../frontend/components/autorefresh.php';
-require_once __DIR__ . '/../api/sms/SmsNotificationService.php'; // Import the SMS service
+require_once __DIR__ . '/../api/sms/SmsNotificationService.php'; // SMS service
 
 // Define $action to avoid undefined variable issues
 $action = $_POST['action'] ?? $_GET['action'] ?? null;
@@ -38,7 +38,7 @@ function fmtDims($l, $w, $h): string {
     return $fmt($l) . " x " . $fmt($w) . " x " . $fmt($h) . " m";
 }
 
-/* Handle advance status */
+/* Handle POST actions */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
         $_SESSION['flash_error'] = 'Invalid request';
@@ -49,6 +49,99 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     $bookingId = (int)($_POST['booking_id'] ?? 0);
 
+    /**
+     * QUICK SMS (preset prompts)
+     * - pickup prompts => send to SENDER (pickup_contact_number)
+     * - drop-off prompts => send to RECIPIENT (drop_contact_number)
+     */
+    if ($action === 'quick_sms' && $bookingId > 0) {
+        $prompt = $_POST['prompt'] ?? '';
+
+        // Define your preset prompts here
+        $allowedPrompts = [
+            // Pickup = sender
+            'pickup_arrived' => [
+                'target' => 'sender',
+                'text'   => "Hi! I'm at the pickup location. Where are you?",
+            ],
+
+            // Drop-off = recipient
+            'drop_arrived' => [
+                'target' => 'recipient',
+                'text'   => "Hi! I'm at the drop-off location. Where are you?",
+            ],
+
+            // Can be useful for both; here we keep it for recipient (drop-off side).
+            'on_the_way_to_drop' => [
+                'target' => 'recipient',
+                'text'   => "Hi! I'm on the way to the drop-off now. Please be ready.",
+            ],
+
+            // Another common one for sender (pickup side)
+            'cant_find_pickup' => [
+                'target' => 'sender',
+                'text'   => "Hi! I'm at the pickup area but I can't find the exact location. Please call/text me.",
+            ],
+        ];
+
+        if (!isset($allowedPrompts[$prompt])) {
+            $_SESSION['flash_error'] = 'Invalid message prompt.';
+            header('Location: driverBookings.php');
+            exit;
+        }
+
+        // Ensure booking belongs to this driver, and fetch numbers
+        $stmtB = $db->executeQuery(
+            "SELECT b.pickup_contact_number, b.drop_contact_number
+             FROM bookings b
+             WHERE b.id = ? AND b.driver_id = ?
+             LIMIT 1",
+            [$bookingId, $driverId]
+        );
+        $bRow = $db->fetch($stmtB)[0] ?? null;
+
+        if (!$bRow) {
+            $_SESSION['flash_error'] = 'Booking not found or not assigned to you.';
+            header('Location: driverBookings.php');
+            exit;
+        }
+
+        $target = $allowedPrompts[$prompt]['target']; // sender|recipient
+        $text   = $allowedPrompts[$prompt]['text'];
+
+        $recipients = [];
+        if ($target === 'sender' && !empty($bRow['pickup_contact_number'])) {
+            $recipients[] = $bRow['pickup_contact_number'];
+        }
+        if ($target === 'recipient' && !empty($bRow['drop_contact_number'])) {
+            $recipients[] = $bRow['drop_contact_number'];
+        }
+
+        if (empty($recipients)) {
+            $_SESSION['flash_error'] = 'No valid contact number found for this message.';
+            header('Location: driverBookings.php');
+            exit;
+        }
+
+        $smsService = new SmsNotificationService();
+
+        // Status stored in SmsLogs.Status (if you integrated logging)
+        $smsService->notify(
+            $recipients,
+            $text,
+            [
+                'booking_id' => $bookingId,
+                'driver_id'  => $driverId,
+                'status'     => 'quick_sms_' . $prompt,
+            ]
+        );
+
+        $_SESSION['flash_success'] = 'Quick message sent.';
+        header('Location: driverBookings.php');
+        exit;
+    }
+
+    /* Advance status */
     if ($action === 'advance' && $bookingId > 0) {
         $stmt = $db->executeQuery(
             "SELECT tracking_status FROM bookings WHERE id = ? AND driver_id = ? LIMIT 1",
@@ -58,88 +151,73 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty($row)) {
             $_SESSION['flash_error'] = 'Booking not found or not assigned to you.';
-            header('Location: driverBookings.php');
-            exit;
-        }
-
-        $current = (string)$row[0]['tracking_status'];
-        $nextMap = [
-            'accepted'   => 'picked_up',
-            'picked_up'  => 'in_transit',
-            'in_transit' => 'delivered',
-        ];
-
-        if (!isset($nextMap[$current])) {
-            $_SESSION['flash_error'] = 'Cannot advance status from "' . h($current) . '".';
-            header('Location: driverBookings.php');
-            exit;
-        }
-
-        $next = $nextMap[$current];
-
-        $stmt2 = $db->executeQuery(
-            "UPDATE bookings
-             SET tracking_status = ?, updated_at = CURRENT_TIMESTAMP()
-             WHERE id = ? AND driver_id = ?",
-            [$next, $bookingId, $driverId]
-        );
-
-        $updated = (mysqli_stmt_affected_rows($stmt2) > 0);
-
-        if ($updated) {
-            $_SESSION['flash_success'] = 'Booking status updated to ' . $next . '.';
-
-            // ---------- SMS notifications per status ----------
-            $stmtBooking = $db->executeQuery(
-                "SELECT b.pickup_contact_number, b.drop_contact_number, d.first_name AS driver_name
-                 FROM bookings b
-                 JOIN drivers d ON b.driver_id = d.id
-                 WHERE b.id = ? AND b.driver_id = ? LIMIT 1",
-                [$bookingId, $driverId]
-            );
-            $bookingDetails = $db->fetch($stmtBooking)[0] ?? null;
-
-            if ($bookingDetails) {
-                $smsService = new SmsNotificationService();
-
-                $recipients = [];
-                if (!empty($bookingDetails['pickup_contact_number'])) {
-                    $recipients[] = $bookingDetails['pickup_contact_number'];
-                }
-                if (!empty($bookingDetails['drop_contact_number'])) {
-                    $recipients[] = $bookingDetails['drop_contact_number'];
-                }
-
-                // Determine template key based on $next
-                $templateKey = $next; // picked_up / in_transit / delivered
-
-                if (!empty($recipients)) {
-                    $smsService->notify(
-                        $recipients,
-                        $smsService->getTemplate($templateKey, [
-                            'booking_id'  => $bookingId,
-                            'driver_name' => $bookingDetails['driver_name'] ?? '',
-                        ]),
-                        [
-                            'booking_id' => $bookingId,
-                            'driver_id'  => $driverId,
-                            'status'     => $templateKey,
-                        ]
-                    );
-                }
-            }
-            // ------------------------------------------------------
-
-            if ($next === 'delivered') {
-                header('Location: driver.php');
-                exit;
-            }
         } else {
-            $_SESSION['flash_error'] = 'Failed to update booking status. Try again.';
-        }
+            $current = (string)$row[0]['tracking_status'];
+            $nextMap = [
+                'accepted'   => 'picked_up',
+                'picked_up'  => 'in_transit',
+                'in_transit' => 'delivered',
+            ];
 
-        header('Location: driverBookings.php');
-        exit;
+            if (!isset($nextMap[$current])) {
+                $_SESSION['flash_error'] = 'Cannot advance status from "' . h($current) . '".';
+            } else {
+                $next = $nextMap[$current];
+
+                $stmt2 = $db->executeQuery(
+                    "UPDATE bookings
+                     SET tracking_status = ?, updated_at = CURRENT_TIMESTAMP()
+                     WHERE id = ? AND driver_id = ?",
+                    [$next, $bookingId, $driverId]
+                );
+
+                $updated = (mysqli_stmt_affected_rows($stmt2) > 0);
+
+                if ($updated) {
+                    $_SESSION['flash_success'] = 'Booking status updated to ' . $next . '.';
+
+                    // SMS notifications per status (sender + recipient)
+                    $stmtBooking = $db->executeQuery(
+                        "SELECT b.pickup_contact_number, b.drop_contact_number, d.first_name AS driver_name
+                         FROM bookings b
+                         JOIN drivers d ON b.driver_id = d.id
+                         WHERE b.id = ? AND b.driver_id = ? LIMIT 1",
+                        [$bookingId, $driverId]
+                    );
+                    $bookingDetails = $db->fetch($stmtBooking)[0] ?? null;
+
+                    if ($bookingDetails) {
+                        $smsService = new SmsNotificationService();
+
+                        $recipients = [];
+                        if (!empty($bookingDetails['pickup_contact_number'])) $recipients[] = $bookingDetails['pickup_contact_number'];
+                        if (!empty($bookingDetails['drop_contact_number'])) $recipients[] = $bookingDetails['drop_contact_number'];
+
+                        if (!empty($recipients)) {
+                            $smsService->notify(
+                                $recipients,
+                                $smsService->getTemplate($next, [
+                                    'booking_id'  => $bookingId,
+                                    'driver_name' => $bookingDetails['driver_name'] ?? '',
+                                ]),
+                                [
+                                    'booking_id' => $bookingId,
+                                    'driver_id'  => $driverId,
+                                    'status'     => $next,
+                                ]
+                            );
+                        }
+                    }
+
+                    if ($next === 'delivered') {
+                        header('Location: driver.php');
+                        exit;
+                    }
+                } else {
+                    $_SESSION['flash_error'] = 'Failed to update booking status. Try again.';
+                }
+            }
+        }
     }
 
     header('Location: driverBookings.php');
@@ -351,7 +429,7 @@ $myBookings = $db->fetch($stmtMine);
 
                                         <div class="col-12 col-md-6">
                                             <div class="detail-card">
-                                                <div class="fw-bold mb-2"><i class="bi bi-geo-alt me-1"></i> Pickup</div>
+                                                <div class="fw-bold mb-2"><i class="bi bi-geo-alt me-1"></i> Pickup (Sender)</div>
                                                 <div class="text-muted small mb-2"><?= h($pickupFull ?: '—') ?></div>
                                                 <div class="kv"><div class="k">Pickup Contact</div><div class="v"><?= h(($b['pickup_contact_name'] ?? '—') . ' • ' . ($b['pickup_contact_number'] ?? '—')) ?></div></div>
                                                 <div class="kv"><div class="k">Province</div><div class="v"><?= h($b['pickup_province'] ?? '—') ?></div></div>
@@ -363,7 +441,7 @@ $myBookings = $db->fetch($stmtMine);
 
                                         <div class="col-12 col-md-6">
                                             <div class="detail-card">
-                                                <div class="fw-bold mb-2"><i class="bi bi-flag me-1"></i> Drop-off</div>
+                                                <div class="fw-bold mb-2"><i class="bi bi-flag me-1"></i> Drop-off (Recipient)</div>
                                                 <div class="text-muted small mb-2"><?= h($dropFull ?: '—') ?></div>
                                                 <div class="kv"><div class="k">Recipient</div><div class="v"><?= h(($b['drop_contact_name'] ?? '—') . ' • ' . ($b['drop_contact_number'] ?? '—')) ?></div></div>
                                                 <div class="kv"><div class="k">Province</div><div class="v"><?= h($b['drop_province'] ?? '—') ?></div></div>
@@ -386,6 +464,59 @@ $myBookings = $db->fetch($stmtMine);
 
                                                 <div class="kv"><div class="k">Created</div><div class="v"><?= h($b['created_at'] ?? '—') ?></div></div>
                                                 <div class="kv"><div class="k">Updated</div><div class="v"><?= h($b['updated_at'] ?? '—') ?></div></div>
+
+                                                <!-- QUICK MESSAGES UI -->
+                                                <div class="detail-card mt-3">
+                                                    <div class="fw-bold mb-2"><i class="bi bi-chat-dots me-1"></i> Quick Messages</div>
+                                                    <div class="text-muted small mb-3">
+                                                        Pickup messages go to the <strong>sender</strong>. Drop-off messages go to the <strong>recipient</strong>.
+                                                    </div>
+
+                                                    <div class="d-flex flex-wrap gap-2">
+                                                        <!-- Sender (pickup) -->
+                                                        <form method="post" class="d-inline">
+                                                            <input type="hidden" name="csrf_token" value="<?= h($_SESSION['csrf_token']) ?>">
+                                                            <input type="hidden" name="action" value="quick_sms">
+                                                            <input type="hidden" name="booking_id" value="<?= (int)$b['id'] ?>">
+                                                            <input type="hidden" name="prompt" value="pickup_arrived">
+                                                            <button type="submit" class="btn btn-outline-primary btn-sm fw-bold">
+                                                                Sender: I'm at pickup
+                                                            </button>
+                                                        </form>
+
+                                                        <form method="post" class="d-inline">
+                                                            <input type="hidden" name="csrf_token" value="<?= h($_SESSION['csrf_token']) ?>">
+                                                            <input type="hidden" name="action" value="quick_sms">
+                                                            <input type="hidden" name="booking_id" value="<?= (int)$b['id'] ?>">
+                                                            <input type="hidden" name="prompt" value="cant_find_pickup">
+                                                            <button type="submit" class="btn btn-outline-secondary btn-sm fw-bold">
+                                                                Sender: Can't find pickup
+                                                            </button>
+                                                        </form>
+
+                                                        <!-- Recipient (drop-off) -->
+                                                        <form method="post" class="d-inline">
+                                                            <input type="hidden" name="csrf_token" value="<?= h($_SESSION['csrf_token']) ?>">
+                                                            <input type="hidden" name="action" value="quick_sms">
+                                                            <input type="hidden" name="booking_id" value="<?= (int)$b['id'] ?>">
+                                                            <input type="hidden" name="prompt" value="on_the_way_to_drop">
+                                                            <button type="submit" class="btn btn-outline-dark btn-sm fw-bold">
+                                                                Recipient: On the way
+                                                            </button>
+                                                        </form>
+
+                                                        <form method="post" class="d-inline">
+                                                            <input type="hidden" name="csrf_token" value="<?= h($_SESSION['csrf_token']) ?>">
+                                                            <input type="hidden" name="action" value="quick_sms">
+                                                            <input type="hidden" name="booking_id" value="<?= (int)$b['id'] ?>">
+                                                            <input type="hidden" name="prompt" value="drop_arrived">
+                                                            <button type="submit" class="btn btn-outline-dark btn-sm fw-bold">
+                                                                Recipient: I'm at drop-off
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                                <!-- END QUICK MESSAGES UI -->
 
                                                 <div class="mt-3 text-md-end">
                                                     <?php if ($btnLabel !== null): ?>
