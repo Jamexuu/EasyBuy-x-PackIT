@@ -44,45 +44,43 @@
           const imgSrc = "/EasyBuy-x-PackIT/EasyBuy/Product Images/all/" +
             product.image.split("/").pop();
 
-     col.innerHTML = `
-        <div class="card h-100 rounded-4 shadow-sm">
-        <img src="/EasyBuy-x-PackIT/EasyBuy/Product%20Images/all/${product.image.split('/').pop()}"
-            class="card-img-top p-3" style="height:160px;object-fit:contain;"
-            alt="${product.product_name}">
-        <div class="card-body text-center d-flex flex-column p-2 p-sm-3">
-            <h6 class="card-title fw-bold"
-            style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.4em;">
-            ${product.product_name}
-            </h6>
-            <p class="card-title text-secondary"
-            style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2em;">
-            ${product.size}
-            </p>
-            <div class="d-flex flex-row justify-content-around mx-2">
-                <p class="card-text fw-bold text-success" style="font-size:1.1em;">
-                    ₱${product.sale_price}
-                </p>
-                <p class="card-text text-muted text-decoration-line-through small" style="font-size:0.9em;">
-                    ₱${product.price}
-                </p>
-                <p class="card-text text-muted" style="font-size:1em;">
-                    ₱${product.sale_percentage}% Off  
-                </p>
-            </div>
-            <div style="display:flex;gap:8px;width:100%;">
-            <button type="button" class="btn rounded-3" id="addToCart"
-                style="border:1px solid #6EC064;color:#6EC064;">
-                <span class="material-symbols-rounded">shopping_cart</span>
-            </button>
-            <button class="btn btn-sm rounded-3"
-                style="flex:1;background-color:#6EC064;color:white; ">
-                BUY NOW
-            </button>
-            </div>
-        </div>
-        </div>
+            col.innerHTML = `
+                <div class="card h-100 rounded-4 shadow-sm">
+                <div class="card-img-overlay"><span class="badge position-absolute me-3 end-0 fw-normal" style="background-color:#28a745;">${product.sale_percentage}% Off</span></div>
+                <img src="/EasyBuy-x-PackIT/EasyBuy/Product%20Images/all/${product.image.split('/').pop()}"
+                    class="card-img-top p-3" style="height:160px;object-fit:contain;"
+                    alt="${product.product_name}">
+                <div class="card-body text-center d-flex flex-column p-2 p-sm-3">
+                    <h6 class="card-title fw-bold"
+                    style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.4em;">
+                    ${product.product_name}
+                    </h6>
+                    <p class="card-title text-secondary"
+                    style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2em;">
+                    ${product.size}
+                    </p>
+                    <div class="d-flex flex-row justify-content-center align-items-center gap-2 mb-2">
+                        <p class="card-text fw-bold text-success mb-0" style="font-size:1.1em;">
+                            ₱${product.sale_price}
+                        </p>
+                        <p class="card-text text-muted text-decoration-line-through mb-0" style="font-size:0.9em;">
+                            ₱${product.price}
+                        </p>
+                    </div>
+                    <div style="display:flex;gap:8px;width:100%;">
+                    <button type="button" class="btn rounded-3" id="addToCart"
+                        style="border:1px solid #6EC064;color:#6EC064;">
+                        <span class="material-symbols-rounded">shopping_cart</span>
+                    </button>
+                    <button class="btn btn-sm rounded-3"
+                        style="flex:1;background-color:#6EC064;color:white; ">
+                        BUY NOW
+                    </button>
+                    </div>
+                </div>
+                </div>
 
-        `;
+                `;
           row.appendChild(col);
         });
         carouselItem.appendChild(row);
