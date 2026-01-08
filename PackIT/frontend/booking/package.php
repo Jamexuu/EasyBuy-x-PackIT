@@ -1,7 +1,29 @@
 <?php
 
 declare(strict_types=1);
+
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+  session_start();
+}
+
 require_once __DIR__ . "/booking_state.php";
+
+$sessionKeys = ['user_id', 'user', 'logged_in'];
+$logged = false;
+foreach ($sessionKeys as $k) {
+  if (!empty($_SESSION[$k])) {
+    $logged = true;
+    break;
+  }
+}
+
+if (!$logged) {
+  // Save intended destination for post-login redirect
+  $_SESSION['post_login_redirect'] = $_SERVER['REQUEST_URI'] ?? '/';
+  header("Location: ../login.php");
+  exit;
+}
 
 $packages = get_packages();
 $error = "";
