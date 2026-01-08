@@ -19,3 +19,6 @@ api/data/users.json
 .DS_Store
 Thumbs.db
 .vscode/
+
+# Ignore user uploaded avatars
+uploads/avatars/

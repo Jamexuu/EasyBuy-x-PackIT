@@ -1,55 +1,48 @@
 <?php
 session_start();
 
-// Ensure user is logged in
+// 1. Login Check
 if (!isset($_SESSION['user']) || empty($_SESSION['user']['id'])) {
     header('Location: login.php');
     exit;
 }
 
-// Ensure CSRF token exists
+// 2. CSRF Token
 if (!isset($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(24));
 }
 
-$user = $_SESSION['user'];
-$displayName = trim(($user['firstName'] ?? '') . ' ' . ($user['lastName'] ?? ''));
-$email = $user['email'] ?? '';
-$contact = $user['contact'] ?? '';
-$profileImage = $user['profile_image'] ?? null;
+// 3. Fetch Fresh User Data (Consistent with profile.php)
+require_once __DIR__ . '/../api/classes/User.php';
+$userObj = new User();
+$userDetails = $userObj->getUserDetails($_SESSION['user']['id']);
 
-// Database Connection
-$pdo = new PDO(
-    "mysql:host=127.0.0.1;dbname=packit;charset=utf8mb4",
-    "root",
-    "",
-    [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    ]
-);
-
-// Fetch Address
-$stmt = $pdo->prepare("SELECT * FROM addresses WHERE user_id = ? ORDER BY id DESC LIMIT 1");
-$stmt->execute([$user['id']]);
-$address = $stmt->fetch();
-
-function formatAddress($addr) {
-    if (!$addr) return '--';
-    return implode(', ', array_filter([
-        $addr['house_number'] ?? null,
-        $addr['street'] ?? null,
-        $addr['subdivision'] ?? null,
-        $addr['barangay'] ?? null,
-        $addr['city'] ?? null,
-        $addr['province'] ?? null,
-        $addr['postal_code'] ?? null,
-    ]));
+if (!$userDetails) {
+    header('Location: login.php');
+    exit;
 }
 
-$displayAddress = formatAddress($address);
+// 4. Map Data for Display
+$displayName  = trim(($userDetails['first_name'] ?? '') . ' ' . ($userDetails['last_name'] ?? ''));
+$email        = $userDetails['email'] ?? '';
+$contact      = $userDetails['contact_number'] ?? '';
+$profileImage = $userDetails['profile_image'] ?? null;
 
-// Default Avatar
+function formatAddress($u) {
+    if (!$u) return '--';
+    return implode(', ', array_filter([
+        $u['house_number'] ?? null,
+        $u['street'] ?? null,
+        $u['subdivision'] ?? null,
+        $u['barangay'] ?? null,
+        $u['city'] ?? null,
+        $u['province'] ?? null,
+        $u['postal_code'] ?? null,
+    ]));
+}
+$displayAddress = formatAddress($userDetails);
+
+// Default SVG Avatar
 $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
         <circle cx="100" cy="100" r="100" fill="#e5e8ec"/>
@@ -67,33 +60,74 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root { 
+            --brand-yellow: #fce354; 
+        }
+        
+        .profile-card {
+            background-color: var(--brand-yellow);
+            border-radius: 40px;
+        }
+        
+        .profile-menu-container {
+            border: 3px solid var(--brand-yellow);
+            border-radius: 35px;
+        }
+
+        .avatar-container {
+            width: 180px;
+            height: 180px;
+            border: 5px solid #fff;
+        }
+
+        .camera-btn {
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .camera-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        /* Form specific styles */
+        .form-control:focus {
+            box-shadow: none;
+            border-color: var(--brand-yellow);
+        }
+    </style>
 </head>
 
-<body class="bg-white d-flex flex-column min-vh-100">
+<body class="d-flex flex-column min-vh-100 bg-white">
 
     <?php include("components/navbar.php"); ?>
 
     <main class="container my-5 flex-grow-1">
-        <div class="row g-4 align-items-center justify-content-center h-100">
+        <div class="row g-4 align-items-center">
 
             <div class="col-12 col-lg-4">
-                <div class="text-center p-5 shadow-sm d-flex flex-column align-items-center" 
-                     style="background-color: #fce354; border-radius: 40px;">
+                <div class="profile-card shadow-sm p-5 text-center position-relative h-100 d-flex flex-column align-items-center justify-content-center">
                     
-                    <div class="position-relative mb-3" style="width: 180px;">
-                        <div class="overflow-hidden rounded-circle border border-5 border-white bg-light shadow-sm" 
-                             style="width: 180px; height: 180px;">
-                            <img id="profileDisplay"
-                                 src="<?= htmlspecialchars($profileImage ?: $defaultAvatar) ?>"
+                    <div class="position-relative mb-3">
+                        <div class="avatar-container rounded-circle overflow-hidden bg-light mx-auto">
+                            <img id="profileDisplay" 
+                                 src="<?= htmlspecialchars($profileImage ?: $defaultAvatar) ?>" 
+                                 alt="Profile" 
                                  class="w-100 h-100 object-fit-cover"
-                                 onerror="this.src='<?= $defaultAvatar ?>'"
-                                 alt="Profile">
+                                 onerror="this.src='<?= $defaultAvatar ?>'">
                         </div>
                         
-                        <div class="position-absolute bg-white border border-2 rounded-circle d-flex align-items-center justify-content-center shadow-sm" 
-                             style="width: 40px; height: 40px; bottom: 5px; right: 10px; border-color: #fce354 !important; cursor: pointer;" 
+                        <div class="camera-btn position-absolute bottom-0 end-0 bg-white border border-2 border-warning rounded-circle d-flex align-items-center justify-content-center shadow-sm"
                              onclick="document.getElementById('fileInput').click()">
-                            <i class="bi bi-camera-fill text-dark"></i>
+                             <i class="bi bi-camera-fill text-dark"></i>
+                        </div>
+                        
+                        <div id="avatarSpinner" class="position-absolute top-50 start-50 translate-middle d-none">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
                         </div>
                     </div>
 
@@ -102,20 +136,20 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
                         <input type="file" id="fileInput" name="avatar" accept="image/*">
                     </form>
 
-                    <h2 class="fw-bold mt-3 text-dark text-break"><?= htmlspecialchars($displayName) ?></h2>
-                    <p class="text-secondary mb-2 text-break"><?= htmlspecialchars($email) ?></p>
-                    <h5 class="fw-medium mb-1 text-dark"><?= htmlspecialchars($contact ?: '--') ?></h5>
-                    <h6 class="text-secondary small text-break"><?= htmlspecialchars($displayAddress) ?></h6>
+                    <h2 class="fw-bold text-dark mb-1"><?= htmlspecialchars($displayName) ?></h2>
+                    <p class="text-secondary mb-2"><?= htmlspecialchars($email) ?></p>
+                    <h5 class="fw-medium text-dark mb-1"><?= htmlspecialchars($contact ?: '--') ?></h5>
+                    <small class="text-secondary d-block"><?= htmlspecialchars($displayAddress) ?></small>
                 </div>
             </div>
 
             <div class="col-12 col-lg-8">
-                <div class="p-4 p-lg-5" style="border: 3px solid #fce354; border-radius: 35px;">
+                <div class="profile-menu-container p-4 p-lg-5 bg-white h-100">
                     
                     <div class="d-flex align-items-center justify-content-between mb-4">
                         <h3 class="fw-bold m-0">Change Password</h3>
-                        <a href="profile.php" class="btn btn-outline-secondary rounded-pill btn-sm">
-                            <i class="bi bi-arrow-left me-1"></i> Back
+                        <a href="profile.php" class="btn btn-outline-secondary rounded-pill btn-sm px-3">
+                            <i class="bi bi-arrow-left me-1"></i> Back to Profile
                         </a>
                     </div>
 
@@ -173,14 +207,39 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
     <script>
         const fileInput = document.getElementById('fileInput');
         const profileDisplay = document.getElementById('profileDisplay');
+        const avatarSpinner = document.getElementById('avatarSpinner');
 
-        fileInput.addEventListener('change', function() {
-            if (this.files && this.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    profileDisplay.src = e.target.result;
+        fileInput.addEventListener('change', async function() {
+            if (!this.files || !this.files[0]) return;
+
+            // Show spinner
+            profileDisplay.style.opacity = '0.5';
+            avatarSpinner.classList.remove('d-none');
+
+            const formData = new FormData();
+            formData.append('avatar', this.files[0]);
+            formData.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
+
+            try {
+                const response = await fetch('../api/user/update_avatar.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.ok) {
+                    profileDisplay.src = result.path + '?t=' + new Date().getTime();
+                } else {
+                    alert(result.error || 'Failed to upload image');
                 }
-                reader.readAsDataURL(this.files[0]);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while uploading.');
+            } finally {
+                profileDisplay.style.opacity = '1';
+                avatarSpinner.classList.add('d-none');
+                fileInput.value = '';
             }
         });
     </script>

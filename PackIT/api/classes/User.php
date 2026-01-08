@@ -11,19 +11,15 @@ class User {
 
     function register($userData, $addressData, $role = 'user'){
         $userId = $this->insertUser($userData, $role);
-
         $addressData['userId'] = $userId;
         $this->insertAddress($addressData);
-
         return $userId;
     }
 
     function insertUser($userData, $role = 'user'){
         $sql = "INSERT INTO users (first_name, last_name, email, password, contact_number, role) 
             VALUES (?, ?, ?, ?, ?, ?)";
-
         $hashPassword = password_hash($userData['password'], PASSWORD_DEFAULT);
-
         $params = [
             $userData['firstName'],
             $userData['lastName'],
@@ -32,17 +28,14 @@ class User {
             $userData['contactNumber'],
             $role
         ];
-
         $stmt = $this->db->executeQuery($sql, $params);
         mysqli_stmt_close($stmt);
-
         return $this->db->lastInsertId();
     }
 
     function insertAddress($addressData){
         $sql = "INSERT INTO addresses (user_id, house_number, street, subdivision, landmark, barangay, city, province, postal_code) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
         $params = [
             $addressData['userId'],
             $addressData['houseNumber'] ?? '',
@@ -54,7 +47,6 @@ class User {
             $addressData['province'],
             $addressData['postalCode']
         ];
-
         $stmt = $this->db->executeQuery($sql, $params);
         mysqli_stmt_close($stmt);
     }
@@ -62,11 +54,9 @@ class User {
     function login($email, $password, $requiredRole = null){
         $sql = "SELECT * FROM users WHERE email = ?";
         $params = [$email];
-
         $stmt = $this->db->executeQuery($sql, $params);
         $result = $this->db->fetch($stmt);
         mysqli_stmt_close($stmt);
-        
         $data = $result[0] ?? null;
 
         if (!$data || !password_verify($password, $data['password'])) {
@@ -78,25 +68,70 @@ class User {
                 return false;
             }
         }
-
         return $data;
     }
 
     function getUserDetails($userId){
-        $sql = "SELECT u.id, u.first_name, u.last_name, u.email, u.contact_number, u.role, u.created_at,
+        // Added u.profile_image to the selection
+        $sql = "SELECT u.id, u.first_name, u.last_name, u.email, u.contact_number, u.role, u.created_at, u.profile_image,
                        a.house_number, a. street, a.subdivision, a. landmark, a.barangay, 
                        a.city, a.province, a.postal_code
                 FROM users u
                 LEFT JOIN addresses a ON u.id = a.user_id
-                WHERE u.id = ?";
+                WHERE u.id = ?
+                ORDER BY a.id DESC LIMIT 1"; 
         
         $params = [$userId];
-        
         $stmt = $this->db->executeQuery($sql, $params);
         $result = $this->db->fetch($stmt);
         mysqli_stmt_close($stmt);
         
         return $result[0] ?? null;
+    }
+
+    // --- New Method: Update Profile ---
+    function updateProfile(int $userId, array $userData, array $addressData) {
+        // 1. Update Basic Info
+        $sqlUser = "UPDATE users SET first_name = ?, last_name = ?, contact_number = ? WHERE id = ?";
+        $paramsUser = [
+            $userData['firstName'], 
+            $userData['lastName'], 
+            $userData['contactNumber'], 
+            (string)$userId
+        ];
+        $stmt = $this->db->executeQuery($sqlUser, $paramsUser);
+        mysqli_stmt_close($stmt);
+
+        // 2. Update or Insert Address
+        // Check if user has an address entry
+        $check = $this->db->executeQuery("SELECT id FROM addresses WHERE user_id = ? ORDER BY id DESC LIMIT 1", [(string)$userId]);
+        $rows = $this->db->fetch($check);
+        mysqli_stmt_close($check);
+
+        if (!empty($rows)) {
+            // Update existing
+            $addrId = $rows[0]['id'];
+            $sqlAddr = "UPDATE addresses SET house_number=?, street=?, subdivision=?, landmark=?, barangay=?, city=?, province=?, postal_code=? WHERE id=?";
+            $paramsAddr = [
+                $addressData['houseNumber'],
+                $addressData['street'],
+                $addressData['subdivision'],
+                $addressData['landmark'],
+                $addressData['barangay'],
+                $addressData['city'],
+                $addressData['province'],
+                $addressData['postalCode'],
+                (string)$addrId
+            ];
+            $stmtAddr = $this->db->executeQuery($sqlAddr, $paramsAddr);
+            mysqli_stmt_close($stmtAddr);
+        } else {
+            // Insert new
+            $addressData['userId'] = $userId;
+            $this->insertAddress($addressData);
+        }
+
+        return true;
     }
 
     function emailExists($email){
@@ -106,6 +141,25 @@ class User {
         mysqli_stmt_close($stmt);
         return !empty($rows);
     }
+
+    // ... [Keep your existing password methods (changePassword, reset, otp) here] ...
+    function findByEmail($email) {
+        $sql = "SELECT * FROM users WHERE email = ? LIMIT 1";
+        $stmt = $this->db->executeQuery($sql, [$email]);
+        $rows = $this->db->fetch($stmt);
+        mysqli_stmt_close($stmt);
+        return $rows[0] ?? null;
+    }
+
+        // --- Existing password reset methods ---
+
+    /**
+     * Return user row or null
+     */
+    /**
+     * Create a password reset token for the user (if email exists).
+     * Returns token string on success, false on failure.
+     */
 
     function changePassword(int $userId, string $currentPassword, string $newPassword) {
         // Fetch user current hash
@@ -133,23 +187,6 @@ class User {
         return true;
     }
 
-    // --- Existing password reset methods ---
-
-    /**
-     * Return user row or null
-     */
-    function findByEmail($email) {
-        $sql = "SELECT * FROM users WHERE email = ? LIMIT 1";
-        $stmt = $this->db->executeQuery($sql, [$email]);
-        $rows = $this->db->fetch($stmt);
-        mysqli_stmt_close($stmt);
-        return $rows[0] ?? null;
-    }
-
-    /**
-     * Create a password reset token for the user (if email exists).
-     * Returns token string on success, false on failure.
-     */
     function createPasswordResetToken($email, $expiryMinutes = 60) {
         $user = $this->findByEmail($email);
         if (!$user) return false;
@@ -267,3 +304,4 @@ class User {
         return true;
     }
 }
+?>
