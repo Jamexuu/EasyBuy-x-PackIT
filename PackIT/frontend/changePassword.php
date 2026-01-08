@@ -97,6 +97,27 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
             box-shadow: none;
             border-color: var(--brand-yellow);
         }
+
+        /* Password toggle button styling */
+        .toggle-password {
+            min-width: 46px;
+            border: 0;
+            background: transparent;
+            color: #495057;
+        }
+        .input-group .form-control {
+            /* keep original visual style */
+            background-color: #f8f9fa;
+        }
+        /* Slight tweak so the input and button appear seamless */
+        .input-group .form-control.rounded-4 {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+        .input-group .toggle-password {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
     </style>
 </head>
 
@@ -172,18 +193,33 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
 
                         <div class="mb-4">
                             <label class="form-label fw-semibold small text-secondary text-uppercase ls-1">Current Password</label>
-                            <input type="password" name="current_password" class="form-control form-control-lg bg-light border-0 rounded-4" required placeholder="••••••••">
+                            <div class="input-group">
+                                <input id="current_password" type="password" name="current_password" class="form-control form-control-lg bg-light border-0 rounded-4" required placeholder="••••••••">
+                                <button type="button" class="btn toggle-password" data-target="#current_password" aria-label="Show current password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <div class="mb-4">
                             <label class="form-label fw-semibold small text-secondary text-uppercase ls-1">New Password</label>
-                            <input type="password" name="new_password" class="form-control form-control-lg bg-light border-0 rounded-4" required minlength="8" pattern="(?=.*[A-Za-z])(?=.*\d).{8,}" placeholder="Min 8 chars, letters & numbers">
+                            <div class="input-group">
+                                <input id="new_password" type="password" name="new_password" class="form-control form-control-lg bg-light border-0 rounded-4" required minlength="8" pattern="(?=.*[A-Za-z])(?=.*\d).{8,}" placeholder="Min 8 chars, letters & numbers">
+                                <button type="button" class="btn toggle-password" data-target="#new_password" aria-label="Show new password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                             <div class="form-text small mt-2 ms-1 text-muted">Must be at least 8 characters long and contain both letters and numbers.</div>
                         </div>
 
                         <div class="mb-5">
                             <label class="form-label fw-semibold small text-secondary text-uppercase ls-1">Confirm New Password</label>
-                            <input type="password" name="confirm_password" class="form-control form-control-lg bg-light border-0 rounded-4" required minlength="8" placeholder="••••••••">
+                            <div class="input-group">
+                                <input id="confirm_password" type="password" name="confirm_password" class="form-control form-control-lg bg-light border-0 rounded-4" required minlength="8" placeholder="••••••••">
+                                <button type="button" class="btn toggle-password" data-target="#confirm_password" aria-label="Show confirm password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <div class="d-grid">
@@ -205,42 +241,72 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
+        // Avatar upload handling (unchanged)
         const fileInput = document.getElementById('fileInput');
         const profileDisplay = document.getElementById('profileDisplay');
         const avatarSpinner = document.getElementById('avatarSpinner');
 
-        fileInput.addEventListener('change', async function() {
-            if (!this.files || !this.files[0]) return;
+        if (fileInput) {
+            fileInput.addEventListener('change', async function() {
+                if (!this.files || !this.files[0]) return;
 
-            // Show spinner
-            profileDisplay.style.opacity = '0.5';
-            avatarSpinner.classList.remove('d-none');
+                // Show spinner
+                profileDisplay.style.opacity = '0.5';
+                avatarSpinner.classList.remove('d-none');
 
-            const formData = new FormData();
-            formData.append('avatar', this.files[0]);
-            formData.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
+                const formData = new FormData();
+                formData.append('avatar', this.files[0]);
+                formData.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
 
-            try {
-                const response = await fetch('../api/user/update_avatar.php', {
-                    method: 'POST',
-                    body: formData
-                });
+                try {
+                    const response = await fetch('../api/user/update_avatar.php', {
+                        method: 'POST',
+                        body: formData
+                    });
 
-                const result = await response.json();
+                    const result = await response.json();
 
-                if (response.ok && result.ok) {
-                    profileDisplay.src = result.path + '?t=' + new Date().getTime();
-                } else {
-                    alert(result.error || 'Failed to upload image');
+                    if (response.ok && result.ok) {
+                        profileDisplay.src = result.path + '?t=' + new Date().getTime();
+                    } else {
+                        alert(result.error || 'Failed to upload image');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while uploading.');
+                } finally {
+                    profileDisplay.style.opacity = '1';
+                    avatarSpinner.classList.add('d-none');
+                    fileInput.value = '';
                 }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred while uploading.');
-            } finally {
-                profileDisplay.style.opacity = '1';
-                avatarSpinner.classList.add('d-none');
-                fileInput.value = '';
-            }
+            });
+        }
+
+        // Password visibility toggle
+        document.querySelectorAll('.toggle-password').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetSelector = btn.getAttribute('data-target');
+                if (!targetSelector) return;
+                const input = document.querySelector(targetSelector);
+                if (!input) return;
+
+                const icon = btn.querySelector('i');
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    if (icon) {
+                        icon.classList.remove('bi-eye');
+                        icon.classList.add('bi-eye-slash');
+                    }
+                    btn.setAttribute('aria-label', 'Hide password');
+                } else {
+                    input.type = 'password';
+                    if (icon) {
+                        icon.classList.add('bi-eye');
+                        icon.classList.remove('bi-eye-slash');
+                    }
+                    btn.setAttribute('aria-label', 'Show password');
+                }
+            });
         });
     </script>
 </body>
