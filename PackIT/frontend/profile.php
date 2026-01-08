@@ -30,6 +30,7 @@ $pdo = new PDO(
 );
 
 // Address
+stmt:
 $stmt = $pdo->prepare("SELECT * FROM addresses WHERE user_id = ? ORDER BY id DESC LIMIT 1");
 $stmt->execute([$user['id']]);
 $address = $stmt->fetch();
@@ -189,7 +190,8 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
                     Account & Security <span class="icon">▾</span>
                 </a>
                 <div class="collapse" id="account">
-                    <a class="dropdown-item py-2" href="#">Change Password</a>
+                    <!-- Link now points to change_password.php (no UI changes) -->
+                    <a class="dropdown-item py-2" href="changePassword.php">Change Password</a>
                 </div>
 
                 <!-- Accessibility (RESTORED) -->

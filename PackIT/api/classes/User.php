@@ -102,9 +102,103 @@ class User {
     function emailExists($email){
         $sql = "SELECT id FROM users WHERE email = ?";
         $stmt = $this->db->executeQuery($sql, [$email]);
-        $result = $this->db->fetch($stmt);
+        $rows = $this->db->fetch($stmt);
         mysqli_stmt_close($stmt);
-        
-        return ! empty($result);
+        return !empty($rows);
+    }
+
+    function changePassword(int $userId, string $currentPassword, string $newPassword) {
+        // Fetch user current hash
+        $sql = "SELECT password FROM users WHERE id = ? LIMIT 1";
+        $stmt = $this->db->executeQuery($sql, [(string)$userId]);
+        $rows = $this->db->fetch($stmt);
+        mysqli_stmt_close($stmt);
+
+        if (empty($rows) || !isset($rows[0]['password'])) {
+            return 'User not found.';
+        }
+
+        $hash = $rows[0]['password'];
+
+        if (!password_verify($currentPassword, $hash)) {
+            return 'Current password is incorrect.';
+        }
+
+        // Hash and update
+        $newHash = password_hash($newPassword, PASSWORD_DEFAULT);
+        $sql2 = "UPDATE users SET password = ? WHERE id = ?";
+        $stmt2 = $this->db->executeQuery($sql2, [$newHash, (string)$userId]);
+        mysqli_stmt_close($stmt2);
+
+        return true;
+    }
+
+    // --- New methods for password reset ---
+
+    /**
+     * Return user row or null
+     */
+    function findByEmail($email) {
+        $sql = "SELECT * FROM users WHERE email = ? LIMIT 1";
+        $stmt = $this->db->executeQuery($sql, [$email]);
+        $rows = $this->db->fetch($stmt);
+        mysqli_stmt_close($stmt);
+        return $rows[0] ?? null;
+    }
+
+    /**
+     * Create a password reset token for the user (if email exists).
+     * Returns token string on success, false on failure.
+     */
+    function createPasswordResetToken($email, $expiryMinutes = 60) {
+        $user = $this->findByEmail($email);
+        if (!$user) return false;
+
+        $token = bin2hex(random_bytes(24));
+
+        // Use DB time to set expiry so verify uses the same clock
+        $expiryMinutes = (int)$expiryMinutes;
+        $sql = "INSERT INTO password_resets (user_id, token, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL $expiryMinutes MINUTE))";
+        $params = [$user['id'], $token];
+        $stmt = $this->db->executeQuery($sql, $params);
+        mysqli_stmt_close($stmt);
+
+        return $token;
+    }
+
+    /**
+     * Verify token; returns user row if valid and not expired, otherwise false.
+     */
+    function verifyPasswordResetToken($token) {
+        $sql = "SELECT pr.*, u.* FROM password_resets pr
+                JOIN users u ON pr.user_id = u.id
+                WHERE pr.token = ? AND pr.expires_at >= NOW()
+                LIMIT 1";
+        $stmt = $this->db->executeQuery($sql, [$token]);
+        $rows = $this->db->fetch($stmt);
+        mysqli_stmt_close($stmt);
+        return $rows[0] ?? false;
+    }
+
+    /**
+     * Reset password using token. Returns true on success.
+     */
+    function resetPasswordByToken($token, $newPassword) {
+        $entry = $this->verifyPasswordResetToken($token);
+        if (!$entry) return false;
+
+        $userId = $entry['user_id'];
+        $hash = password_hash($newPassword, PASSWORD_DEFAULT);
+
+        $sql = "UPDATE users SET password = ? WHERE id = ?";
+        $stmt = $this->db->executeQuery($sql, [$hash, $userId]);
+        mysqli_stmt_close($stmt);
+
+        // delete all existing tokens for this user
+        $sql2 = "DELETE FROM password_resets WHERE user_id = ?";
+        $stmt2 = $this->db->executeQuery($sql2, [$userId]);
+        mysqli_stmt_close($stmt2);
+
+        return true;
     }
 }
