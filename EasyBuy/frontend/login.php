@@ -67,7 +67,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <div class="h5 fw-bold mb-2">Error</div>
                                     <p class="mb-4"> Invalid Credentials</p>
                                     <div class="d-flex justify-content-center">
-                                        <button type="button" class="btn px-4 text-white" style="background-color: #6EC064;" data-bs-dismiss="modal">
+                                        <button type="button" class="btn px-4 text-white" style="background-color: #6EC064;"
+                                            data-bs-dismiss="modal">
                                             OK
                                         </button>
                                     </div>
@@ -95,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             style="background-color: #6EC064">Log in</button>
                     </div>
                     <div class="mt-2 d-flex justify-content-center">
-                        <p class="text-muted">or log in using</p>
+                        <p class="text-muted">or</p>
                     </div>
                     <div class="d-flex justify-content-center">
                         <!--This is where the endpoint of PACKIT-->
@@ -108,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                     <p class="text-center mb-1 mt-2">
                         Don't have an account?
-                        <a href="signUp.php" class="text-black text-decoration-underline ">Sign Up to
+                        <a href="signUp.php" class="text-black text-decoration-underline ">Sign Up with
                             EasyBuy</a>
                     </p>
                 </form>
