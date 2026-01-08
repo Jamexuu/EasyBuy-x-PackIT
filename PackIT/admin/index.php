@@ -31,6 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons for eye / eye-slash -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
   <style>
     body {
@@ -40,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     /* Keeps the card visually compact on large screens */
     .login-card {
       max-width: 420px;
-      margin: 0 auto;
+      width: 100%;
     }
   </style>
 </head>
@@ -53,12 +55,11 @@ $page = basename($_SERVER['PHP_SELF']);
 ?>
 
 <!-- MAIN CONTENT -->
-<main class="flex-grow-1 py-5">
+<main class="d-flex flex-grow-1 align-items-center justify-content-center">
   <div class="container">
     <div class="row justify-content-center">
-      <div class="col-12 col-sm-9 col-md-5 col-lg-4">
-
-        <div class="card border-0 shadow-sm rounded-4 login-card">
+      <div class="col-12 col-sm-9 col-md-6 col-lg-5 d-flex align-items-center">
+        <div class="card border-0 shadow-sm rounded-4 login-card mx-auto">
           <div class="card-body p-4 p-md-5">
 
             <div class="text-center mb-4">
@@ -80,19 +81,32 @@ $page = basename($_SERVER['PHP_SELF']);
                   type="email"
                   class="form-control form-control-lg"
                   name="adminEmail"
-                  placeholder="admin@packit.com"
                   required
                   autofocus>
               </div>
 
               <div class="mb-4">
                 <label class="form-label small fw-semibold">Password</label>
-                <input
-                  type="password"
-                  class="form-control form-control-lg"
-                  name="adminPassword"
-                  placeholder="••••••••"
-                  required>
+
+                <!-- Input group with toggle button -->
+                <div class="input-group input-group-lg">
+                  <input
+                    id="adminPassword"
+                    type="password"
+                    class="form-control"
+                    name="adminPassword"
+                    required
+                    aria-describedby="togglePasswordBtn">
+
+                  <button
+                    id="togglePasswordBtn"
+                    class="btn btn-outline-secondary"
+                    type="button"
+                    title="Show or hide password"
+                    aria-label="Show or hide password">
+                    <i id="toggleIcon" class="bi bi-eye"></i>
+                  </button>
+                </div>
               </div>
 
               <div class="d-grid mb-3">
@@ -122,9 +136,28 @@ $page = basename($_SERVER['PHP_SELF']);
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
-<?php
-$page = basename($_SERVER['PHP_SELF']);
-include __DIR__ . '/../frontend/components/footer.php';
-?>
+<script>
+  (function () {
+    const toggleBtn = document.getElementById('togglePasswordBtn');
+    const passwordInput = document.getElementById('adminPassword');
+    const toggleIcon = document.getElementById('toggleIcon');
+
+    if (!toggleBtn || !passwordInput || !toggleIcon) return;
+
+    toggleBtn.addEventListener('click', function () {
+      const isPassword = passwordInput.type === 'password';
+      passwordInput.type = isPassword ? 'text' : 'password';
+
+      // swap icon classes
+      if (isPassword) {
+        toggleIcon.classList.remove('bi-eye');
+        toggleIcon.classList.add('bi-eye-slash');
+      } else {
+        toggleIcon.classList.remove('bi-eye-slash');
+        toggleIcon.classList.add('bi-eye');
+      }
+    });
+  })();
+</script>
 </body>
 </html>
