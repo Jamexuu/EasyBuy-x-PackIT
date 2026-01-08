@@ -96,7 +96,7 @@
             </div>
         </div>
     </div>
-    <script src="../assets/js/addToCart.js"></script>
+    <?php include 'components/addToCart.php'; ?>
     <script>
         const contentArea = document.getElementById("productsArea");
         const pageText = document.getElementById("pageText");
@@ -130,11 +130,18 @@
 
                 contentArea.innerHTML += `
                 <div class="col-12 col-md-4 col-lg-3 mb-4">
-                    <div class="card rounded-4 h-100" style="cursor: pointer;" onclick="window.location.href='productView.php?id=${product.id}'">
-                        <img class="img-fluid object-fit-contain p-3 justify-content-center align-items-center" style="height: 180px;"
-                             src="${product.image}" alt="${product.product_name}">
-                        ${isOnSale ? '<div class="card-img-overlay"><span class="badge position-absolute me-3 end-0" style="background-color:#28a745;">Sale</span></div>' : ''}
-                        <div class="card-body mt-0 pt-0 d-block">
+                    <div class="card rounded-4 h-100">
+                        ${isOnSale ? `<div class="position-relative">
+                            <img class="img-fluid object-fit-contain p-3" style="height: 180px; cursor: pointer;" 
+                                 src="${product.image}" alt="${product.product_name}"
+                                 onclick="window.location.href='productView.php?id=${product.id}'">
+                            <div class="position-absolute top-0 end-0 me-3 mt-3">
+                                <span class="badge fw-normal" style="background-color:#28a745;">${product.sale_percentage}% Off</span>
+                            </div>
+                        </div>` : `<img class="img-fluid object-fit-contain p-3" style="height: 180px; cursor: pointer;" 
+                             src="${product.image}" alt="${product.product_name}"
+                             onclick="window.location.href='productView.php?id=${product.id}'">`}
+                        <div class="card-body mt-0 pt-0 d-block" style="cursor: pointer;" onclick="window.location.href='productView.php?id=${product.id}'">
                             <h5 class="card-title d-none d-md-block text-center fw-bold">${product.product_name}</h5>
                             <h3 class="card-title d-md-none text-center fw-bold">${product.product_name}</h3>
                             <p class="card-text text-center text-secondary">${product.size}</p>
@@ -151,7 +158,7 @@
                                     <span class="h5 d-md-none fw-bold" style="color: #6EC064;">₱${product.price}</span>
                                 `}
                             </div>
-                            <button type="button" class="btn rounded-3 addToCartBtn" data-product-id="${product.id}" onclick="event.stopPropagation(); addToCart(${product.id});">
+                            <button type="button" class="btn rounded-3 addToCartBtn" data-product-id="${product.id}" onclick="addToCart(${product.id});">
                                 <span class="material-symbols-rounded">shopping_cart</span>
                             </button>
                         </div>
