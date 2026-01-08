@@ -24,33 +24,28 @@ if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
 $user = new User();
 $userRow = $user->findByEmail($email);
 
+// Avoid revealing whether email exists: still create behavior but if no user, show generic success
 if (!$userRow) {
-    // Avoid leaking whether email exists — show a success message anyway
-    $_SESSION['fp_success'] = 'If an account exists for that email, a reset link was sent.';
+    $_SESSION['fp_success'] = 'If an account exists for that email, an OTP was sent.';
     header('Location: forgotPassword.php');
     exit;
 }
 
-$token = $user->createPasswordResetToken($email, 60); // 60 minutes
+// Create numeric OTP (e.g. 6 digits) valid for 15 minutes
+$otp = $user->createPasswordResetOTP($email, 15, 6);
 
-if (!$token) {
-    $_SESSION['fp_error'] = 'Could not create reset token. Try again later.';
+if (!$otp) {
+    $_SESSION['fp_error'] = 'Could not create reset OTP. Try again later.';
     header('Location: forgotPassword.php');
     exit;
 }
 
-// Build reset URL. Adjust path if your site is served from a subfolder.
-$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-$host = $_SERVER['HTTP_HOST'];
-$basePath = rtrim(dirname($_SERVER['PHP_SELF']), '/\\'); // should be /PackIT/frontend
-$resetLink = $protocol . '://' . $host . $basePath . '/resetPassword.php?token=' . urlencode($token);
-
-// Email content
-$subject = "PackIT password reset";
+// Email content with OTP
+$subject = "PackIT password reset code";
 $body = "
 <p>Hello,</p>
-<p>We received a request to reset your PackIT account password. Click the link below to set a new password (link expires in 60 minutes):</p>
-<p><a href=\"$resetLink\">Reset password</a></p>
+<p>We received a request to reset your PackIT account password. Use the following one-time code to verify and set a new password (code expires in 15 minutes):</p>
+<h2 style='letter-spacing:4px;'>$otp</h2>
 <p>If you didn't request this, you can safely ignore this message.</p>
 ";
 
@@ -70,12 +65,14 @@ try {
     $sent = false;
 }
 
-$_SESSION['fp_success'] = 'If an account exists for that email, a reset link was sent.';
+// Redirect to OTP entry page (keep message generic)
+$_SESSION['fp_success'] = 'If an account exists for that email, an OTP was sent.';
 if (!$sent) {
     // Do not reveal too much; but log server-side if needed
-    // error_log("Failed to send password reset email to $email");
-    $_SESSION['fp_success'] = 'A reset link was created. (Email sending failed; contact admin.)';
+    // error_log("Failed to send OTP to $email");
+    $_SESSION['fp_success'] = 'An OTP was created. (Email sending failed; contact admin.)';
 }
 
-header('Location: forgotPassword.php');
+// Redirect user to the OTP verify page. Provide email as query param for convenience (not required)
+header('Location: verifyOTP.php?email=' . urlencode($email));
 exit;

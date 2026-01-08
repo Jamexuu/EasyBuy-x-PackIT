@@ -2,17 +2,10 @@
 session_start();
 require_once __DIR__ . '/../api/classes/User.php';
 
-$token = trim($_GET['token'] ?? '');
-if ($token === '') {
-    $_SESSION['fp_error'] = 'Invalid reset link.';
-    header('Location: forgotPassword.php');
-    exit;
-}
-
-$userObj = new User();
-$entry = $userObj->verifyPasswordResetToken($token);
-if (!$entry) {
-    $_SESSION['fp_error'] = 'Reset link is invalid or expired.';
+// Check session-based OTP verification
+$userId = $_SESSION['password_reset_user_id'] ?? null;
+if (!$userId) {
+    $_SESSION['fp_error'] = 'Please verify the one-time code first.';
     header('Location: forgotPassword.php');
     exit;
 }
@@ -41,7 +34,6 @@ if (!$entry) {
           <?php endif; ?>
 
           <form action="resetPasswordProcess.php" method="POST">
-            <input type="hidden" name="token" value="<?= htmlspecialchars($token) ?>">
             <div class="mb-3">
               <label class="form-label small fw-semibold">New password</label>
               <input type="password" name="password" class="form-control" required minlength="6" placeholder="Enter new password">
