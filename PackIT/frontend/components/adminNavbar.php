@@ -100,9 +100,12 @@ $basePath   = $basePath ?? '../';
                     Drivers
                 </a>
 
-                <!-- ✅ Vehicles now goes to editable admin page -->
                 <a href="vehicles.php" class="admin-nav-card shadow-sm <?= $activePage === 'vehicles' ? 'active' : '' ?>">
                     Vehicles
+                </a>
+
+                <a href="dbTables.php?view=driver_vehicles" class="admin-nav-card shadow-sm <?= $activePage === 'driver_vehicles' ? 'active' : '' ?>">
+                    Driver Vehicles
                 </a>
 
                 <a href="dbTables.php?view=payments" class="admin-nav-card shadow-sm <?= $activePage === 'payments' ? 'active' : '' ?>">
@@ -110,6 +113,14 @@ $basePath   = $basePath ?? '../';
                 </a>
                 <a href="dbTables.php?view=bookings" class="admin-nav-card shadow-sm <?= $activePage === 'bookings' ? 'active' : '' ?>">
                     Bookings
+                </a>
+                
+                <a href="dbTables.php?view=smslogs" class="admin-nav-card shadow-sm <?= $activePage === 'smslogs' ? 'active' : '' ?>">
+                    SMS Logs
+                </a>
+
+                <a href="dbTables.php?view=password_resets" class="admin-nav-card shadow-sm <?= $activePage === 'password_resets' ? 'active' : '' ?>">
+                    Password Resets
                 </a>
             </div>
         </div>
