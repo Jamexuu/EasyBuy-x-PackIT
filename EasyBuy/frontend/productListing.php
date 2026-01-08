@@ -233,7 +233,7 @@
             }
 
             if (currentSalesFilter === 'all') {
-                filteredProducts = filteredProducts.filter(product => parseFloat(product.price) <= 50);
+                filteredProducts = filteredProducts.filter(product => product.is_sale == 1);
                 console.log('After sales filter:', filteredProducts.length);
             }
 
