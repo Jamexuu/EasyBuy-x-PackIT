@@ -53,9 +53,12 @@ $success = $order->addOrder(
 $cart = new Cart();
 
 if ($success) {
+    // Delete only the checked out cart items
+    $cartItemIds = $_SESSION['checkout_items'];
+    $cart->deleteCartItems($cartItemIds);
+    
     unset($_SESSION['checkout_items']);
     unset($_SESSION['cart_items']);
-    $cart->deleteCart($userId);
     echo json_encode(['success' => true, 'message' => 'Order added successfully.', 'order_id' => $success]);
 } else {
     http_response_code(500);

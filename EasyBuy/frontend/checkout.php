@@ -95,9 +95,8 @@
                 </div>
             </div>
             <div class="row p-md-5">
-                <div class="col p-0 d-flex justify-content-end align-items-center gap-4">
-                    <p class="m-0">Total (2 items) <strong>₱403</strong></p>
-                    <input type="button" id="placeOrder" class="btn text-white" style="background-color: #6EC064;" value="Place Order">
+                <div class="col p-0 d-flex justify-content-end align-items-center gap-4" id="placeOrderSection">
+                    
                 </div>
             </div>
         </div>
@@ -114,6 +113,7 @@
         var checkoutItems = document.getElementById('checkoutItems');
         var placeOrderButton = document.getElementById('placeOrder');
         var orderSummary = document.getElementById('orderSummary');
+        var placeOrderSection = document.getElementById('placeOrderSection');
 
         async function getUserCartItems(){
 
@@ -137,7 +137,7 @@
                 var subTotal = 0;
 
                 data.forEach(item => {
-                    subTotal += item.price * item.quantity;
+                    subTotal += item.final_price * item.quantity;
                     totalWeight += item.weight_grams * item.quantity;
                     checkoutItems.innerHTML += `
                         <tr>
@@ -150,6 +150,7 @@
                                     </div>
                                     <div class="col">
                                         <p class="mb-0">`+ item.product_name +`</p>
+                                        ${ item.is_sale == 1 ? `<span class="badge" style="background-color:#28a745;">`+ item.sale_percentage + `% Off</span>` : '' }
                                     </div>
                                 </div>
                             </td>
@@ -157,7 +158,10 @@
                                 `+ item.quantity + `
                             </td>
                             <td class="align-middle text-center">
-                                ₱`+ (item.price * item.quantity).toFixed(2) + `
+                                ${ item.is_sale == 1 ? `
+                                    <div><small class="text-decoration-line-through text-muted">₱`+ (item.price * item.quantity).toFixed(2) + `</small></div>
+                                    <div class="fw-bold text-success">₱`+ (item.final_price * item.quantity).toFixed(2) + `</div>
+                                ` : `₱`+ (item.final_price * item.quantity).toFixed(2) }
                             </td>
                         </tr>
                     `;
@@ -179,6 +183,11 @@
                         <div>Total</div>
                         <div>₱`+ totalAmount.toFixed(2) + `</div>
                     </div>
+                `;
+
+                placeOrderSection.innerHTML = `
+                    <p class="m-0">Total (`+ data.length + ` item${data.length !== 1 ? 's' : ''}) <strong>₱`+ totalAmount.toFixed(2) + `</strong></p>
+                    <input type="button" id="placeOrder" class="btn text-white" style="background-color: #6EC064;" value="Place Order">
                 `;
 
                 submbitOrder(data, subTotal, shippingFee, totalWeight, totalAmount);
@@ -216,7 +225,7 @@
                     const result = await response.json();
                     
                     if (result.success) {
-                        // window.location.href = 'orderConfirmation.php?orderId=' + result.order_id;
+                        window.location.href = 'orderConfirmation.php?orderId=' + result.order_id;
                     } else {
                         alert('Error: ' + result.error);
                     }
