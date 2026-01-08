@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             style="background-color: #6EC064">Log in</button>
                     </div>
                     <div class="mt-2 d-flex justify-content-center">
-                        <p class="text-muted">or log in using</p>
+                        <p class="text-muted">or</p>
                     </div>
                     <div class="d-flex justify-content-center">
                         <!--This is where the endpoint of PACKIT-->
