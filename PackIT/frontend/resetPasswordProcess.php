@@ -7,37 +7,46 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$token = trim($_POST['token'] ?? '');
+// Use session user id (set after OTP verification)
+$userId = $_SESSION['password_reset_user_id'] ?? null;
 $password = $_POST['password'] ?? '';
 $confirm = $_POST['confirm_password'] ?? '';
 
-if ($token === '' || $password === '' || $confirm === '') {
+if (!$userId) {
+    $_SESSION['fp_error'] = 'Session expired or invalid. Please request a new code.';
+    header('Location: forgotPassword.php');
+    exit;
+}
+
+if ($password === '' || $confirm === '') {
     $_SESSION['fp_error'] = 'All fields are required.';
-    header('Location: resetPassword.php?token=' . urlencode($token));
+    header('Location: resetPassword.php');
     exit;
 }
 
 if ($password !== $confirm) {
     $_SESSION['fp_error'] = 'Passwords do not match.';
-    header('Location: resetPassword.php?token=' . urlencode($token));
+    header('Location: resetPassword.php');
     exit;
 }
 
 if (strlen($password) < 6) {
     $_SESSION['fp_error'] = 'Password must be at least 6 characters.';
-    header('Location: resetPassword.php?token=' . urlencode($token));
+    header('Location: resetPassword.php');
     exit;
 }
 
 $user = new User();
-$ok = $user->resetPasswordByToken($token, $password);
+$ok = $user->resetPasswordForUser($userId, $password);
 
 if ($ok) {
+    // clear session marker
+    unset($_SESSION['password_reset_user_id']);
     $_SESSION['success'] = 'Password updated — you may now sign in.';
     header('Location: login.php');
     exit;
 } else {
-    $_SESSION['fp_error'] = 'Reset link invalid or expired.';
+    $_SESSION['fp_error'] = 'Could not reset password. Try again.';
     header('Location: forgotPassword.php');
     exit;
 }

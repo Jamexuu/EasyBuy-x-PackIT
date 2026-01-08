@@ -133,7 +133,7 @@ class User {
         return true;
     }
 
-    // --- New methods for password reset ---
+    // --- Existing password reset methods ---
 
     /**
      * Return user row or null
@@ -197,6 +197,71 @@ class User {
         // delete all existing tokens for this user
         $sql2 = "DELETE FROM password_resets WHERE user_id = ?";
         $stmt2 = $this->db->executeQuery($sql2, [$userId]);
+        mysqli_stmt_close($stmt2);
+
+        return true;
+    }
+
+    // --- New OTP methods for SMS/email OTP flow ---
+
+    /**
+     * Create an expiring numeric OTP for password reset (stored in password_resets.token).
+     * Returns the OTP string on success, false on failure or if email not found.
+     */
+    function createPasswordResetOTP($email, $expiryMinutes = 15, $length = 6) {
+        $user = $this->findByEmail($email);
+        if (!$user) return false;
+
+        $length = max(4, min(8, (int)$length));
+        $min = (int) pow(10, $length - 1);
+        $max = (int) pow(10, $length) - 1;
+
+        try {
+            $otp = (string) random_int($min, $max);
+        } catch (Exception $e) {
+            return false;
+        }
+
+        $expiryMinutes = (int)$expiryMinutes;
+        // reuse password_resets table — token column will hold numeric OTP
+        $sql = "INSERT INTO password_resets (user_id, token, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL $expiryMinutes MINUTE))";
+        $params = [$user['id'], $otp];
+        $stmt = $this->db->executeQuery($sql, $params);
+        mysqli_stmt_close($stmt);
+
+        return $otp;
+    }
+
+    /**
+     * Verify OTP for a user by email and OTP value; returns the password_resets row (with user info) on success, false otherwise.
+     */
+    function verifyPasswordResetOTP($email, $otp) {
+        $user = $this->findByEmail($email);
+        if (!$user) return false;
+
+        $sql = "SELECT pr.*, u.* FROM password_resets pr
+                JOIN users u ON pr.user_id = u.id
+                WHERE pr.token = ? AND pr.user_id = ? AND pr.expires_at >= NOW()
+                LIMIT 1";
+        $stmt = $this->db->executeQuery($sql, [$otp, $user['id']]);
+        $rows = $this->db->fetch($stmt);
+        mysqli_stmt_close($stmt);
+        return $rows[0] ?? false;
+    }
+
+    /**
+     * Reset password directly by user id (used when OTP has been verified and session holds user id).
+     * Returns true on success.
+     */
+    function resetPasswordForUser($userId, $newPassword) {
+        $hash = password_hash($newPassword, PASSWORD_DEFAULT);
+        $sql = "UPDATE users SET password = ? WHERE id = ?";
+        $stmt = $this->db->executeQuery($sql, [$hash, (string)$userId]);
+        mysqli_stmt_close($stmt);
+
+        // delete existing tokens/OTPs for this user
+        $sql2 = "DELETE FROM password_resets WHERE user_id = ?";
+        $stmt2 = $this->db->executeQuery($sql2, [(string)$userId]);
         mysqli_stmt_close($stmt2);
 
         return true;
