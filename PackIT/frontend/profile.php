@@ -30,7 +30,6 @@ $pdo = new PDO(
 );
 
 // Address
-stmt:
 $stmt = $pdo->prepare("SELECT * FROM addresses WHERE user_id = ? ORDER BY id DESC LIMIT 1");
 $stmt->execute([$user['id']]);
 $address = $stmt->fetch();
@@ -66,107 +65,81 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Profile Dashboard</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <style>
-        :root { --brand-yellow:#fce354; }
-
-        body {
-            background:#fff;
-            min-height:100vh;
-            display:flex;
-            flex-direction:column;
+        :root { 
+            --brand-yellow: #fce354; 
         }
-
+        
+        /* Custom styles that complement Bootstrap */
         .profile-card {
-            background:var(--brand-yellow);
-            border-radius:40px;
-            padding:50px 20px;
-            text-align:center;
+            background-color: var(--brand-yellow);
+            border-radius: 40px; /* Kept your specific radius */
+        }
+        
+        .profile-menu-container {
+            border: 3px solid var(--brand-yellow);
+            border-radius: 35px; /* Kept your specific radius */
         }
 
-        .profile-img-container {
-            width:180px;
-            height:180px;
-            border-radius:50%;
-            overflow:hidden;
-            border:5px solid #fff;
-            background:#eee;
-            margin:auto;
+        .avatar-container {
+            width: 180px;
+            height: 180px;
+            border: 5px solid #fff;
         }
 
-        #profileDisplay {
-            width:100%;
-            height:100%;
-            object-fit:cover;
+        .camera-btn {
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .camera-btn:hover {
+            transform: scale(1.1);
         }
 
-        .camera-icon-button {
-            position:absolute;
-            bottom:5px;
-            right:15px;
-            width:40px;
-            height:40px;
-            background:#fff;
-            border-radius:50%;
-            border:2px solid var(--brand-yellow);
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            cursor:pointer;
+        .menu-btn {
+            text-align: left;
+            font-size: 1.1rem;
+            color: #212529;
+            text-decoration: none;
         }
-
-        .menu-outline {
-            border:3px solid var(--brand-yellow);
-            border-radius:35px;
-            padding:30px;
-            /* removed fixed top margin so it vertically centers with the profile card */
-            /* margin-top:96px; */
+        
+        /* Rotate chevron on expand */
+        .menu-btn[aria-expanded="true"] .bi-chevron-down {
+            transform: rotate(180deg);
         }
-
-        .menu-link {
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            padding:12px 0;
-            text-decoration:none;
-            font-size:1.2rem;
-            color:#212529;
-        }
-
-        .menu-link .icon {
-            transition:.2s;
-        }
-
-        .menu-link[aria-expanded="true"] .icon {
-            transform:rotate(180deg);
-        }
-
-        .dropdown-item:hover {
-            background:rgba(0,0,0,.05);
-            padding-left:30px !important;
+        .bi-chevron-down {
+            transition: transform 0.2s;
         }
     </style>
 </head>
 
-<body>
+<body class="d-flex flex-column min-vh-100 bg-white">
 
 <?php include("components/navbar.php"); ?>
 
-<div class="container my-5">
-    <!-- Added align-items-center so the two columns vertically align with each other -->
-    <div class="row g-5 align-items-center">
+<main class="container my-5 flex-grow-1">
+    <div class="row g-4 align-items-center">
 
-        <!-- LEFT -->
-        <div class="col-lg-4">
-            <div class="profile-card shadow-sm">
-                <div class="position-relative" style="width:180px;margin:auto">
-                    <div class="profile-img-container">
-                        <img id="profileDisplay"
-                             src="<?= htmlspecialchars($profileImage ?: $defaultAvatar) ?>"
+        <div class="col-12 col-lg-4">
+            <div class="profile-card shadow-sm p-5 text-center position-relative h-100 d-flex flex-column align-items-center justify-content-center">
+                
+                <div class="position-relative mb-3">
+                    <div class="avatar-container rounded-circle overflow-hidden bg-light mx-auto">
+                        <img id="profileDisplay" 
+                             src="<?= htmlspecialchars($profileImage ?: $defaultAvatar) ?>" 
+                             alt="Profile" 
+                             class="w-100 h-100 object-fit-cover"
                              onerror="this.src='<?= $defaultAvatar ?>'">
                     </div>
-                    <div class="camera-icon-button" onclick="fileInput.click()">📷</div>
+                    
+                    <div class="camera-btn position-absolute bottom-0 end-0 bg-white border border-2 border-warning rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                         onclick="document.getElementById('fileInput').click()">
+                         <i class="bi bi-camera-fill text-dark"></i>
+                    </div>
                 </div>
 
                 <form id="avatarForm" class="d-none" enctype="multipart/form-data">
@@ -174,57 +147,97 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
                     <input type="file" id="fileInput" name="avatar" accept="image/*">
                 </form>
 
-                <h2 class="fw-bold mt-3"><?= htmlspecialchars($displayName) ?></h2>
-                <p class="text-muted"><?= htmlspecialchars($email) ?></p>
-                <h5><?= htmlspecialchars($contact ?: '--') ?></h5>
-                <h6><?= htmlspecialchars($displayAddress) ?></h6>
+                <h2 class="fw-bold text-dark mb-1"><?= htmlspecialchars($displayName) ?></h2>
+                <p class="text-secondary mb-2"><?= htmlspecialchars($email) ?></p>
+                <h5 class="fw-medium text-dark mb-1"><?= htmlspecialchars($contact ?: '--') ?></h5>
+                <small class="text-secondary d-block"><?= htmlspecialchars($displayAddress) ?></small>
             </div>
         </div>
 
-        <!-- RIGHT -->
-        <div class="col-lg-8">
-            <div class="menu-outline">
-
-                <!-- Account -->
-                <a class="menu-link" data-bs-toggle="collapse" href="#account">
-                    Account & Security <span class="icon">▾</span>
-                </a>
-                <div class="collapse" id="account">
-                    <!-- Link now points to change_password.php (no UI changes) -->
-                    <a class="dropdown-item py-2" href="changePassword.php">Change Password</a>
+        <div class="col-12 col-lg-8">
+            <div class="profile-menu-container p-4 p-md-5 bg-white">
+                
+                <div class="mb-3 border-bottom pb-2">
+                    <a class="menu-btn d-flex justify-content-between align-items-center w-100 py-2" 
+                       data-bs-toggle="collapse" href="#accountCollapse" role="button" aria-expanded="false">
+                        <span class="fw-medium">Account & Security</span>
+                        <i class="bi bi-chevron-down small"></i>
+                    </a>
+                    <div class="collapse mt-2" id="accountCollapse">
+                        <ul class="list-unstyled ms-3 mb-0">
+                            <li><a href="changePassword.php" class="text-decoration-none text-secondary d-block py-1 hover-dark">Change Password</a></li>
+                        </ul>
+                    </div>
                 </div>
 
-                <!-- Accessibility (RESTORED) -->
-                <a class="menu-link mt-3" data-bs-toggle="collapse" href="#accessibility">
-                    Accessibility <span class="icon">▾</span>
-                </a>
-                <!-- Feedback -->
-                <a class="menu-link mt-3" data-bs-toggle="collapse" href="#feedback">
-                    Feedback <span class="icon">▾</span>
-                </a>
-                <div class="collapse" id="feedback">
-                    <a class="dropdown-item py-2" href="#">Create Feedback</a>
+                <div class="mb-3 border-bottom pb-2">
+                    <a class="menu-btn d-flex justify-content-between align-items-center w-100 py-2" 
+                       data-bs-toggle="collapse" href="#accessCollapse" role="button" aria-expanded="false">
+                        <span class="fw-medium">Accessibility</span>
+                        <i class="bi bi-chevron-down small"></i>
+                    </a>
+                    <div class="collapse mt-2" id="accessCollapse">
+                        <p class="text-muted ms-3 small mb-0 py-1">Accessibility settings coming soon.</p>
+                    </div>
                 </div>
 
-                <!-- About -->
-                <a class="menu-link mt-3" data-bs-toggle="collapse" href="#about">
-                    About <span class="icon">▾</span>
-                </a>
-                <div class="collapse" id="about">
-                    <a class="dropdown-item py-2" href="#">App Version 1.0</a>
-                    <a class="dropdown-item py-2" href="#">Privacy Policy</a>
+                <div class="mb-3 border-bottom pb-2">
+                    <a class="menu-btn d-flex justify-content-between align-items-center w-100 py-2" 
+                       data-bs-toggle="collapse" href="#feedbackCollapse" role="button" aria-expanded="false">
+                        <span class="fw-medium">Feedback</span>
+                        <i class="bi bi-chevron-down small"></i>
+                    </a>
+                    <div class="collapse mt-2" id="feedbackCollapse">
+                        <ul class="list-unstyled ms-3 mb-0">
+                            <li><a href="#" class="text-decoration-none text-secondary d-block py-1">Create Feedback</a></li>
+                        </ul>
+                    </div>
                 </div>
 
-                <a href="logout.php" class="btn btn-warning w-100 mt-4">Logout</a>
+                <div class="mb-4">
+                    <a class="menu-btn d-flex justify-content-between align-items-center w-100 py-2" 
+                       data-bs-toggle="collapse" href="#aboutCollapse" role="button" aria-expanded="false">
+                        <span class="fw-medium">About</span>
+                        <i class="bi bi-chevron-down small"></i>
+                    </a>
+                    <div class="collapse mt-2" id="aboutCollapse">
+                        <ul class="list-unstyled ms-3 mb-0">
+                            <li><a href="#" class="text-decoration-none text-secondary d-block py-1">App Version 1.0</a></li>
+                            <li><a href="#" class="text-decoration-none text-secondary d-block py-1">Privacy Policy</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <a href="logout.php" class="btn btn-warning w-100 fw-bold py-2 rounded-pill shadow-sm">Logout</a>
+
             </div>
         </div>
 
     </div>
-</div>
+</main>
 
 <?php include("components/footer.php"); ?>
+
 <?php include("../frontend/components/chat.php"); ?>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const profileDisplay = document.getElementById('profileDisplay');
+
+    fileInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                profileDisplay.src = e.target.result;
+                // Here you would typically submit the form via AJAX
+                // document.getElementById('avatarForm').submit(); 
+            }
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+</script>
+
 </body>
 </html>
