@@ -98,6 +98,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <a href="signUp.php" class="text-dark fw-bold">Sign up</a>
                         </p>
                     </div>
+                    <div class="text-center">
+                        <a href="forgotPassword.php" class="small text-decoration-none text-muted">Forgot password?</a>
+                    </div>
                 </div>
             </div>
             <div class="text-center mt-4">
