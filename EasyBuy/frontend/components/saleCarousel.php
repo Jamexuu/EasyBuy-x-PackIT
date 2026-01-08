@@ -19,7 +19,7 @@
   </div>
 </div>
 <script>
-  fetch("/EasyBuy-x-PackIT/EasyBuy/assets/products.json")
+  fetch("api/getDiscountedProducts.php")
     .then(res => res.json())
     .then(products => {
 
@@ -28,7 +28,7 @@
       const ITEMS_PER_SLIDE = 4;
       let slideIndex = 0;
 
-      for (let i = 0; i < 12; i += ITEMS_PER_SLIDE) {
+      for (let i = 0; i < 16; i += ITEMS_PER_SLIDE) {
         const slideProducts = products.slice(i, i + ITEMS_PER_SLIDE);
 
         const carouselItem = document.createElement("div");
@@ -48,18 +48,21 @@
 <div class="card h-100 rounded-4 shadow-sm">
   <img src="/EasyBuy-x-PackIT/EasyBuy/Product%20Images/all/${product.image.split('/').pop()}"
     class="card-img-top p-3" style="height:160px;object-fit:contain;"
-    alt="${product["Product Name"]}">
+    alt="${product.product_name}">
   <div class="card-body text-center d-flex flex-column p-2 p-sm-3">
     <h6 class="card-title fw-bold"
       style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.4em;">
-      ${product["Product Name"]}
+      ${product.product_name}
     </h6>
     <p class="card-title text-secondary"
       style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2em;">
-      ${product["Size"]}
+      ${product.size}
+    </p>
+    <p class="card-text fw-bold mt-auto text-danger text-decoration-line-through" style="font-size:1.1em;">
+      ₱${product.price}
     </p>
     <p class="card-text fw-bold mt-auto text-success" style="font-size:1.1em;">
-      ₱${product["Price"]}
+      ₱${product.sale_price}
     </p>
     <div style="display:flex;gap:8px;width:100%;">
       <button type="button" class="btn rounded-3" id="addToCart"

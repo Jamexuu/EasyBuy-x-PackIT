@@ -51,4 +51,17 @@ class Product {
 
         return $data[0]['count'];
     }
+
+    function getDiscountedProducts(){
+        $query = "SELECT *, 
+                    ROUND(price * (1 - sale_percentage/100), 2) as sale_price
+                  FROM products 
+                  WHERE is_sale = 1 
+                  ORDER BY category";
+        
+        $stmt = $this->db->executeQuery($query);
+        $data = $this->db->fetch($stmt);
+        mysqli_stmt_close($stmt);
+        return $data;
+    }
 }
