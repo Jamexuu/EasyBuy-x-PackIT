@@ -123,7 +123,7 @@ function meters3($l, $w, $h): string
 
                           <div class="detail-box">
                             <div class="small" style="line-height:1.6;">
-                              <small class="text-muted">Type:</small>
+                              <small class="text-muted">Examples:</small>
                               <strong><?= htmlspecialchars($pkg["package_type"]) ?></strong><br>
 
                               <small class="text-muted">Price:</small>

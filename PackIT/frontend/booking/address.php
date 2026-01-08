@@ -297,7 +297,7 @@ $pkgQty = (int)($state["package_quantity"] ?? 1);
 
             <div class="alert alert-info">
               <div class="fw-bold mb-1">Default pickup details</div>
-              <div class="muted-sm mb-2">Auto-fill from your DB profile (users + addresses).</div>
+              <!-- <div class="muted-sm mb-2">Auto-fill from your DB profile (users + addresses).</div> -->
               <button class="btn btn-sm btn-warning" type="button" id="useDefaultPickupBtn">
                 Use my profile defaults
               </button>
