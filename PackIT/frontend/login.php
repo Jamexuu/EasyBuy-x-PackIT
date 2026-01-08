@@ -1,56 +1,50 @@
 <?php
 session_start();
-require_once __DIR__ . '/../api/classes/Database.php';
 
-$db = new Database();
-$error = "";
+// Include the User and Auth classes
+require_once __DIR__ .'/../api/classes/User.php';
+require_once __DIR__ .'/../api/classes/Auth.php';
 
-// If already logged in as a customer, redirect to profile/dashboard
-if (!empty($_SESSION['user_id'])) {
-    header("Location: profile.php");
-    exit;
-}
+// Redirect if already logged in
+Auth::redirectIfLoggedIn();
 
+$error = '';
+
+// Check if form is submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
-    $password = (string)($_POST['password'] ?? '');
+    $password = $_POST['password'] ?? '';
 
-    if ($email === '' || $password === '') {
-        $error = "Please enter email and password.";
+    if (empty($email) || empty($password)) {
+        $error = "Please fill in all fields.";
     } else {
-        // Look up the user by email
-        $stmt = $db->executeQuery(
-            "SELECT id, first_name, last_name, email, password, role FROM users WHERE email = ? LIMIT 1",
-            [$email]
-        );
-        $rows = $db->fetch($stmt);
+        // Initialize User class
+        $userObj = new User();
+        
+        // Attempt login (returns user data or false)
+        $user = $userObj->login($email, $password);
 
-        if (empty($rows)) {
-            // Generic message to avoid leaking which emails exist
-            $error = "Invalid email or password.";
-        } else {
-            $user = $rows[0];
-            if (!password_verify($password, $user['password'])) {
-                $error = "Invalid email or password.";
+        if ($user) {
+            // Login successful - regenerate session id
+            session_regenerate_id(true);
+
+            $fullName = $user['first_name'] . ' ' . $user['last_name'];
+            
+            // Use Auth::login() to set consistent session variables
+            Auth::login($user['id'], $user['email'], $fullName, $user['role']);
+
+            // Redirect based on role
+            if ($user['role'] === 'admin') {
+                header('Location: ../admin/dashboard.php');
+            } elseif ($user['role'] === 'driver') {
+                header('Location: ../driver/dashboard.php');
             } else {
-                // Successful login: regenerate session id and set session vars
-                session_regenerate_id(true);
-
-                $_SESSION['user_id'] = (int)$user['id'];
-                $_SESSION['user_name'] = trim($user['first_name'] . ' ' . $user['last_name']);
-                $_SESSION['user_email'] = $user['email'];
-                $_SESSION['role'] = $user['role'] ?? 'user';
-
-                // If an intended destination was saved before login, redirect there
-                $redirect = $_SESSION['post_login_redirect'] ?? null;
-                if ($redirect) {
-                    unset($_SESSION['post_login_redirect']);
-                    header("Location: " . $redirect);
-                } else {
-                    header("Location: profile.php");
-                }
-                exit;
+                // Regular users go to their profile page
+                header('Location: profile.php');
             }
+            exit();
+        } else {
+            $error = "Invalid email or password.";
         }
     }
 }
@@ -60,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>PackIT - Customer Login</title>
+    <title>PackIT - Login</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -111,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <i class="bi bi-people-fill"></i>
                     </div>
 
-                    <h1 class="h3 fw-bold mb-1 text-center">Customer Login</h1>
+                    <h1 class="h3 fw-bold mb-1 text-center">Welcome Back</h1>
                     <p class="text-muted small text-center mb-4">
                         Sign in to your PackIT account
                     </p>
