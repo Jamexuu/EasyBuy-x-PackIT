@@ -2,6 +2,10 @@
 session_start();
 require_once __DIR__ . '/../api/classes/Database.php';
 require_once __DIR__ . '/../frontend/components/autorefresh.php';
+require_once __DIR__ . '/../api/sms/SmsNotificationService.php'; // Import the SMS service
+
+// Define $action to avoid undefined variable issues
+$action = $_POST['action'] ?? $_GET['action'] ?? null;
 
 if (!isset($_SESSION['driver_id'])) {
     header("Location: login.php");
@@ -103,6 +107,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $affected = mysqli_stmt_affected_rows($stmt);
         if ($affected > 0) {
             $_SESSION['flash_success'] = 'Booking accepted.';
+
+            // ---------- SMS notification on ACCEPT ----------
+            $stmtBooking = $db->executeQuery(
+                "SELECT b.pickup_contact_number, d.first_name AS driver_name
+                 FROM bookings b
+                 JOIN drivers d ON b.driver_id = d.id
+                 WHERE b.id = ? LIMIT 1",
+                [$bookingId]
+            );
+            $bookingDetails = $db->fetch($stmtBooking)[0] ?? null;
+
+            if ($bookingDetails && !empty($bookingDetails['pickup_contact_number'])) {
+                $smsService = new SmsNotificationService();
+
+                $smsService->notify(
+                    [$bookingDetails['pickup_contact_number']],
+                    $smsService->getTemplate('booking_accepted', [
+                        'booking_id'  => $bookingId,
+                        'driver_name' => $bookingDetails['driver_name'] ?? '',
+                    ]),
+                    [
+                        'booking_id' => $bookingId,
+                        'driver_id'  => $driverId,
+                        'status'     => 'booking_accepted',
+                    ]
+                );
+            }
+            // ------------------------------------------------------
+
             header('Location: driverBookings.php');
             exit;
         } else {
@@ -177,7 +210,7 @@ function badgeStatusLabel(int $isAvailable): string { return $isAvailable === 1 
 
 function fmtDims($l, $w, $h): string {
     $fmt = fn($x) => rtrim(rtrim(number_format((float)$x, 1), '0'), '.');
-    return $fmt($l) . " x " . $fmt($w) . " x " . $fmt($h) . " m";
+    return $fmt($l) . " x " . $fmt($w) . " m";
 }
 ?>
 <!doctype html>
