@@ -28,6 +28,22 @@ function loadJson(string $filename): array
   return is_array($data) ? $data : [];
 }
 
+function normalize_posted_phone(string $s): string
+{
+  // remove non-digits
+  $d = preg_replace('/\D+/', '', $s);
+  if ($d === '') return '';
+  // convert +63 or 63... to 0...
+  if (strpos($d, '63') === 0) {
+    $d = '0' . substr($d, 2);
+  }
+  // if user provided 9xxxxxxxxx, prepend 0
+  if (strpos($d, '9') === 0) {
+    $d = '0' . $d;
+  }
+  return $d;
+}
+
 $error = "";
 
 // Load datasets
@@ -179,11 +195,15 @@ $dropContactName = (string)($state["drop_contact_name"] ?? "");
 $dropContactNumber = (string)($state["drop_contact_number"] ?? "");
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-  // Contacts
+  // Contacts (raw from POST)
   $pickupContactName = trim((string)($_POST["pickup_contact_name"] ?? ""));
   $pickupContactNumber = trim((string)($_POST["pickup_contact_number"] ?? ""));
   $dropContactName = trim((string)($_POST["drop_contact_name"] ?? ""));
   $dropContactNumber = trim((string)($_POST["drop_contact_number"] ?? ""));
+
+  // normalize phones (strip non-digits, convert +63/63 to 0..., prepend 0 if starts with 9)
+  $pickupContactNumber = normalize_posted_phone($pickupContactNumber);
+  $dropContactNumber = normalize_posted_phone($dropContactNumber);
 
   // Pickup
   $pickup["house"] = trim((string)($_POST["pickup_house"] ?? ""));
@@ -215,26 +235,32 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   } elseif ($pickupContactName === "" || $pickupContactNumber === "" || $dropContactName === "" || $dropContactNumber === "") {
     $error = "Please fill in pickup and recipient contact name & CP number.";
   } else {
-    $pickupFareRegion = region_code_to_fare_region($pickup["region_code"]);
-    $dropFareRegion = region_code_to_fare_region($drop["region_code"]);
+    // Server-side phone validation: Philippine mobile numbers only (start with 09, exactly 11 digits)
+    $phoneRegex = '/^09[0-9]{9}$/';
+    if (!preg_match($phoneRegex, $pickupContactNumber) || !preg_match($phoneRegex, $dropContactNumber)) {
+      $error = "CP numbers must be numeric, start with 09, and be exactly 11 digits.";
+    } else {
+      $pickupFareRegion = region_code_to_fare_region($pickup["region_code"]);
+      $dropFareRegion = region_code_to_fare_region($drop["region_code"]);
 
-    $_SESSION["booking"] ??= [];
-    $_SESSION["booking"]["pickup_address"] = $pickup;
-    $_SESSION["booking"]["drop_address"] = $drop;
-    $_SESSION["booking"]["pickup_region"] = $pickupFareRegion;
-    $_SESSION["booking"]["drop_region"] = $dropFareRegion;
+      $_SESSION["booking"] ??= [];
+      $_SESSION["booking"]["pickup_address"] = $pickup;
+      $_SESSION["booking"]["drop_address"] = $drop;
+      $_SESSION["booking"]["pickup_region"] = $pickupFareRegion;
+      $_SESSION["booking"]["drop_region"] = $dropFareRegion;
 
-    // Save contacts
-    $_SESSION["booking"]["pickup_contact_name"] = $pickupContactName;
-    $_SESSION["booking"]["pickup_contact_number"] = $pickupContactNumber;
-    $_SESSION["booking"]["drop_contact_name"] = $dropContactName;
-    $_SESSION["booking"]["drop_contact_number"] = $dropContactNumber;
+      // Save contacts (normalized)
+      $_SESSION["booking"]["pickup_contact_name"] = $pickupContactName;
+      $_SESSION["booking"]["pickup_contact_number"] = $pickupContactNumber;
+      $_SESSION["booking"]["drop_contact_name"] = $dropContactName;
+      $_SESSION["booking"]["drop_contact_number"] = $dropContactNumber;
 
-    // Ensure door-to-door is not used anymore
-    unset($_SESSION["booking"]["door_to_door"]);
+      // Ensure door-to-door is not used anymore
+      unset($_SESSION["booking"]["door_to_door"]);
 
-    header("Location: review.php");
-    exit;
+      header("Location: review.php");
+      exit;
+    }
   }
 }
 
@@ -303,7 +329,7 @@ $pkgQty = (int)($state["package_quantity"] ?? 1);
               </button>
             </div>
 
-            <form method="post" id="addressForm">
+            <form method="post" id="addressForm" novalidate>
               <input type="hidden" name="pickup_region_code" id="pickup_region_code" value="<?= h((string)($pickup["region_code"] ?? "")) ?>">
               <input type="hidden" name="pickup_region_name" id="pickup_region_name" value="<?= h((string)($pickup["region_name"] ?? "")) ?>">
               <input type="hidden" name="pickup_province_name" id="pickup_province_name" value="<?= h((string)($pickup["province"] ?? "")) ?>">
@@ -324,7 +350,19 @@ $pkgQty = (int)($state["package_quantity"] ?? 1);
                     <label class="form-label small text-muted">Name *</label>
                     <input class="form-control" name="pickup_contact_name" id="pickup_contact_name" value="<?= h($pickupContactName) ?>" required>
                     <label class="form-label small text-muted mt-2">CP Number *</label>
-                    <input class="form-control" name="pickup_contact_number" id="pickup_contact_number" value="<?= h($pickupContactNumber) ?>" required>
+                    <input
+                      class="form-control"
+                      name="pickup_contact_number"
+                      id="pickup_contact_number"
+                      value="<?= h($pickupContactNumber) ?>"
+                      type="tel"
+                      inputmode="numeric"
+                      pattern="^09\d{9}$"
+                      maxlength="11"
+                      placeholder="09XXXXXXXXX"
+                      required
+                    >
+                    <div class="form-text text-danger d-none" id="pickup_contact_error">Enter a valid Philippine mobile number (11 digits, starts with 09)</div>
                   </div>
                 </div>
 
@@ -332,9 +370,21 @@ $pkgQty = (int)($state["package_quantity"] ?? 1);
                   <div class="bg-light p-3 rounded h-100">
                     <h6 class="fw-bold mb-3">Recipient Contact</h6>
                     <label class="form-label small text-muted">Name *</label>
-                    <input class="form-control" name="drop_contact_name" value="<?= h($dropContactName) ?>" required>
+                    <input class="form-control" name="drop_contact_name" id="drop_contact_name" value="<?= h($dropContactName) ?>" required>
                     <label class="form-label small text-muted mt-2">CP Number *</label>
-                    <input class="form-control" name="drop_contact_number" value="<?= h($dropContactNumber) ?>" required>
+                    <input
+                      class="form-control"
+                      name="drop_contact_number"
+                      id="drop_contact_number"
+                      value="<?= h($dropContactNumber) ?>"
+                      type="tel"
+                      inputmode="numeric"
+                      pattern="^09\d{9}$"
+                      maxlength="11"
+                      placeholder="09XXXXXXXXX"
+                      required
+                    >
+                    <div class="form-text text-danger d-none" id="drop_contact_error">Enter a valid Philippine mobile number (11 digits, starts with 09)</div>
                   </div>
                 </div>
               </div>
@@ -573,6 +623,8 @@ $pkgQty = (int)($state["package_quantity"] ?? 1);
         city_code: "<?= h((string)($drop["city_code"] ?? "")) ?>",
         brgy_code: "<?= h((string)($drop["brgy_code"] ?? "")) ?>"
       });
+
+      setupPhoneInputs();
     })();
 
     // Smart matching
@@ -596,6 +648,69 @@ $pkgQty = (int)($state["package_quantity"] ?? 1);
       });
     }
 
+    // PHONE HELPERS (client-side)
+    function clientNormalizePhone(s) {
+      if (!s) return '';
+      // remove non-digits
+      let d = s.replace(/\D/g, '');
+      if (!d) return '';
+      if (d.startsWith('63')) d = '0' + d.slice(2);
+      if (d.startsWith('9')) d = '0' + d;
+      return d.slice(0, 11); // enforce maxlength
+    }
+
+    function showPhoneError(elId, show) {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      el.classList.toggle('d-none', !show);
+    }
+
+    function setupPhoneInputs() {
+      const pickupPhone = document.getElementById('pickup_contact_number');
+      const dropPhone = document.getElementById('drop_contact_number');
+
+      [pickupPhone, dropPhone].forEach((input) => {
+        if (!input) return;
+        input.addEventListener('input', (e) => {
+          const normalized = clientNormalizePhone(input.value);
+          input.value = normalized;
+          // hide error while typing
+          const errId = input.id === 'pickup_contact_number' ? 'pickup_contact_error' : 'drop_contact_error';
+          showPhoneError(errId, false);
+        });
+
+        input.addEventListener('blur', (e) => {
+          const re = /^09\d{9}$/;
+          const ok = re.test(input.value);
+          const errId = input.id === 'pickup_contact_number' ? 'pickup_contact_error' : 'drop_contact_error';
+          showPhoneError(errId, !ok);
+        });
+      });
+
+      // form submit validation
+      document.getElementById('addressForm').addEventListener('submit', (ev) => {
+        const re = /^09\d{9}$/;
+        const p = document.getElementById('pickup_contact_number').value || '';
+        const d = document.getElementById('drop_contact_number').value || '';
+        let valid = true;
+        if (!re.test(p)) {
+          showPhoneError('pickup_contact_error', true);
+          valid = false;
+        }
+        if (!re.test(d)) {
+          showPhoneError('drop_contact_error', true);
+          valid = false;
+        }
+        if (!valid) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          // optionally focus the first invalid input
+          if (!re.test(p)) document.getElementById('pickup_contact_number').focus();
+          else document.getElementById('drop_contact_number').focus();
+        }
+      });
+    }
+
     // UPDATED BUTTON: fill BOTH address + contact from DB
     document.getElementById("useDefaultPickupBtn").addEventListener("click", async () => {
       try {
@@ -612,7 +727,8 @@ $pkgQty = (int)($state["package_quantity"] ?? 1);
           const name = data.contact.name || "";
           const cp = data.contact.contact_number || "";
           document.getElementById("pickup_contact_name").value = name;
-          document.getElementById("pickup_contact_number").value = cp;
+          // normalize client-side (handles +63 or 63 or 9...)
+          document.getElementById("pickup_contact_number").value = clientNormalizePhone(cp);
         }
 
         // Fill address

@@ -62,6 +62,15 @@ function meters3($l, $w, $h): string
   $fmt = fn($x) => rtrim(rtrim(number_format((float)$x, 1), '0'), '.');
   return $fmt($l) . " x " . $fmt($w) . " x " . $fmt($h) . " Meter";
 }
+
+// Prepare a JS-friendly map of packages keyed by package key
+$packages_js = [];
+foreach ($packages as $k => $p) {
+  $packages_js[(string)$k] = [
+    'vehicle_label' => $p['vehicle_label'] ?? ($p['label'] ?? ''),
+    'amount' => isset($p['amount']) ? (float)$p['amount'] : 0
+  ];
+}
 ?>
 <!doctype html>
 <html lang="en">
@@ -84,9 +93,11 @@ function meters3($l, $w, $h): string
     .card-header { background-color: var(--brand-yellow) !important; color: var(--brand-black) !important; }
     .muted-sm { font-size: .9rem; color: #6c757d; }
     .detail-box { background: #f8f9fa; border-radius: .75rem; padding: .85rem; }
-    .pkg-card { border: 1px solid rgba(0, 0, 0, .08); border-radius: .75rem; padding: 1.1rem; background: #fff; cursor: pointer; height: 100%; }
+    .pkg-card { border: 1px solid rgba(0, 0, 0, .08); border-radius: .75rem; padding: 1.1rem; background: #fff; cursor: pointer; height: 100%; display:block; }
     .pkg-card.active { box-shadow: 0 0 0 3px rgba(248, 225, 75, .8); border-color: var(--brand-yellow-dark); }
     .price-tag { font-size: 2rem; font-weight: 800; color: var(--brand-black); }
+    /* ensure the radio input doesn't visually break the layout */
+    .pkg-card .form-check-input { margin-top: .25rem; margin-right: .6rem; }
   </style>
 </head>
 
@@ -204,21 +215,52 @@ function meters3($l, $w, $h): string
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    const packages = <?=
-      json_encode(array_map(fn($p) => [
-        "vehicle_label" => $p["vehicle_label"],
-        "amount" => $p["amount"],
-      ], $packages), JSON_UNESCAPED_SLASHES)
-    ?>;
+    // Map keyed by package key so lookup works by the radio value
+    const packages = <?= json_encode($packages_js, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
 
-    document.querySelectorAll('input[name="package"]').forEach(r => {
-      r.addEventListener('change', () => {
-        const key = r.value;
-        const p = packages[key];
-        if (!p) return;
-        document.getElementById('vehicleLabel').innerText = p.vehicle_label;
-        document.getElementById('baseAmount').innerText = p.amount;
-        document.getElementById('bigPrice').innerText = Number(p.amount).toFixed(2);
+    // Update UI fields for a given package key
+    function updateDisplayForKey(key) {
+      const p = packages[key];
+      if (!p) return;
+      const vehicleLabelEl = document.getElementById('vehicleLabel');
+      const baseAmountEl = document.getElementById('baseAmount');
+      const bigPriceEl = document.getElementById('bigPrice');
+      if (vehicleLabelEl) vehicleLabelEl.innerText = p.vehicle_label;
+      if (baseAmountEl) baseAmountEl.innerText = Number(p.amount).toFixed(0);
+      if (bigPriceEl) bigPriceEl.innerText = Number(p.amount).toFixed(2);
+    }
+
+    // Remove .active from all cards and add it to the label wrapping the checked radio
+    function syncActive() {
+      document.querySelectorAll('.pkg-card').forEach(c => c.classList.remove('active'));
+      const checked = document.querySelector('input[name="package"]:checked');
+      if (checked) {
+        const lab = checked.closest('.pkg-card');
+        if (lab) lab.classList.add('active');
+        updateDisplayForKey(checked.value);
+      }
+    }
+
+    // Setup listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      // initial sync (cover server-rendered checked state)
+      syncActive();
+
+      // When a radio changes, make sure only its label has .active and update display
+      document.querySelectorAll('input[name="package"]').forEach(r => {
+        r.addEventListener('change', () => {
+          syncActive();
+        });
+
+        // optional: support clicking anywhere on the label (label click will already toggle radio,
+        // but this ensures immediate visual feedback even if some browsers delay change)
+        const label = r.closest('.pkg-card');
+        if (label) {
+          label.addEventListener('click', (ev) => {
+            // clicking the label will toggle the radio; do a small timeout to allow radio.checked to update
+            setTimeout(syncActive, 0);
+          });
+        }
       });
     });
   </script>
