@@ -1,38 +1,40 @@
 <style>
-  /* Chat Button Styles */
+  /* --- Chat Button (Floating) --- */
   .poc-chat-btn {
     position: fixed;
-    bottom: 24px;
-    right: 24px;
-    width: 64px;
-    height: 64px;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
-    background: #facc15;
+    background: #facc15; /* Brand Yellow */
     color: #1f2937;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 28px;
+    font-size: 24px;
     cursor: pointer;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     transition: transform 0.2s, box-shadow 0.2s;
-    z-index: 1100;
+    z-index: 1060; /* Higher than most elements */
   }
 
   .poc-chat-btn:hover {
-    transform: scale(1.08);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
   }
 
+  /* Tooltip for the button */
   .poc-tooltip {
     position: absolute;
-    bottom: 75px;
-    right: 0;
-    background: #111827;
-    color: white;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 13px;
+    right: 70px; /* To the left of the button */
+    top: 50%;
+    transform: translateY(-50%);
+    background: #333;
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
     white-space: nowrap;
     opacity: 0;
     pointer-events: none;
@@ -43,131 +45,155 @@
     opacity: 1;
   }
 
-  /* Chat modal / widget styles (matches index.php design) */
+  /* --- Chat Modal (Widget) --- */
+  /* Remove default modal margins to allow custom positioning */
   .poc-chat-modal .modal-dialog {
-    max-width: 420px;
     margin: 0;
     position: fixed;
+    bottom: 90px; /* Above the button */
     right: 20px;
-    bottom: 90px;
-    transform: translateZ(0);
+    width: 100%; /* Full width container */
+    max-width: 400px; /* Max width for desktop */
+    z-index: 1061;
+  }
+  
+  /* Mobile Adjustments: Center and wider on small screens */
+  @media (max-width: 576px) {
+    .poc-chat-modal .modal-dialog {
+        right: 50%;
+        transform: translateX(50%) !important; /* Center horizontally */
+        bottom: 85px;
+        width: 92%; /* 92% of screen width */
+        max-width: none;
+    }
   }
 
   .poc-chat-window {
-    height: 520px;
+    height: 480px; /* Fixed height for the chat area */
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    background: #fff;
+    border-radius: 0.5rem; /* Bootstrap rounded */
   }
 
+  /* Chat Messages Area */
   .poc-chat-messages {
     flex: 1 1 auto;
-    padding: 12px;
+    padding: 1rem;
     overflow-y: auto;
-    background: linear-gradient(180deg,#f8f9fa,#fff);
+    background: linear-gradient(180deg, #f8f9fa, #fff);
   }
 
+  /* Input Area */
   .poc-chat-input {
-    border-top: 1px solid #e9ecef;
-    padding: 10px;
+    border-top: 1px solid #dee2e6;
+    padding: 0.75rem;
     background: #fff;
   }
 
+  /* Message Bubbles */
   .poc-chat-msg {
     display: flex;
-    gap: 8px;
-    margin-bottom: 10px;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
     align-items: flex-end;
   }
 
   .poc-chat-msg .avatar {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    overflow: hidden;
-    flex: 0 0 36px;
+    flex-shrink: 0;
     background: #e9ecef;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    color: #333;
+    font-weight: bold;
+    font-size: 0.8rem;
+    color: #495057;
   }
 
   .poc-chat-bubble {
-    max-width: 78%;
-    padding: 9px 12px;
-    border-radius: 12px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-    line-height: 1.3;
-    white-space: pre-wrap;
+    max-width: 75%;
+    padding: 0.6rem 0.8rem;
+    border-radius: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
   }
 
-  .poc-chat-msg.user { justify-content: flex-end; }
-
+  /* User Message Styles */
+  .poc-chat-msg.user {
+    justify-content: flex-end;
+  }
   .poc-chat-msg.user .poc-chat-bubble {
-    background: #0d6efd;
+    background: #0d6efd; /* Bootstrap Primary */
     color: #fff;
-    border-bottom-right-radius: 4px;
+    border-bottom-right-radius: 0.25rem;
   }
 
+  /* Bot Message Styles */
   .poc-chat-msg.bot .poc-chat-bubble {
-    background: #f1f3ff;
-    color: #111;
-    border-bottom-left-radius: 4px;
+    background: #f1f3f5; /* Light Gray */
+    color: #212529;
+    border-bottom-left-radius: 0.25rem;
   }
 
+  /* Typing Indicator */
   .poc-chat-typing {
-    display: inline-block;
-    width: 36px;
-    height: 12px;
-    background: linear-gradient(90deg,#e1e4ff,#c6d0ff);
-    border-radius: 6px;
-    animation: poc-blink 1.2s infinite;
+    width: 30px;
+    height: 8px;
+    background: linear-gradient(90deg, #dee2e6, #adb5bd);
+    border-radius: 4px;
+    animation: poc-blink 1.5s infinite;
   }
 
   @keyframes poc-blink {
-    0% { opacity: .25; transform: translateY(0); }
-    50% { opacity: 1; transform: translateY(-2px); }
-    100% { opacity: .25; transform: translateY(0); }
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
   }
 
-  .poc-chat-controls { display:flex; gap:8px; align-items:center; }
-  .poc-chat-controls textarea { resize: none; height: 46px; }
+  /* Input Controls */
+  .poc-chat-controls textarea {
+    resize: none;
+    height: 42px; /* Single line height */
+    font-size: 0.95rem;
+  }
 </style>
 
-<!-- Floating chat button (visible by default). Modal remains hidden until user clicks button. -->
-<div class="poc-chat-btn" id="pocChatBtn" role="button" aria-label="Open chat with POC" tabindex="0">
+<div class="poc-chat-btn" id="pocChatBtn" role="button" aria-label="Open chat" tabindex="0">
   💬
   <div class="poc-tooltip">Chat with POC</div>
 </div>
 
-<!-- Chat Modal (widget) - hidden by default, opens only when user clicks the floating button -->
 <div class="modal fade poc-chat-modal" id="pocChatModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="false">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
+  <div class="modal-dialog shadow-lg rounded-3">
+    <div class="modal-content border-0">
+      
+      <div class="modal-header bg-light py-2 border-bottom-0 rounded-top-3">
         <div class="d-flex align-items-center gap-2">
-          <img src="/EasyBuy-x-PackIT/PackIT/assets/chatbot.png" alt="bot" style="width:36px;height:36px;">
-          <div>
-            <div class="fw-bold">Pack IT Assistant</div>
-            <div class="muted-sm" style="font-size:0.85rem;color:#6c757d">Ask about bookings, tracking, and packaging</div>
+            <img src="/EasyBuy-x-PackIT/PackIT/assets/chatbot.png" alt="Bot" width="32" height="32" class="object-fit-contain">
+          <div class="lh-1">
+            <div class="fw-bold fs-6">PackIT Assistant</div>
+            <small class="text-muted" style="font-size: 0.75rem;">Online</small>
           </div>
         </div>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
       <div class="modal-body p-0">
-        <div class="poc-chat-window" role="region" aria-label="Chat window">
-          <div class="poc-chat-messages" id="pocChatMessages" aria-live="polite" aria-atomic="false">
-            <!-- messages will be appended here -->
-          </div>
+        <div class="poc-chat-window" role="region" aria-label="Chat messages">
+          <div class="poc-chat-messages" id="pocChatMessages" aria-live="polite">
+            </div>
 
           <div class="poc-chat-input">
             <form id="pocChatForm" onsubmit="return false;">
-              <div class="poc-chat-controls">
-                <textarea id="pocChatInput" class="form-control" placeholder="Type your message and press Enter to send" aria-label="Chat message"></textarea>
-                <button id="pocSendBtn" class="btn btn-primary" type="button"><i class="bi bi-send"></i></button>
+              <div class="d-flex gap-2 align-items-center">
+                <textarea id="pocChatInput" class="form-control form-control-sm" placeholder="Type a message..." aria-label="Message"></textarea>
+                <button id="pocSendBtn" class="btn btn-primary btn-sm rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" type="button">
+                  <i class="bi bi-send-fill"></i>
+                </button>
               </div>
             </form>
           </div>
@@ -179,143 +205,94 @@
 </div>
 
 <script>
-  /**
-   * Behavior:
-   * - The floating chat icon (pocChatBtn) is visible by default.
-   * - The chat modal (pocChatModal) is hidden by default and will open ONLY when the floating icon is clicked.
-   * - No automatic opening or redirection occurs.
-   * - The goToChat() function exists so any existing code that calls it will open the modal (instead of navigating).
-   */
-
-  function goToChat() {
-    const modalEl = document.getElementById('pocChatModal');
-    if (!modalEl) {
-      // Fallback: if modal not in DOM for some reason, optionally navigate to chatai.php
-      // But per request, we prefer opening popup; fallback kept minimal.
-      window.location.href = "/EasyBuy-x-PackIT/PackIT/frontend/chatai.php";
-      return;
-    }
-    const modal = new bootstrap.Modal(modalEl, { keyboard: true });
-    modal.show();
-    setTimeout(() => {
-      const input = document.getElementById('pocChatInput');
-      if (input) input.focus();
-    }, 220);
-  }
-
   (function () {
     const btn = document.getElementById('pocChatBtn');
     const modalEl = document.getElementById('pocChatModal');
     const messagesEl = document.getElementById('pocChatMessages');
     const inputEl = document.getElementById('pocChatInput');
     const sendBtn = document.getElementById('pocSendBtn');
-    const chatEndpoint = "/EasyBuy-x-PackIT/PackIT/frontend/chatai.php"; // backend endpoint (POST 'prompt')
+    
+    // Updated Endpoint Path
+    const chatEndpoint = "/EasyBuy-x-PackIT/PackIT/frontend/chatai.php";
 
-    // Ensure the floating button is the only trigger that opens the chat.
+    // --- Core Logic ---
+    function goToChat() {
+      if (!modalEl) {
+        // Fallback redirection
+        window.location.href = chatEndpoint; 
+        return;
+      }
+      const modal = new bootstrap.Modal(modalEl, { keyboard: true });
+      modal.show();
+    }
+
     if (btn) {
-      btn.addEventListener('click', function (e) {
-        e.preventDefault();
-        goToChat();
-      });
-      // keyboard accessibility
-      btn.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          goToChat();
-        }
+      btn.addEventListener('click', (e) => { e.preventDefault(); goToChat(); });
+      btn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goToChat(); }
       });
     }
 
-    // Nothing else should auto-open the chat. Bail out if chat UI missing.
     if (!modalEl || !messagesEl || !inputEl || !sendBtn) return;
 
-    // Helpers
-    function escapeHtml(s) {
-      return (s + '').replace(/[&<>"']/g, function (m) {
-        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m];
-      });
-    }
-
+    // --- Message Helpers ---
     function appendMessage(text, who = 'bot') {
       const wrapper = document.createElement('div');
-      wrapper.className = 'poc-chat-msg ' + (who === 'user' ? 'user' : 'bot');
+      wrapper.className = `poc-chat-msg ${who}`;
+      
+      const avatar = `<div class="avatar">${who === 'user' ? 'U' : 'AI'}</div>`;
+      const bubble = `<div class="poc-chat-bubble">${text.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]))}</div>`;
 
-      if (who === 'user') {
-        wrapper.innerHTML = `<div class="poc-chat-bubble">${escapeHtml(text)}</div><div class="avatar">U</div>`;
-      } else {
-        wrapper.innerHTML = `<div class="avatar">AI</div><div class="poc-chat-bubble">${escapeHtml(text)}</div>`;
-      }
-
+      wrapper.innerHTML = who === 'user' ? (bubble + avatar) : (avatar + bubble);
       messagesEl.appendChild(wrapper);
       messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
     function appendTypingIndicator() {
       const wrap = document.createElement('div');
-      wrap.className = 'poc-chat-msg bot typing';
-      wrap.innerHTML = `<div class="avatar">AI</div><div class="poc-chat-bubble"><div class="poc-chat-typing" aria-hidden="true"></div></div>`;
+      wrap.className = 'poc-chat-msg bot';
+      wrap.innerHTML = `<div class="avatar">AI</div><div class="poc-chat-bubble"><div class="poc-chat-typing"></div></div>`;
       messagesEl.appendChild(wrap);
       messagesEl.scrollTop = messagesEl.scrollHeight;
       return wrap;
     }
 
-    function removeNode(node) {
-      if (node && node.parentNode) node.parentNode.removeChild(node);
-    }
-
-    function setSendingState(isSending) {
-      inputEl.disabled = isSending;
-      sendBtn.disabled = isSending;
-      if (!isSending) inputEl.focus();
-    }
-
-    // Send message to backend
+    // --- Send Logic ---
     async function sendMessage(text) {
       if (!text || !text.trim()) return;
       const message = text.trim();
 
-      // append user message
       appendMessage(message, 'user');
       inputEl.value = '';
-      setSendingState(true);
+      inputEl.disabled = true;
+      sendBtn.disabled = true;
 
-      // show typing
       const typingNode = appendTypingIndicator();
 
       try {
         const fd = new FormData();
         fd.append('prompt', message);
 
-        const res = await fetch(chatEndpoint, {
-          method: 'POST',
-          body: fd,
-          credentials: 'same-origin'
-        });
-
+        const res = await fetch(chatEndpoint, { method: 'POST', body: fd });
         const textResp = await res.text();
 
-        // remove typing indicator
-        removeNode(typingNode);
+        typingNode.remove();
 
-        if (!res.ok) {
-          appendMessage('Sorry, I could not reach the assistant. Try again later.', 'bot');
-        } else {
-          // chatai.php returns escaped text via htmlspecialchars, safe to display
-          appendMessage(textResp, 'bot');
-        }
+        if (!res.ok) appendMessage('System error. Please try again.', 'bot');
+        else appendMessage(textResp, 'bot');
+        
       } catch (err) {
-        removeNode(typingNode);
-        appendMessage('Network error. Please check your connection and try again.', 'bot');
-        console.error('Chat error:', err);
+        typingNode.remove();
+        appendMessage('Network error. Check connection.', 'bot');
       } finally {
-        setSendingState(false);
+        inputEl.disabled = false;
+        sendBtn.disabled = false;
+        inputEl.focus();
       }
     }
 
-    // UI handlers
-    sendBtn.addEventListener('click', () => {
-      sendMessage(inputEl.value);
-    });
+    // --- Event Listeners ---
+    sendBtn.addEventListener('click', () => sendMessage(inputEl.value));
 
     inputEl.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -324,18 +301,14 @@
       }
     });
 
-    // When modal opens first time, add a welcome message (do not auto-open modal)
     modalEl.addEventListener('shown.bs.modal', function () {
+      inputEl.focus();
       if (messagesEl.children.length === 0) {
         appendMessage('Hi! I am Pack IT Assistant. How can I help you today?', 'bot');
       }
     });
 
-    // Keep conversation on close by default. If you want to clear on close, uncomment:
-    // modalEl.addEventListener('hidden.bs.modal', function () { messagesEl.innerHTML = ''; });
-
-    // Expose goToChat globally for other scripts that might call it
+    // Global Access
     window.goToChat = goToChat;
-
   })();
 </script>

@@ -170,7 +170,11 @@ $dropContactNumber = (string)$state["drop_contact_number"];
       </div>
     </div>
   </div>
+
+  <?php include("../components/chat.php"); ?>
   <?php include("../components/footer.php"); ?>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
     paypal.Buttons({

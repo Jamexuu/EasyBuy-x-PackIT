@@ -50,7 +50,6 @@ $userName = $loggedIn ? trim(($_SESSION['user']['firstName'] ?? '') . ' ' . ($_S
                         <a href="<?= htmlspecialchars(u('frontend/profile.php')) ?>" class="text-dark text-decoration-none fw-bold text-uppercase lh-1" style="font-size:0.85rem;">
                             <?= htmlspecialchars($userName ?: 'Profile') ?>
                         </a>
-                        <!-- Logout intentionally not in navbar (visible only on profile page) -->
                     </div>
                 <?php endif; ?>
 
@@ -67,7 +66,7 @@ $userName = $loggedIn ? trim(($_SESSION['user']['firstName'] ?? '') . ' ' . ($_S
                 <div class="offcanvas-body">
                     <ul class="navbar-nav justify-content-center flex-grow-1 gap-3 text-uppercase small fw-bold">
                         <?php
-                        // nav items (removed Book and Tracking as requested)
+                        // Standard Nav Items
                         $navItems = [
                             'index.php' => 'Home',
                             'frontend/vehicle.php' => 'Vehicles',
@@ -85,8 +84,17 @@ $userName = $loggedIn ? trim(($_SESSION['user']['firstName'] ?? '') . ' ' . ($_S
                             </li>
                         <?php endforeach; ?>
 
-                        <!-- Note: Sign Up / Profile button removed from the offcanvas per your request.
-                             Logout remains available only on profile.php inside the menu-outline area. -->
+                        <li class="nav-item d-sm-none border-top pt-3 mt-2">
+                            <?php if ($loggedIn): ?>
+                                <a href="<?= htmlspecialchars(u('frontend/profile.php')) ?>" class="nav-link text-dark">
+                                    <i class="bi bi-person-circle me-2"></i><?= htmlspecialchars($userName) ?>
+                                </a>
+                            <?php else: ?>
+                                <a href="<?= htmlspecialchars(u('frontend/login.php')) ?>" class="nav-link text-dark">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>Login / Signup
+                                </a>
+                            <?php endif; ?>
+                        </li>
                     </ul>
                 </div>
             </div>

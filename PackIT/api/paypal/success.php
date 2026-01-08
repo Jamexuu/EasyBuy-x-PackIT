@@ -32,6 +32,7 @@ function h(string $s): string {
 // Components (adjust if your folder structure differs)
 $navbarPath = __DIR__ . '/../../frontend/components/navbar.php';
 $footerPath = __DIR__ . '/../../frontend/components/footer.php';
+$chatPath = __DIR__ . '/../../frontend/components/chat.php';
 ?>
 <!doctype html>
 <html lang="en">
@@ -176,6 +177,7 @@ $footerPath = __DIR__ . '/../../frontend/components/footer.php';
   </main>
 
   <!-- Footer -->
+  <?php if (file_exists($chatPath)) { include $chatPath; } ?>
   <?php if (file_exists($footerPath)) { include $footerPath; } ?>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
