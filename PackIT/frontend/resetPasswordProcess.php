@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/../api/classes/User.php';
+require_once __DIR__ . '/../api/classes/PasswordHelper.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: login.php');
@@ -30,8 +31,10 @@ if ($password !== $confirm) {
     exit;
 }
 
-if (strlen($password) < 6) {
-    $_SESSION['fp_error'] = 'Password must be at least 6 characters.';
+// Validate password complexity (at least 8 chars with letters and numbers)
+$pwCheck = PasswordHelper::validate($password);
+if ($pwCheck !== true) {
+    $_SESSION['fp_error'] = $pwCheck;
     header('Location: resetPassword.php');
     exit;
 }

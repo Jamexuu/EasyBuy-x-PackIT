@@ -3,8 +3,12 @@ session_start();
 
 require_once __DIR__ . '/../api/classes/User.php';
 
-// OPTIONAL email include (only if you really have a function for it)
-// require_once __DIR__ . '/../api/gmail/sendMail.php';
+// OPTIONAL: include Gmail helper if available (sendMail.php)
+$gmailSendAvailable = false;
+if (file_exists(__DIR__ . '/../api/gmail/sendMail.php')) {
+    require_once __DIR__ . '/../api/gmail/sendMail.php';
+    $gmailSendAvailable = function_exists('sendMail');
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header("Location: signUp.php");
@@ -101,16 +105,41 @@ $addressData = [
 try {
     $userId = $user->register($userData, $addressData, 'user');
 
-    // 7) OPTIONAL: send welcome email only if the function exists
-    /*
-    if (function_exists('sendWelcomeEmail')) {
-        try {
-            sendWelcomeEmail($email, $firstName);
-        } catch (Throwable $e) {
-            error_log("Welcome email failed for $email: " . $e->getMessage());
+    // 7) Send welcome email (non-blocking)
+    try {
+        $subject = "Welcome to PackIT";
+        $html = '
+            <div style="font-family: Arial, sans-serif; line-height:1.5; color:#111;">
+                <h2 style="margin:0 0 10px;">Welcome, ' . htmlspecialchars($firstName) . '!</h2>
+                <p>Your PackIT account has been created. You can now log in and start using our services.</p>
+                <p style="margin-top:12px;">If you did not create this account, please contact support.</p>
+                <div style="margin-top:18px; padding:12px; background:#f8f4d6; border-radius:8px;">
+                    <strong>Account email:</strong> ' . htmlspecialchars($email) . '
+                </div>
+            </div>
+        ';
+
+        if ($gmailSendAvailable) {
+            // sendMail expected signature: sendMail($to, $subject, $htmlBody)
+            $sent = sendMail($email, $subject, $html);
+            if (!$sent) {
+                error_log("PackIT: sendMail() returned falsy when sending welcome email to $email");
+            }
+        } else {
+            // Fallback to PHP mail(); convert to plain text for mail()
+            $plain = strip_tags($html);
+            $headers  = "MIME-Version: 1.0\r\n";
+            $headers .= "Content-type: text/html; charset=UTF-8\r\n";
+            $headers .= "From: PackIT <no-reply@packit.local>\r\n";
+            $sent = mail($email, $subject, $html, $headers);
+            if (!$sent) {
+                error_log("PackIT: mail() failed when sending welcome email to $email");
+            }
         }
+    } catch (Throwable $e) {
+        // Do not interrupt registration on email errors; log for debugging.
+        error_log("PackIT: welcome email error for $email - " . $e->getMessage());
     }
-    */
 
     $_SESSION['success'] = "Welcome $firstName! Registration successful.";
     header("Location: login.php");

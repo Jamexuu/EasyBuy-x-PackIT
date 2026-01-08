@@ -8,6 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 // require User class
 require_once __DIR__ . '/../api/classes/User.php';
+require_once __DIR__ . '/../api/classes/PasswordHelper.php';
 
 // CSRF
 if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
@@ -39,8 +40,10 @@ if ($new !== $confirm) {
     exit;
 }
 
-if (strlen($new) < 6) {
-    $_SESSION['error'] = 'New password must be at least 6 characters.';
+// Validate new password complexity (at least 8 chars with letters and numbers)
+$pwCheck = PasswordHelper::validate($new);
+if ($pwCheck !== true) {
+    $_SESSION['error'] = $pwCheck;
     header('Location: changePassword.php');
     exit;
 }

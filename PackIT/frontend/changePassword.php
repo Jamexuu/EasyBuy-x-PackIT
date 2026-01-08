@@ -130,13 +130,13 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
 
           <div class="mb-3">
             <label class="form-label small fw-semibold">New password</label>
-            <input type="password" name="new_password" class="form-control" required minlength="6">
-            <div class="form-text small">At least 6 characters.</div>
+            <input type="password" name="new_password" class="form-control" required minlength="8" pattern="(?=.*[A-Za-z])(?=.*\d).{8,}">
+            <div class="form-text small">Must be at least 8 characters with letters and numbers.</div>
           </div>
 
           <div class="mb-3">
             <label class="form-label small fw-semibold">Confirm new password</label>
-            <input type="password" name="confirm_password" class="form-control" required minlength="6">
+            <input type="password" name="confirm_password" class="form-control" required minlength="8" pattern="(?=.*[A-Za-z])(?=.*\d).{8,}">
           </div>
 
           <div class="d-grid">

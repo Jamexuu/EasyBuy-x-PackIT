@@ -36,11 +36,12 @@ if (!$userId) {
           <form action="resetPasswordProcess.php" method="POST">
             <div class="mb-3">
               <label class="form-label small fw-semibold">New password</label>
-              <input type="password" name="password" class="form-control" required minlength="6" placeholder="Enter new password">
+              <input type="password" name="password" class="form-control" required minlength="8" pattern="(?=.*[A-Za-z])(?=.*\d).{8,}" placeholder="Enter new password">
+              <div class="form-text small">Must be at least 8 characters with letters and numbers.</div>
             </div>
             <div class="mb-3">
               <label class="form-label small fw-semibold">Confirm password</label>
-              <input type="password" name="confirm_password" class="form-control" required minlength="6" placeholder="Confirm new password">
+              <input type="password" name="confirm_password" class="form-control" required minlength="8" pattern="(?=.*[A-Za-z])(?=.*\d).{8,}" placeholder="Confirm new password">
             </div>
 
             <div class="d-grid">
