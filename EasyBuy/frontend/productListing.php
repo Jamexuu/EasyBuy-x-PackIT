@@ -111,7 +111,15 @@
             const response = await fetch("../api/getAllProducts.php");
             products = await response.json();
             filteredProducts = products;
-            getProducts();
+            
+            getCategoryFromURL();
+            
+            if (currentCategoryFilter) {
+                applyFilters();
+            } else {
+                getProducts();
+            }
+            
             paginationArea.style.display = filteredProducts.length > cardSize ? 'block' : 'none';
         }
 
@@ -171,6 +179,30 @@
         let currentPriceFilter = '';
         let currentCategoryFilter = '';
         let currentSalesFilter = '';
+
+        function getCategoryFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const categoryParam = urlParams.get('category');
+            
+            if (categoryParam) {
+                const categoryMap = {
+                    'produce': 'produce',
+                    'meats': 'meat',
+                    'dairy': 'dairy',
+                    'frozen-foods': 'frozen',
+                    'condiments-sauces': 'condiments',
+                    'snacks': 'snacks',
+                    'beverages': 'beverages',
+                    'personal-care': 'personal'
+                };
+                
+                const mappedCategory = categoryMap[categoryParam];
+                if (mappedCategory) {
+                    currentCategoryFilter = mappedCategory;
+                    document.getElementById('categoryOptions').value = mappedCategory;
+                }
+            }
+        }
 
         document.getElementById('priceOptions').addEventListener('change', function () {
             currentPriceFilter = this.value;
