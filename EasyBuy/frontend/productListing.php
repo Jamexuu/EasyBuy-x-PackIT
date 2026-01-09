@@ -137,16 +137,16 @@
                     : product.price;
 
                 contentArea.innerHTML += `
-                <div class="col-12 col-md-4 col-lg-3 mb-4">
-                    <div class="card rounded-4 h-100">
+                <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4 d-flex justify-content-center">
+                    <div class="card rounded-4 h-100" style="max-width: 280px; width: 100%;">
                         ${isOnSale ? `<div class="position-relative">
-                            <img class="img-fluid object-fit-contain p-3" style="height: 180px; cursor: pointer;" 
+                            <img class="img-fluid object-fit-contain p-3 d-block mx-auto" style="height: 180px; width: 100%; cursor: pointer;" 
                                  src="${product.image}" alt="${product.product_name}"
                                  onclick="window.location.href='productView.php?id=${product.id}'">
                             <div class="position-absolute top-0 end-0 me-3 mt-3">
                                 <span class="badge fw-normal" style="background-color:#28a745;">${product.sale_percentage}% Off</span>
                             </div>
-                        </div>` : `<img class="img-fluid object-fit-contain p-3" style="height: 180px; cursor: pointer;" 
+                        </div>` : `<img class="img-fluid object-fit-contain p-3 d-block mx-auto" style="height: 180px; width: 100%; cursor: pointer;" 
                              src="${product.image}" alt="${product.product_name}"
                              onclick="window.location.href='productView.php?id=${product.id}'">`}
                         <div class="card-body mt-0 pt-0 d-block" style="cursor: pointer;" onclick="window.location.href='productView.php?id=${product.id}'">
