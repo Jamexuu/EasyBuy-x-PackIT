@@ -1,25 +1,7 @@
 <?php
-require_once '../api/classes/Auth.php';
-require_once '../api/classes/User.php';
+    require_once '../api/classes/Auth.php';
 
-Auth::redirectIfLoggedIn();
-
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $email = $_POST['Email'];
-    $password = $_POST['Password'];
-
-    $user = new User();
-    $result = $user->login($email, $password);
-
-    if ($result) {
-        Auth::login($result['id'], $result['email'], $result['first_name']);
-        header("Location: ../index.php");
-        exit();
-    } else {
-        header("Location: login.php?error=invalid_credentials");
-        exit();
-    }
-}
+    Auth::redirectIfLoggedIn();
 ?>
 
 <!doctype html>
@@ -56,26 +38,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-12 col-md-8 col-xl-6">
-                <form method="POST" action="">
-                    <!--Modal error message-->
-                    <?php if (isset($_GET['error']) && $_GET['error'] == 'invalid_credentials'): ?>
-                        <div id="errorModal" class="modal fade" tabindex="-1" aria-labelledby="errorModalLabel"
-                            aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content p-4 rounded-5 shadow text-center border-0"
-                                    style="width: 85%; max-width: 320px; margin: auto;">
-                                    <div class="h5 fw-bold mb-2">Error</div>
-                                    <p class="mb-4"> Invalid Credentials</p>
-                                    <div class="d-flex justify-content-center">
-                                        <button type="button" class="btn px-4 text-white" style="background-color: #6EC064;"
-                                            data-bs-dismiss="modal">
-                                            OK
-                                        </button>
-                                    </div>
-                                </div>
+                <!--Modal error message-->
+                <div id="errorModal" class="modal fade" tabindex="-1" aria-labelledby="errorModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content p-4 rounded-5 shadow text-center border-0"
+                            style="width: 85%; max-width: 320px; margin: auto;">
+                            <div class="h5 fw-bold mb-2">Error</div>
+                            <p class="mb-4" id="errorMessage">Invalid Credentials</p>
+                            <div class="d-flex justify-content-center">
+                                <button type="button" class="btn px-4 text-white" style="background-color: #6EC064;" data-bs-dismiss="modal">
+                                    OK
+                                </button>
                             </div>
                         </div>
-                    <?php endif; ?>
+                    </div>
+                </div>
+                <form method="POST" action="" onsubmit="postUserData(event); return false;">
                     <div class="mb-3">
                         <label class="form-label" for="Email">Email</label>
                         <input type="email" id="Email" placeholder="Email" name="Email"
@@ -121,8 +100,51 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
     <script>
-        const modal = new bootstrap.Modal(document.getElementById('errorModal'));
+        const errorModalElement = document.getElementById('errorModal');
+        const errorMessageElement = document.getElementById('errorMessage');
+    
+        <?php if (isset($_GET['error']) && $_GET['error'] == 'invalid_credentials'): ?>
+        const modal = new bootstrap.Modal(errorModalElement);
+        errorMessageElement.textContent = 'Invalid Credentials';
         modal.show();
+        <?php endif; ?>
+
+        function showErrorModal(message) {
+            errorMessageElement.textContent = message;
+            const modal = new bootstrap.Modal(errorModalElement);
+            modal.show();
+        }
+
+        async function postUserData(event) {
+            event.preventDefault();
+
+            const payload = {
+                email: document.getElementById('Email').value,
+                password: document.getElementById('Password').value
+            }
+
+            try {
+                const response = await fetch('../api/login.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    window.location.href = '../index.php';
+                } else {
+                    showErrorModal(data.error || 'Login failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showErrorModal('An error occurred. Please try again.');
+            }
+        }
+
     </script>
 </body>
 
