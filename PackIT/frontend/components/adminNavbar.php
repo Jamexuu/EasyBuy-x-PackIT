@@ -122,5 +122,9 @@ $basePath   = $basePath ?? '../';
                 <a href="dbTables.php?view=password_resets" class="admin-nav-card shadow-sm <?= $activePage === 'password_resets' ? 'active' : '' ?>">
                     Password Resets
                 </a>
+
+                <a href="dbTables.php?view=chat_history" class="admin-nav-card shadow-sm <?= $activePage === 'chat_history' ? 'active' : '' ?>">
+                    Chat History
+                </a>
             </div>
         </div>

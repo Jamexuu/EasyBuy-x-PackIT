@@ -6,7 +6,7 @@ Auth::requireAdmin();
 
 $basePath = '../';
 
-// ✅ Added the 3 new tables here
+// ✅ Added 'chat_history' to the mapping
 $viewToTable = [
     'users'           => 'users',
     'addresses'       => 'addresses',
@@ -17,6 +17,7 @@ $viewToTable = [
     'smslogs'         => 'smslogs',
     'driver_vehicles' => 'driver_vehicles',
     'password_resets' => 'password_resets',
+    'chat_history'    => 'chat_history', 
 ];
 
 $view = $_GET['view'] ?? 'users';
@@ -77,6 +78,7 @@ function prettyTitle(string $key): string {
         'smslogs'         => 'SMS Logs',
         'driver_vehicles' => 'Driver Vehicles',
         'password_resets' => 'Password Resets',
+        'chat_history'    => 'Chat History', // ✅ Added Pretty Title
         default           => ucfirst(str_replace('_', ' ', $key)),
     };
 }
