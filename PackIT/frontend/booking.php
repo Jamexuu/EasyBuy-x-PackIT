@@ -9,11 +9,19 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
   <style>
-    body { background-color: #f8f9fa; }
+    /* Theme variables (yellow) */
+    :root {
+      --brand:  rgba(248, 225, 91, 0.98);         /* main yellow */
+      --brand-dark: #000000ff;    /* darker accent */
+      --brand-contrast: #1f1f1f;/* text on yellow */
+      --muted-bg: #fff9eb;      /* very light warm bg for highlights */
+    }
+
+    body { background-color: #fffaf0; } /* soften overall background */
     .step-container { display: none; animation: fadeIn 0.35s; }
     .step-container.active { display: block; }
-    .price-tag { font-size: 2.2rem; font-weight: 800; color: #0d6efd; }
-    .receipt-card { background: #fff; border: 2px dashed #ccc; max-width:420px; margin:0 auto; }
+    .price-tag { font-size: 2.2rem; font-weight: 800; color: var(--brand-dark); }
+    .receipt-card { background: #fff; border: 2px dashed rgba(179,107,0,0.15); max-width:420px; margin:0 auto; }
 
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
@@ -26,35 +34,74 @@
       left: 0;
       right: 0;
       background: #fff;
-      border: 1px solid rgba(0,0,0,.15);
+      border: 1px solid rgba(0,0,0,.08);
       border-radius: .5rem;
-      box-shadow: 0 .5rem 1rem rgba(0,0,0,.1);
+      box-shadow: 0 .5rem 1rem rgba(0,0,0,.06);
       max-height: 280px;
       overflow: auto;
       margin-top: .25rem;
       display: none;
     }
-    .ac-item { padding: .5rem .75rem; cursor: pointer; border-bottom: 1px solid rgba(0,0,0,.05); }
-    .ac-item:hover, .ac-item.active { background: #f1f5ff; }
+    .ac-item { padding: .5rem .75rem; cursor: pointer; border-bottom: 1px solid rgba(0,0,0,.03); }
+    .ac-item:hover, .ac-item.active { background: #fff7e6; }
     .ac-title { font-weight: 700; }
     .ac-sub { font-size: .85rem; color: #6c757d; }
 
     /* Items UI */
-    .item-card { border: 1px solid rgba(0,0,0,.06); background:#fff; padding: .75rem; border-radius: .5rem; margin-bottom:.75rem; }
+    .item-card { border: 1px solid rgba(179,107,0,0.06); background:#fff; padding: .75rem; border-radius: .5rem; margin-bottom:.75rem; }
     .item-actions { display:flex; gap:.5rem; align-items:center; }
 
     /* Vehicles */
     .vehicle-grid { display:flex; gap:.5rem; flex-wrap:wrap; }
-    .vehicle-item { flex: 1 1 30%; min-width:120px; background:#fff; border:1px solid rgba(0,0,0,.06); padding:.6rem; border-radius:.6rem; text-align:center; cursor:pointer; }
+    .vehicle-item { flex: 1 1 30%; min-width:120px; background:#fff; border:1px solid rgba(0,0,0,.06); padding:.6rem; border-radius:.6rem; text-align:center; cursor:pointer; transition: box-shadow .12s, border-color .12s; }
     .vehicle-item.small { padding:.5rem; }
     .vehicle-item img { width:80px; height:60px; object-fit:cover; border-radius:.25rem; }
-    .vehicle-item.active { box-shadow: 0 0 0 3px rgba(13,110,253,.12); border-color:#0d6efd; }
+    .vehicle-item.active { box-shadow: 0 0 0 3px rgba(246,185,0,.16); border-color: var(--brand-dark); }
 
     .muted-sm { font-size:.85rem; color:#6c757d; }
     .required { color:#d00; }
 
     /* smaller UI tweaks */
     .small-input { font-size:.92rem; padding: .45rem .6rem; }
+
+    /* Header override for yellow theme */
+    .card-header {
+      background: var(--brand);
+      color: var(--brand-contrast);
+      padding: 1.25rem;
+      border-top-left-radius: .5rem;
+      border-top-right-radius: .5rem;
+    }
+    .card-header .bi { color: var(--brand-contrast); }
+
+    /* Primary text and controls tuned to yellow theme */
+    .text-primary { color: var(--brand-dark) !important; }
+    .btn-primary {
+      background-color: var(--brand);
+      border-color: rgba(0,0,0,0.06);
+      color: var(--brand-contrast);
+      box-shadow: none;
+    }
+    .btn-primary:hover, .btn-primary:focus {
+      background-color:  rgba(248, 225, 91, 0.98);
+      color: var(--brand-contrast);
+    }
+    .btn-outline-secondary {
+      border-color: rgba(179,107,0,0.12);
+      color: var(--brand-dark);
+    }
+
+    .badge.bg-warning { background-color: #ffecb5; color: #5a3b00; }
+    .badge.bg-info { background-color: #fff3cd; color: #664d03; }
+
+    .list-group-item { background: transparent; border: none; border-bottom: 1px dashed rgba(0,0,0,0.03); }
+
+    #paypal-button-wrapper { background: linear-gradient(180deg, rgba(255,250,240,0.6), rgba(255,250,240,0.2)); padding: .75rem; border-radius: .5rem; }
+
+    @media (max-width: 576px) {
+      .vehicle-item img { width:72px; height:54px; }
+      .price-tag { font-size: 1.8rem; }
+    }
   </style>
 </head>
 <body>
@@ -62,7 +109,7 @@
   <div class="row justify-content-center">
     <div class="col-lg-8 col-md-10">
       <div class="card shadow-sm border-0 rounded-4">
-        <div class="card-header bg-primary text-white p-4 rounded-top-4">
+        <div class="card-header p-4 rounded-top-4">
           <h4 class="mb-0 fw-bold"><i class="bi bi-truck"></i> Book Delivery</h4>
           <p class="mb-0 small opacity-75">Multi-item, size & quantity, vehicle selection</p>
         </div>
@@ -258,7 +305,7 @@
 
           <!-- STEP 4: Paid / Receipt -->
           <div id="step4" class="step-container text-center">
-            <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+            <i class="bi bi-check-circle-fill" style="font-size: 4rem; color: var(--brand-dark);"></i>
             <h3 class="fw-bold mt-2">Booking Paid!</h3>
             <p class="text-muted mb-4">A rider is being assigned to your location.</p>
 
@@ -573,10 +620,10 @@
 
     function setActive(newIndex) {
       const children = Array.from(list.children);
-      children.forEach(c => c.classList.remove("active"));
+      children.forEach(c => c.classList.remove('active'));
       activeIndex = newIndex;
       if (activeIndex >= 0 && activeIndex < children.length) {
-        children[activeIndex].classList.add("active");
+        children[activeIndex].classList.add('active');
       }
     }
 
