@@ -1,5 +1,7 @@
 <style>
-  /* --- Chat Button (Floating) --- */
+  /* --- CONSOLIDATED CHAT STYLES --- */
+
+  /* Floating Chat Button */
   .poc-chat-btn {
     position: fixed;
     bottom: 20px;
@@ -7,7 +9,7 @@
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background: #facc15; /* Brand Yellow */
+    background: #facc15;
     color: #1f2937;
     display: flex;
     align-items: center;
@@ -16,58 +18,28 @@
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     transition: transform 0.2s, box-shadow 0.2s;
-    z-index: 1060; /* Higher than most elements */
+    z-index: 1060;
   }
+  .poc-chat-btn:hover { transform: scale(1.05); box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); }
+  .poc-tooltip { position: absolute; right: 70px; top: 50%; transform: translateY(-50%); background: #333; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .poc-chat-btn:hover .poc-tooltip { opacity: 1; }
 
-  .poc-chat-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  }
-
-  /* Tooltip for the button */
-  .poc-tooltip {
-    position: absolute;
-    right: 70px; /* To the left of the button */
-    top: 50%;
-    transform: translateY(-50%);
-    background: #333;
-    color: #fff;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s;
-  }
-
-  .poc-chat-btn:hover .poc-tooltip {
-    opacity: 1;
-  }
-
-  /* --- Chat Modal (Widget) --- */
+  /* --- CHAT MODAL / WIDGET --- */
+  
+  /* Desktop: Fixed Widget Position */
   .poc-chat-modal .modal-dialog {
     margin: 0;
     position: fixed;
-    bottom: 90px; /* Above the button */
+    bottom: 90px;
     right: 20px;
-    width: 100%;
-    max-width: 400px;
+    width: 400px;
     z-index: 1061;
+    transition: transform 0.3s ease-out;
   }
 
-  @media (max-width: 576px) {
-    .poc-chat-modal .modal-dialog {
-        right: 50%;
-        transform: translateX(50%) !important;
-        bottom: 85px;
-        width: 92%;
-        max-width: none;
-    }
-  }
-
+  /* Chat Window Container */
   .poc-chat-window {
-    height: 480px;
+    height: 500px; /* Default desktop height */
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -75,19 +47,67 @@
     border-radius: 0.5rem;
   }
 
+  /* --- MOBILE RESPONSIVENESS (Bottom Sheet Style) --- */
+  @media (max-width: 576px) {
+    .poc-chat-modal {
+      padding-right: 0 !important; /* Prevent Bootstrap adding padding */
+    }
+
+    .poc-chat-modal .modal-dialog {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+      transform: none !important; /* Override standard modal transitions if needed */
+    }
+
+    .poc-chat-modal .modal-content {
+      border-radius: 1.5rem 1.5rem 0 0 !important; /* Round top corners only */
+      border: none;
+      box-shadow: 0 -5px 25px rgba(0,0,0,0.15);
+      height: 85vh; /* Take up 85% of screen height */
+      display: flex;
+      flex-direction: column;
+    }
+
+    .poc-chat-modal .modal-body {
+      flex: 1; /* Allow body to grow */
+      overflow: hidden; /* Prevent double scrollbars */
+      padding: 0;
+    }
+
+    /* Force the window inside to fill the modal content */
+    .poc-chat-window {
+      height: 100% !important; 
+      border-radius: 0 !important;
+    }
+    
+    /* Input area safe padding for iPhone home bar */
+    .poc-chat-input {
+      padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+    }
+  }
+
   .poc-chat-messages {
     flex: 1 1 auto;
     padding: 1rem;
     overflow-y: auto;
     background: linear-gradient(180deg, #f8f9fa, #fff);
+    /* Smooth scroll */
+    scroll-behavior: smooth;
   }
 
   .poc-chat-input {
     border-top: 1px solid #dee2e6;
     padding: 0.75rem;
     background: #fff;
+    flex-shrink: 0; /* Prevent shrinking */
   }
 
+  /* Message Bubbles */
   .poc-chat-msg {
     display: flex;
     gap: 0.5rem;
@@ -111,16 +131,15 @@
 
   .poc-chat-bubble {
     max-width: 75%;
-    padding: 0.6rem 0.8rem;
+    padding: 0.7rem 1rem;
     border-radius: 1rem;
     font-size: 0.95rem;
     line-height: 1.4;
     box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    word-wrap: break-word;
   }
 
-  .poc-chat-msg.user {
-    justify-content: flex-end;
-  }
+  .poc-chat-msg.user { justify-content: flex-end; }
   .poc-chat-msg.user .poc-chat-bubble {
     background: #0d6efd;
     color: #fff;
@@ -140,17 +159,32 @@
     border-radius: 4px;
     animation: poc-blink 1.5s infinite;
   }
+  @keyframes poc-blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
 
-  @keyframes poc-blink {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 1; }
+  /* Quick Buttons CSS */
+  #packit-quick-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 10px;
+    border-top: 1px solid #eef2ff;
+    border-bottom: 1px solid #f1f3f5;
+    background: #ffffff;
+    justify-content: flex-start;
+    align-items: center;
+    flex-shrink: 0;
   }
-
-  .poc-chat-controls textarea {
-    resize: none;
-    height: 42px;
-    font-size: 0.95rem;
+  .packit-quick-btn {
+    background: #f3f6ff;
+    color: #0d47a1;
+    border: 1px solid #d8e4ff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    white-space: nowrap;
   }
+  .packit-quick-btn:hover { background: #e8f0ff; }
 </style>
 
 <div class="poc-chat-btn" id="pocChatBtn" role="button" aria-label="Open chat" tabindex="0">
@@ -163,7 +197,7 @@
     <div class="modal-content border-0">
       <div class="modal-header bg-light py-2 border-bottom-0 rounded-top-3">
         <div class="d-flex align-items-center gap-2">
-            <img src="/EasyBuy-x-PackIT/PackIT/assets/chatbot.png" alt="Bot" width="32" height="32" class="object-fit-contain">
+          <img src="/EasyBuy-x-PackIT/PackIT/assets/chatbot.png" alt="Bot" width="32" height="32" class="object-fit-contain">
           <div class="lh-1">
             <div class="fw-bold fs-6">PackIT Assistant</div>
             <small class="text-muted" style="font-size: 0.75rem;">Online</small>
@@ -176,10 +210,17 @@
         <div class="poc-chat-window" role="region" aria-label="Chat messages">
           <div class="poc-chat-messages" id="pocChatMessages" aria-live="polite"></div>
 
+          <div id="packit-quick-buttons">
+            <button type="button" class="packit-quick-btn" data-prompt="What is the status of my bookings?">Status of my bookings</button>
+            <button type="button" class="packit-quick-btn" data-prompt="Where are my parcels?">Where are my parcels?</button>
+            <button type="button" class="packit-quick-btn" data-prompt="How much did my last booking cost?">Last booking cost</button>
+            <button type="button" class="packit-quick-btn" data-prompt="How do I cancel a booking?">How to cancel</button>
+          </div>
+
           <div class="poc-chat-input">
             <form id="pocChatForm" onsubmit="return false;">
               <div class="d-flex gap-2 align-items-center">
-                <textarea id="pocChatInput" class="form-control form-control-sm" placeholder="Type a message..." aria-label="Message"></textarea>
+                <textarea id="pocChatInput" class="form-control form-control-sm" placeholder="Type a message..." aria-label="Message" style="resize: none; height: 42px; font-size: 0.95rem;"></textarea>
                 <button id="pocSendBtn" class="btn btn-primary btn-sm rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" type="button">
                   <i class="bi bi-send-fill"></i>
                 </button>
@@ -188,138 +229,131 @@
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </div>
 
 <script>
-  (function () {
-    const btn = document.getElementById('pocChatBtn');
-    const modalEl = document.getElementById('pocChatModal');
-    const messagesEl = document.getElementById('pocChatMessages');
-    const inputEl = document.getElementById('pocChatInput');
-    const sendBtn = document.getElementById('pocSendBtn');
+(function () {
+  const btn = document.getElementById('pocChatBtn');
+  const launcher = document.getElementById('chatbotLauncher');
+  const modalEl = document.getElementById('pocChatModal');
+  const messagesEl = document.getElementById('pocChatMessages');
+  const inputEl = document.getElementById('pocChatInput');
+  const sendBtn = document.getElementById('pocSendBtn');
 
-    // Endpoints (adjust if your project path differs)
-    const chatEndpoint = "/EasyBuy-x-PackIT/PackIT/frontend/chatai.php";
-    const historyEndpoint = "/EasyBuy-x-PackIT/PackIT/frontend/chat_history.php";
+  const chatEndpoint = "/EasyBuy-x-PackIT/PackIT/frontend/chatai.php";
+  const historyEndpoint = "/EasyBuy-x-PackIT/PackIT/frontend/chat_history.php";
 
-    function goToChat() {
-      if (!modalEl) {
-        window.location.href = chatEndpoint;
-        return;
-      }
-      const modal = new bootstrap.Modal(modalEl, { keyboard: true });
-      modal.show();
-    }
+  let bsModal;
 
-    if (btn) {
-      btn.addEventListener('click', (e) => { e.preventDefault(); goToChat(); });
-      btn.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goToChat(); }
+  function showChat() {
+    if (!modalEl) { window.location.href = chatEndpoint; return; }
+    if (!bsModal) bsModal = new bootstrap.Modal(modalEl, { keyboard: true });
+    bsModal.show();
+  }
+
+  // Handle both the floating button and the launcher in index.php
+  [btn, launcher].forEach(el => {
+    if (el) {
+      el.addEventListener('click', (e) => { e.preventDefault(); showChat(); });
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showChat(); }
       });
     }
+  });
 
-    if (!modalEl || !messagesEl || !inputEl || !sendBtn) return;
+  if (!modalEl || !messagesEl || !inputEl || !sendBtn) return;
 
-    function appendMessage(text, who = 'bot') {
-      const wrapper = document.createElement('div');
-      wrapper.className = `poc-chat-msg ${who}`;
-      const avatar = `<div class="avatar">${who === 'user' ? 'U' : 'AI'}</div>`;
-      const bubble = `<div class="poc-chat-bubble">${text.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]))}</div>`;
-      wrapper.innerHTML = who === 'user' ? (bubble + avatar) : (avatar + bubble);
-      messagesEl.appendChild(wrapper);
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-    }
+  function sanitize(text) {
+    return String(text).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
 
-    function appendTypingIndicator() {
-      const wrap = document.createElement('div');
-      wrap.className = 'poc-chat-msg bot';
-      wrap.innerHTML = `<div class="avatar">AI</div><div class="poc-chat-bubble"><div class="poc-chat-typing"></div></div>`;
-      messagesEl.appendChild(wrap);
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-      return wrap;
-    }
+  function appendMessage(text, who = 'bot') {
+    const wrapper = document.createElement('div');
+    wrapper.className = `poc-chat-msg ${who}`;
+    const avatar = `<div class="avatar">${who === 'user' ? 'U' : 'AI'}</div>`;
+    const bubble = `<div class="poc-chat-bubble">${sanitize(text)}</div>`;
+    wrapper.innerHTML = who === 'user' ? (bubble + avatar) : (avatar + bubble);
+    messagesEl.appendChild(wrapper);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
 
-    // Fetch history when modal is shown
-    modalEl.addEventListener('shown.bs.modal', async function () {
-      inputEl.focus();
-      if (messagesEl.children.length === 0) {
-        // Load history
-        try {
-          const res = await fetch(historyEndpoint);
-          const json = await res.json();
-          if (json?.success && Array.isArray(json.history)) {
-            json.history.forEach(item => {
-              appendMessage(item.prompt, 'user');
-              appendMessage(item.response, 'bot');
-            });
-          } else {
-            appendMessage('Hi! I am Pack IT Assistant. How can I help you today?', 'bot');
-          }
-        } catch (e) {
-          console.error('Failed to load chat history', e);
-          appendMessage('Hi! I am Pack IT Assistant. How can I help you today?', 'bot');
-        }
-      }
-    });
+  function appendTyping() {
+    const wrap = document.createElement('div');
+    wrap.className = 'poc-chat-msg bot';
+    wrap.innerHTML = `<div class="avatar">AI</div><div class="poc-chat-bubble"><div class="poc-chat-typing"></div></div>`;
+    messagesEl.appendChild(wrap);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return wrap;
+  }
 
-    // Send logic
-    async function sendMessage(text) {
-      if (!text || !text.trim()) return;
-      const message = text.trim();
-
-      appendMessage(message, 'user');
-      inputEl.value = '';
-      inputEl.disabled = true;
-      sendBtn.disabled = true;
-
-      const typingNode = appendTypingIndicator();
-
+  modalEl.addEventListener('shown.bs.modal', async function () {
+    inputEl.focus();
+    if (messagesEl.children.length === 0) {
       try {
-        const fd = new FormData();
-        fd.append('prompt', message);
-
-        const res = await fetch(chatEndpoint, { method: 'POST', body: fd });
-        const data = await res.json();
-
-        typingNode.remove();
-
-        if (!res.ok || !data) {
-          appendMessage('System error. Please try again.', 'bot');
-        } else if (!data.success) {
-          // If LLM failed but returned a reply field, show it; otherwise show error
-          appendMessage(data.reply ?? data.error ?? 'POC is unavailable right now.', 'bot');
+        const res = await fetch(historyEndpoint, { cache: 'no-store' });
+        const json = await res.json();
+        if (json?.success && Array.isArray(json.history) && json.history.length) {
+          json.history.forEach(item => {
+            appendMessage(item.prompt, 'user');
+            appendMessage(item.response, 'bot');
+          });
         } else {
-          appendMessage(data.reply, 'bot');
+          appendMessage('Hi! I am PackIT Assistant. How can I help you today?', 'bot');
         }
-      } catch (err) {
-        typingNode.remove();
-        appendMessage('Network error. Check connection.', 'bot');
-      } finally {
-        inputEl.disabled = false;
-        sendBtn.disabled = false;
-        inputEl.focus();
+      } catch (e) {
+        appendMessage('Hi! I am PackIT Assistant. How can I help you today?', 'bot');
       }
     }
+  });
 
-    sendBtn.addEventListener('click', () => sendMessage(inputEl.value));
+  modalEl.addEventListener('hide.bs.modal', () => { messagesEl.innerHTML = ''; });
 
-    inputEl.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendBtn.click();
-      }
-    });
+  async function sendMessage(text) {
+    if (!text || !text.trim()) return;
+    const msg = text.trim();
+    appendMessage(msg, 'user');
+    inputEl.value = '';
+    inputEl.disabled = true;
+    sendBtn.disabled = true;
 
-    // Prepopulate greeting if no history
-    modalEl.addEventListener('hide.bs.modal', function () {
-      // Clear messages when closed to ensure fresh load next time (optional)
-      messagesEl.innerHTML = '';
-    });
+    const typing = appendTyping();
 
-    // Global
-    window.goToChat = goToChat;
-  })();
+    try {
+      const fd = new FormData();
+      fd.append('prompt', msg);
+      const res = await fetch(chatEndpoint, { method: 'POST', body: fd, credentials: 'same-origin' });
+      const data = await res.json();
+      typing.remove();
+      if (!res.ok || !data) appendMessage('System error. Please try again.', 'bot');
+      else if (!data.success) appendMessage(data.reply ?? data.error ?? 'POC unavailable.', 'bot');
+      else appendMessage(data.reply, 'bot');
+    } catch (err) {
+      typing.remove();
+      appendMessage('Network error.', 'bot');
+    } finally {
+      inputEl.disabled = false;
+      sendBtn.disabled = false;
+      inputEl.focus();
+    }
+  }
+
+  window.pocSendMessage = sendMessage;
+  sendBtn.addEventListener('click', () => sendMessage(inputEl.value));
+  inputEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(inputEl.value); }
+  });
+
+  // Quick Buttons handler
+  document.addEventListener('click', function(e){
+    if (e.target.classList.contains('packit-quick-btn')) {
+      const prompt = e.target.getAttribute('data-prompt');
+      showChat();
+      if (typeof window.pocSendMessage === 'function') window.pocSendMessage(prompt);
+    }
+  });
+
+  window.showChat = showChat;
+})();
 </script>
