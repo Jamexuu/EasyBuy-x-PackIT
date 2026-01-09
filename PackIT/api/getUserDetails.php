@@ -1,0 +1,24 @@
+<?php
+
+require_once __DIR__ . '/header.php';
+require_once __DIR__ . '/helpers/auth_api.php';
+require_once __DIR__ . '/classes/User.php';
+
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    http_response_code(405);
+    echo json_encode(['error' => 'Method Not Allowed']);
+    exit();
+}
+
+$currentUser = require_api_auth();
+
+$user = new User();
+$data = $user->getUserDetails((int)$currentUser['id']);
+
+if (!$data) {
+    http_response_code(404);
+    echo json_encode(['error' => 'User not found']);
+    exit();
+}
+
+echo json_encode(['success' => true, 'data' => $data]);
