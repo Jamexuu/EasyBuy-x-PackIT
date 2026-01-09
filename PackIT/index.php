@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
   <style>
     /* Hide the floating chat bubble on the homepage since we have the menu launcher */
-    .poc-chat-btn {
+    #pocChatBtn {
       display: none !important;
     }
   </style>
