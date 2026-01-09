@@ -45,7 +45,7 @@
             product.image.split("/").pop();
 
             col.innerHTML = `
-                <div class="card h-100 rounded-4 shadow-sm">
+                <div class="card h-100 rounded-4 shadow-sm" style="cursor:pointer;" onclick="window.location.href='frontend/productView.php?id=${product.id}'">
                 <div class="card-img-overlay"><span class="badge position-absolute me-3 end-0 fw-normal" style="background-color:#28a745;">${product.sale_percentage}% Off</span></div>
                 <img src="/EasyBuy-x-PackIT/EasyBuy/Product%20Images/all/${product.image.split('/').pop()}"
                     class="card-img-top p-3" style="height:160px;object-fit:contain;"
@@ -69,11 +69,11 @@
                     </div>
                     <div style="display:flex;gap:8px;width:100%;">
                     <button type="button" class="btn rounded-3" id="addToCart"
-                        style="border:1px solid #6EC064;color:#6EC064;">
+                        style="border:1px solid #6EC064;color:#6EC064;" onclick="event.stopPropagation(); addToCart(${product.id});">
                         <span class="material-symbols-rounded">shopping_cart</span>
                     </button>
                     <button class="btn btn-sm rounded-3"
-                        style="flex:1;background-color:#6EC064;color:white; ">
+                        style="flex:1;background-color:#6EC064;color:white;">
                         BUY NOW
                     </button>
                     </div>
