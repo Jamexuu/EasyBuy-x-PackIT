@@ -9,7 +9,12 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-  <?php include("frontend/components/chatModal.php"); ?>
+  <style>
+    /* Hide the floating chat bubble on the homepage since we have the menu launcher */
+    .poc-chat-btn {
+      display: none !important;
+    }
+  </style>
 </head>
 
 <body id="top" class="min-vh-100 d-flex flex-column" style="font-family: 'Segoe UI', sans-serif; background: linear-gradient(180deg, #ffffff 0%, #fcfcfd 100%); overflow-x: hidden;">
@@ -38,7 +43,7 @@
 
   <div id="floatingActions" 
        class="position-fixed d-flex flex-column align-items-center rounded-5 shadow z-3" 
-       style="background: rgba(248, 225, 91, 0.98); top: 50%; right: 20px; transform: translateY(-50%); transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s ease; overflow: hidden; z-index: 1050;">
+       style="background: rgba(248, 225, 91, 0.98); top: 50%; right: 20px; transform: translateY(-50%); transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s ease; width: 110px; max-height: 500px; padding: 1rem; overflow: hidden;">
     
     <button id="actionsToggleBtn" 
             class="btn border-0 p-0 d-flex d-lg-none align-items-center justify-content-center rounded-circle" 
@@ -68,44 +73,9 @@
 
   <?php include("frontend/components/footer.php"); ?>
 
-  <div class="modal fade poc-chat-modal" id="pocChatModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="false">
-    <div class="modal-dialog shadow-lg rounded-3">
-      <div class="modal-content border-0">
-        
-        <div class="modal-header bg-light py-2 border-bottom-0 rounded-top-3">
-          <div class="d-flex align-items-center gap-2">
-            <img src="assets/chatbot.png" alt="Bot" width="32" height="32" class="object-fit-contain">
-            <div class="lh-1">
-              <div class="fw-bold fs-6">PackIT Assistant</div>
-              <small class="text-muted" style="font-size: 0.75rem;">Online</small>
-            </div>
-          </div>
-          <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-
-        <div class="modal-body p-0">
-          <div class="poc-chat-window" role="region" aria-label="Chat messages">
-            <div class="poc-chat-messages" id="pocChatMessages" aria-live="polite">
-              </div>
-
-            <div class="poc-chat-input">
-              <form id="pocChatForm" onsubmit="return false;">
-                <div class="d-flex gap-2 align-items-center">
-                  <textarea id="pocChatInput" class="form-control form-control-sm" placeholder="Type a message..." style="resize: none; height: 42px; font-size: 0.95rem;"></textarea>
-                  <button id="pocSendBtn" class="btn btn-primary btn-sm rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" type="button">
-                    <i class="bi bi-send-fill"></i>
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+  <?php include("frontend/components/chatModal.php"); ?>
 
   <script>
     (function() {
@@ -157,96 +127,7 @@
       window.addEventListener('resize', checkScreen);
       checkScreen();
 
-      // --- INTEGRATED CHAT LOGIC ---
-      // This part now uses the code from chat.php, but listens to 'chatbotLauncher'
-      const launcher = document.getElementById('chatbotLauncher');
-      const modalEl = document.getElementById('pocChatModal');
-      const messagesEl = document.getElementById('pocChatMessages');
-      const inputEl = document.getElementById('pocChatInput');
-      const sendBtn = document.getElementById('pocSendBtn');
-      
-      // Update this path to where your chatai.php actually lives
-      const chatEndpoint = "frontend/chatai.php"; 
-
-      let modal;
-
-      function appendMessage(text, who = 'bot') {
-        const wrapper = document.createElement('div');
-        wrapper.className = `poc-chat-msg ${who}`;
-        
-        const avatar = `<div class="avatar">${who === 'user' ? 'U' : 'AI'}</div>`;
-        const bubble = `<div class="poc-chat-bubble">${text.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]))}</div>`;
-
-        wrapper.innerHTML = who === 'user' ? (bubble + avatar) : (avatar + bubble);
-        messagesEl.appendChild(wrapper);
-        messagesEl.scrollTop = messagesEl.scrollHeight;
-      }
-
-      function appendTypingIndicator() {
-        const wrap = document.createElement('div');
-        wrap.className = 'poc-chat-msg bot';
-        wrap.innerHTML = `<div class="avatar">AI</div><div class="poc-chat-bubble"><div class="poc-chat-typing"></div></div>`;
-        messagesEl.appendChild(wrap);
-        messagesEl.scrollTop = messagesEl.scrollHeight;
-        return wrap;
-      }
-
-      async function sendMessage(text) {
-        if (!text || !text.trim()) return;
-        const message = text.trim();
-
-        appendMessage(message, 'user');
-        inputEl.value = '';
-        inputEl.disabled = true;
-        sendBtn.disabled = true;
-
-        const typingNode = appendTypingIndicator();
-
-        try {
-          const fd = new FormData();
-          fd.append('prompt', message);
-
-          const res = await fetch(chatEndpoint, { method: 'POST', body: fd });
-          const textResp = await res.text();
-
-          typingNode.remove();
-
-          if (!res.ok) appendMessage('System error. Please try again.', 'bot');
-          else appendMessage(textResp, 'bot');
-          
-        } catch (err) {
-          typingNode.remove();
-          appendMessage('Network error. Check connection.', 'bot');
-        } finally {
-          inputEl.disabled = false;
-          sendBtn.disabled = false;
-          inputEl.focus();
-        }
-      }
-
-      // Event Listeners for Chat
-      if (launcher) {
-        launcher.addEventListener('click', function(ev) {
-          ev.preventDefault();
-          if (!modal) modal = new bootstrap.Modal(modalEl);
-          modal.show();
-        });
-      }
-
-      if (sendBtn) {
-        sendBtn.addEventListener('click', () => sendMessage(inputEl.value));
-        inputEl.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(inputEl.value); }
-        });
-      }
-
-      modalEl.addEventListener('shown.bs.modal', function() {
-        inputEl.focus();
-        if (messagesEl.children.length === 0) {
-          appendMessage('Hi! I am Pack IT Assistant. How can I help you today?', 'bot');
-        }
-      });
-
+      // Note: Logic for chatbotLauncher click is handled automatically by chat.php
     })();
   </script>
 </body>

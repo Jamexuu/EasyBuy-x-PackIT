@@ -72,6 +72,8 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
         .menu-btn { text-align: left; font-size: 1.1rem; color: #212529; text-decoration: none; }
         .menu-btn[aria-expanded="true"] .bi-chevron-down { transform: rotate(180deg); }
         .bi-chevron-down { transition: transform 0.2s; }
+        /* Add hover effect for links */
+        .hover-dark:hover { color: #000 !important; }
     </style>
 </head>
 
@@ -122,10 +124,6 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
                 <p class="text-secondary mb-2"><?= htmlspecialchars($email) ?></p>
                 <h5 class="fw-medium text-dark mb-1"><?= htmlspecialchars($contact ?: '--') ?></h5>
                 <small class="text-secondary d-block mb-3"><?= htmlspecialchars($displayAddress) ?></small>
-                
-                <button class="btn btn-dark rounded-pill btn-sm px-4" data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                    <i class="bi bi-pencil-fill me-1"></i> Edit Details
-                </button>
             </div>
         </div>
 
@@ -140,7 +138,16 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
                     </a>
                     <div class="collapse mt-2" id="accountCollapse">
                         <ul class="list-unstyled ms-3 mb-0">
-                            <li><a href="changePassword.php" class="text-decoration-none text-secondary d-block py-1 hover-dark">Change Password</a></li>
+                            <li>
+                                <a href="#" class="text-decoration-none text-secondary d-block py-1 hover-dark" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                                    Edit Profile Details
+                                </a>
+                            </li>
+                            <li>
+                                <a href="changePassword.php" class="text-decoration-none text-secondary d-block py-1 hover-dark">
+                                    Change Password
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -164,7 +171,7 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
                     </a>
                     <div class="collapse mt-2" id="feedbackCollapse">
                         <ul class="list-unstyled ms-3 mb-0">
-                            <li><a href="#" class="text-decoration-none text-secondary d-block py-1">Create Feedback</a></li>
+                            <li><a href="#" class="text-decoration-none text-secondary d-block py-1 hover-dark">Create Feedback</a></li>
                         </ul>
                     </div>
                 </div>
@@ -177,8 +184,8 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
                     </a>
                     <div class="collapse mt-2" id="aboutCollapse">
                         <ul class="list-unstyled ms-3 mb-0">
-                            <li><a href="#" class="text-decoration-none text-secondary d-block py-1">App Version 1.0</a></li>
-                            <li><a href="#" class="text-decoration-none text-secondary d-block py-1">Privacy Policy</a></li>
+                            <li><a href="#" class="text-decoration-none text-secondary d-block py-1 hover-dark">App Version 1.0</a></li>
+                            <li><a href="#" class="text-decoration-none text-secondary d-block py-1 hover-dark">Privacy Policy</a></li>
                         </ul>
                     </div>
                 </div>
@@ -281,43 +288,45 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
     const profileDisplay = document.getElementById('profileDisplay');
     const avatarSpinner = document.getElementById('avatarSpinner');
 
-    fileInput.addEventListener('change', async function() {
-        if (!this.files || !this.files[0]) return;
+    if (fileInput) {
+        fileInput.addEventListener('change', async function() {
+            if (!this.files || !this.files[0]) return;
 
-        // Show spinner
-        profileDisplay.style.opacity = '0.5';
-        avatarSpinner.classList.remove('d-none');
+            // Show spinner
+            profileDisplay.style.opacity = '0.5';
+            avatarSpinner.classList.remove('d-none');
 
-        const formData = new FormData();
-        formData.append('avatar', this.files[0]);
-        // Get token from the hidden input inside the form
-        formData.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
+            const formData = new FormData();
+            formData.append('avatar', this.files[0]);
+            // Get token from the hidden input inside the form
+            formData.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
 
-        try {
-            const response = await fetch('../api/user/update_avatar.php', {
-                method: 'POST',
-                body: formData
-            });
+            try {
+                const response = await fetch('../api/user/update_avatar.php', {
+                    method: 'POST',
+                    body: formData
+                });
 
-            const result = await response.json();
+                const result = await response.json();
 
-            if (response.ok && result.ok) {
-                // Update image immediately with the returned path + timestamp to force refresh
-                profileDisplay.src = result.path + '?t=' + new Date().getTime();
-            } else {
-                alert(result.error || 'Failed to upload image');
+                if (response.ok && result.ok) {
+                    // Update image immediately with the returned path + timestamp to force refresh
+                    profileDisplay.src = result.path + '?t=' + new Date().getTime();
+                } else {
+                    alert(result.error || 'Failed to upload image');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while uploading.');
+            } finally {
+                // Hide spinner
+                profileDisplay.style.opacity = '1';
+                avatarSpinner.classList.add('d-none');
+                // Clear input so selecting same file triggers change again
+                fileInput.value = '';
             }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('An error occurred while uploading.');
-        } finally {
-            // Hide spinner
-            profileDisplay.style.opacity = '1';
-            avatarSpinner.classList.add('d-none');
-            // Clear input so selecting same file triggers change again
-            fileInput.value = '';
-        }
-    });
+        });
+    }
 </script>
 
 </body>

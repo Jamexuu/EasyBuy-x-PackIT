@@ -51,6 +51,12 @@ class Cart {
                 cart_items.*,
                 products.product_name,
                 products.price,
+                products.is_sale,
+                products.sale_percentage,
+                CASE 
+                    WHEN products.is_sale = 1 THEN ROUND(products.price * (1 - products.sale_percentage/100), 2)
+                    ELSE products.price
+                END AS final_price,
                 products.image,
                 products.size,
                 products.weight_grams,
@@ -65,6 +71,17 @@ class Cart {
     function deleteCartItem($itemId) {
         $deleteQuery = "DELETE FROM cart_items WHERE id = ?";
         $this->db->executeQuery($deleteQuery, [$itemId]);
+        return true;
+    }
+
+    function deleteCartItems($itemIds) {
+        if (empty($itemIds)) {
+            return true;
+        }
+        
+        $placeholders = implode(',', array_fill(0, count($itemIds), '?'));
+        $deleteQuery = "DELETE FROM cart_items WHERE id IN ($placeholders)";
+        $this->db->executeQuery($deleteQuery, $itemIds);
         return true;
     }
 
@@ -85,7 +102,12 @@ class Cart {
         $cartId = $cart[0]['id'];
         $summaryQuery = "
             SELECT 
-                SUM(products.price * cart_items.quantity) AS subtotal
+                SUM(
+                    CASE 
+                        WHEN products.is_sale = 1 THEN ROUND(products.price * (1 - products.sale_percentage/100), 2)
+                        ELSE products.price
+                    END * cart_items.quantity
+                ) AS subtotal
             FROM cart_items 
             INNER JOIN products ON cart_items.product_id = products.id 
             WHERE cart_items.cart_id = ?

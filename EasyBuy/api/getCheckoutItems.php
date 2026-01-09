@@ -13,9 +13,9 @@ if (!$user) {
 }
 
 // get saved checkout items from session
-$cartIds = $_SESSION['checkout_items'] ?? [];
+$cartItemIds = $_SESSION['checkout_items'] ?? [];
 
-if (empty($cartIds)) {
+if (empty($cartItemIds)) {
     echo json_encode([]);
     exit;
 }
@@ -23,9 +23,9 @@ if (empty($cartIds)) {
 $cart = new Cart();
 $allItems = $cart->getCartItems($user['id']);
 
-// filter only the selected items
-$items = array_filter($allItems, function($item) use ($cartIds) {
-    return in_array($item['cart_id'], $cartIds);
+// filter only the selected items by cart_item id
+$items = array_filter($allItems, function($item) use ($cartItemIds) {
+    return in_array($item['id'], $cartItemIds);
 });
 
 

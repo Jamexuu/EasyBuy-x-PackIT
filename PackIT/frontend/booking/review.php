@@ -71,7 +71,7 @@ $dropContactNumber = (string)$state["drop_contact_number"];
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PackIT - Review</title>
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     :root { --brand-yellow:#f8e14b; --brand-yellow-dark:#e6cc32; --brand-black:#1c1c1c; }
     body { background:#f8f9fa; }

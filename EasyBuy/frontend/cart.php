@@ -150,11 +150,12 @@
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <input type="checkbox" class="form-check-input cart-checkbox me-3" value="`+ item.cart_id + `" data-price="`+ item.price + `" data-quantity="`+ item.quantity + `" onchange="handleCheckboxChange()" style="width: 20px; height: 20px;">
+                                    <input type="checkbox" class="form-check-input cart-checkbox me-3" value="`+ item.id + `" data-price="`+ item.final_price + `" data-quantity="`+ item.quantity + `" onchange="handleCheckboxChange()" style="width: 20px; height: 20px;">
                                     <img src="`+ item.image + `" class="border border-1 rounded border-dark me-3" style="width: 80px; height: 80px; object-fit: cover;" alt="Product Image">
                                     <div>
                                         <div class="fw-semibold">`+ item.product_name + `</div>
                                         <small class="text-muted">`+ item.category + `</small>
+                                        ${ item.is_sale == 1 ? `<span class="badge" style="background-color:#28a745;">`+ item.sale_percentage + `% Off</span>` : '' }
                                     </div>
                                 </div>
                             </td>
@@ -164,7 +165,10 @@
                                 <button class="qty-btn" onclick="increaseQty()">+</button>
                             </td>
                             <td class="align-middle text-center">
-                                `+ formatPhp((item.price * item.quantity)) + `
+                                ${ item.is_sale == 1 ? `
+                                    <div><small class="text-decoration-line-through text-muted">`+ formatPhp((item.price * item.quantity)) + `</small></div>
+                                    <div class="fw-bold text-success">`+ formatPhp((item.final_price * item.quantity)) + `</div>
+                                ` : formatPhp((item.final_price * item.quantity)) }
                             </td>
                             <td class="align-middle text-center">
                                 <button class="btn" onclick="deleteItem(`+ item.id + `)">
@@ -180,12 +184,16 @@
                     cartItemContainerMobile.innerHTML += `
                         <div class="border-bottom p-3">
                             <div class="d-flex mb-3">
-                                <input type="checkbox" class="form-check-input cart-checkbox me-2 mt-2" value="`+ item.cart_id + `" data-price="`+ item.price + `" data-quantity="`+ item.quantity + `" onchange="handleCheckboxChange()" style="width: 20px; height: 20px;">
+                                <input type="checkbox" class="form-check-input cart-checkbox me-2 mt-2" value="`+ item.id + `" data-price="`+ item.final_price + `" data-quantity="`+ item.quantity + `" onchange="handleCheckboxChange()" style="width: 20px; height: 20px;">
                                 <img src="`+ item.image + `" class="border border-1 rounded border-dark me-3" style="width: 100px; height: 100px; object-fit: cover;" alt="Product Image">
                                 <div class="flex-grow-1">
                                     <div class="fw-semibold mb-1">`+ item.product_name + `</div>
                                     <small class="text-muted d-block mb-2">`+ item.category + `</small>
-                                    <div class="fw-bold text-danger fs-5">`+ formatPhp((item.price * item.quantity)) + `</div>
+                                    ${ item.is_sale == 1 ? `<span class="badge mb-2" style="background-color:#28a745;">`+ item.sale_percentage + `% Off</span>` : '' }
+                                    ${ item.is_sale == 1 ? `
+                                        <div><small class="text-decoration-line-through text-muted">`+ formatPhp((item.price * item.quantity)) + `</small></div>
+                                        <div class="fw-bold text-success fs-5">`+ formatPhp((item.final_price * item.quantity)) + `</div>
+                                    ` : `<div class="fw-bold text-success fs-5">`+ formatPhp((item.final_price * item.quantity)) + `</div>` }
                                 </div>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
@@ -251,7 +259,7 @@
                         await fetch('../api/saveCartItems.php', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ cart_ids: checkedItems })
+                            body: JSON.stringify({ cart_item_ids: checkedItems })
                         });
                         
                         window.location.href = 'checkout.php';

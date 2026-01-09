@@ -6,13 +6,18 @@ Auth::requireAdmin();
 
 $basePath = '../';
 
+// ✅ Added 'chat_history' to the mapping
 $viewToTable = [
-    'users'     => 'users',
-    'addresses' => 'addresses',
-    'drivers'   => 'drivers',
-    'vehicles'  => 'vehicles',
-    'payments'  => 'payments',
-    'bookings'  => 'bookings',
+    'users'           => 'users',
+    'addresses'       => 'addresses',
+    'drivers'         => 'drivers',
+    'vehicles'        => 'vehicles',
+    'payments'        => 'payments',
+    'bookings'        => 'bookings',
+    'smslogs'         => 'smslogs',
+    'driver_vehicles' => 'driver_vehicles',
+    'password_resets' => 'password_resets',
+    'chat_history'    => 'chat_history', 
 ];
 
 $view = $_GET['view'] ?? 'users';
@@ -64,13 +69,17 @@ $hasNextPage = count($rows) === $limit;
 
 function prettyTitle(string $key): string {
     return match ($key) {
-        'users' => 'Users',
-        'addresses' => 'Addresses',
-        'drivers' => 'Drivers',
-        'vehicles' => 'Vehicles',
-        'payments' => 'Payments',
-        'bookings' => 'Bookings',
-        default => ucfirst($key),
+        'users'           => 'Users',
+        'addresses'       => 'Addresses',
+        'drivers'         => 'Drivers',
+        'vehicles'        => 'Vehicles',
+        'payments'        => 'Payments',
+        'bookings'        => 'Bookings',
+        'smslogs'         => 'SMS Logs',
+        'driver_vehicles' => 'Driver Vehicles',
+        'password_resets' => 'Password Resets',
+        'chat_history'    => 'Chat History', // ✅ Added Pretty Title
+        default           => ucfirst(str_replace('_', ' ', $key)),
     };
 }
 
@@ -79,22 +88,22 @@ function formatValue($col, $val) {
     if ($val === null) return '<span class="text-muted fst-italic">NULL</span>';
     
     // Format Dates
-    if (str_contains($col, 'date') || str_contains($col, 'created_at') || str_contains($col, 'updated_at')) {
+    if (str_contains($col, 'date') || str_contains($col, 'created_at') || str_contains($col, 'updated_at') || str_contains($col, 'expires_at')) {
         $time = strtotime($val);
         if ($time) return '<span class="text-secondary small">' . date('M j, Y • g:i A', $time) . '</span>';
     }
 
     // Format IDs (Monospace)
-    if (str_contains($col, 'id') || str_contains($col, 'code')) {
+    if (str_contains($col, 'id') || str_contains($col, 'code') || str_contains($col, 'token')) {
         return '<code class="text-dark bg-light px-1 rounded">' . htmlspecialchars($val) . '</code>';
     }
 
     // Format Status (Simple Badges)
     if (str_contains($col, 'status') || str_contains($col, 'role')) {
         $statusClass = match(strtolower($val)) {
-            'active', 'completed', 'paid', 'delivered' => 'bg-success-subtle text-success',
-            'pending', 'processing', 'transit' => 'bg-warning-subtle text-warning-emphasis',
-            'cancelled', 'failed', 'inactive', 'rejected' => 'bg-danger-subtle text-danger',
+            'active', 'completed', 'paid', 'delivered', 'sent', 'success' => 'bg-success-subtle text-success',
+            'pending', 'processing', 'transit', 'queued' => 'bg-warning-subtle text-warning-emphasis',
+            'cancelled', 'failed', 'inactive', 'rejected', 'error' => 'bg-danger-subtle text-danger',
             'driver', 'admin' => 'bg-primary-subtle text-primary',
             default => 'bg-secondary-subtle text-secondary'
         };
