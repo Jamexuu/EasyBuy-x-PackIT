@@ -18,11 +18,6 @@
 
 <body>
     <?php
-    session_start();
-    if (!isset($_SESSION['user_id'])) {
-        header('Location: login.php');
-        exit;
-    }
     include 'components/navbar.php';
     ?>
 
@@ -117,67 +112,86 @@
             });
         });
 
-        const exampleOrders = {
-            all: [
-                {
-                    id: 1001,
-                    date: 'Jan 8, 2026, 2:30 PM',
-                    status: 'Completed',
-                    statusColor: '#28a745',
-                    statusBg: '#d4edda',
-                    items: [
-                        { product_name: 'ARLA Milk Goodness Full Cream', product_price: 244.00, quantity: 1, image_url: '21.webp' },
-                        { product_name: 'Beer Brand', product_price: 43.00, quantity: 3, image_url: '2.webp' },
-                        { product_name: 'Cheddar Slices | 10 pcs', product_price: 80.00, quantity: 5, image_url: '23.webp' },
-                        { product_name: 'Arlo Mozarella | 200g', product_price: 110.00, quantity: 3, image_url: '39.webp' }
-                    ],
-                    total: 1040.00,
-                    showBuyAgain: true
-                },
-                {
-                    id: 1002,
-                    date: 'Jan 7, 2026, 10:15 AM',
-                    status: 'Cancelled',
-                    statusColor: '#dc3545',
-                    statusBg: '#f8d7da',
-                    items: [
-                        { product_name: 'ARLA Milk Goodness Full Cream', product_price: 244.00, quantity: 1, image_url: '21.webp' },
-                        { product_name: 'Beer Brand', product_price: 43.00, quantity: 3, image_url: '2.webp' }
-                    ],
-                    total: 1040.00,
-                    showBuyAgain: false
-                },
-                {
-                    id: 1003,
-                    date: 'Jan 6, 2026, 4:45 PM',
-                    status: 'Completed',
-                    statusColor: '#28a745',
-                    statusBg: '#d4edda',
-                    items: [
-                        { product_name: 'ARLA Milk Goodness Full Cream', product_price: 244.00, quantity: 1, image_url: '21.webp' },
-                        { product_name: 'Beer Brand', product_price: 43.00, quantity: 3, image_url: '2.webp' }
-                    ],
-                    total: 1040.00,
-                    showBuyAgain: true
-                },
-                {
-                    id: 1004,
-                    date: 'Jan 5, 2026, 11:20 AM',
-                    status: 'Completed',
-                    statusColor: '#28a745',
-                    statusBg: '#d4edda',
-                    items: [
-                        { product_name: 'ARLA Milk Goodness Full Cream', product_price: 244.00, quantity: 1, image_url: '21.webp' },
-                        { product_name: 'Beer Brand', product_price: 43.00, quantity: 3, image_url: '2.webp' }
-                    ],
-                    total: 1040.00,
-                    showBuyAgain: true
-                }
-            ]
-        };
+        var allOrders = [];
+        var completedOrders = [];
+        var cancelledOrders = [];
 
-        exampleOrders.completed = exampleOrders.all.filter(order => order.status === 'Completed');
-        exampleOrders.cancelled = exampleOrders.all.filter(order => order.status === 'Cancelled');
+        async function fetchUserOrders() {
+            try {
+                const response = await fetch('../api/getUserOrder.php', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch orders');
+                }
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    allOrders = result.orders.map(order => transformOrder(order));
+                    completedOrders = allOrders.filter(order => order.status === 'Delivered');
+                    cancelledOrders = allOrders.filter(order => order.status === 'Cancelled');
+                    
+                    renderOrders(allOrders, 'allOrders');
+                    renderOrders(completedOrders, 'completedOrders');
+                    renderOrders(cancelledOrders, 'cancelledOrders');
+                } else {
+                    console.error('Failed to fetch orders:', result.error);
+                    showEmptyState('allOrders');
+                    showEmptyState('completedOrders');
+                    showEmptyState('cancelledOrders');
+                }
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+                showEmptyState('allOrders');
+                showEmptyState('completedOrders');
+                showEmptyState('cancelledOrders');
+            }
+        }
+
+        function transformOrder(order) {
+            const statusColors = {
+                'Order Placed': { color: '#ffc107', bg: '#fff3cd' },
+                'In Transit': { color: '#17a2b8', bg: '#d1ecf1' },
+                'Delivered': { color: '#28a745', bg: '#d4edda' },
+                'Cancelled': { color: '#dc3545', bg: '#f8d7da' }
+            };
+
+            const statusInfo = statusColors[order.status] || { color: '#6c757d', bg: '#e9ecef' };
+            const orderDate = new Date(order.order_date);
+            const formattedDate = orderDate.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+
+            return {
+                id: order.id,
+                date: formattedDate,
+                status: order.status,
+                statusColor: statusInfo.color,
+                statusBg: statusInfo.bg,
+                items: order.items,
+                total: parseFloat(order.total_amount),
+                showBuyAgain: order.status === 'Delivered'
+            };
+        }
+
+        function showEmptyState(containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `
+                <div class="text-center py-5">
+                    <p style="color: #6c757d;">No orders found</p>
+                </div>
+            `;
+        }
 
         function renderOrders(orders, containerId) {
             const container = document.getElementById(containerId);
@@ -206,8 +220,9 @@
 
                 order.items.forEach((item, index) => {
                     const marginClass = index < order.items.length - 1 ? 'mb-3' : '';
+                    const itemPrice = parseFloat(item.product_price);
                     const imageHtml = item.image_url
-                        ? `<img src="../Product Images/all/${item.image_url}" alt="${item.product_name}" 
+                        ? `<img src="${item.image_url}" alt="${item.product_name}" 
                               style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; flex-shrink: 0;"
                               onerror="this.outerHTML='<div style=\\'width: 80px; height: 80px; background: #f8f9fa; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #adb5bd;\\'>No Image</div>'">`
                         : `<div style="width: 80px; height: 80px; background: #f8f9fa; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #adb5bd;">No Image</div>`;
@@ -225,7 +240,7 @@
                                 </div>
                                 <div class="text-end">
                                     <div style="color: #6c757d; font-size: 14px; margin-bottom: 4px;">Price:</div>
-                                    <div style="color: #212529; font-size: 18px; font-weight: 600;">₱${item.product_price.toFixed(2)}</div>
+                                    <div style="color: #212529; font-size: 18px; font-weight: 600;">₱${itemPrice.toFixed(2)}</div>
                                 </div>
                             </div>
                         </div>
@@ -248,9 +263,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            renderOrders(exampleOrders.all, 'allOrders');
-            renderOrders(exampleOrders.completed, 'completedOrders');
-            renderOrders(exampleOrders.cancelled, 'cancelledOrders');
+            fetchUserOrders();
         });
     </script>
 </body>
