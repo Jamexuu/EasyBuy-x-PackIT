@@ -26,9 +26,11 @@ try {
     $productData = $product->getProductById($productId);
     
     if ($productData && !empty($productData['image'])) {
-        $imagePath = '../' . $productData['image'];
-        if (file_exists($imagePath)) {
-            unlink($imagePath);
+        $imagePath = str_replace('../', '', $productData['image']);
+        $fullPath = '../' . $imagePath;
+        
+        if (file_exists($fullPath)) {
+            unlink($fullPath);
         }
     }
     
