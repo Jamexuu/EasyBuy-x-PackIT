@@ -58,4 +58,37 @@ class Order{
         $data = $this->db->fetch($result);
         return $data[0]['count'];
     }
+
+    function getAllOrdersWithItems(){
+        // Get all orders with user email
+        $ordersQuery = "SELECT o.id, o.user_id, o.total_amount, o.order_date, o.status, u.email
+                        FROM orders o
+                        INNER JOIN users u ON o.user_id = u.id
+                        ORDER BY o.order_date DESC";
+        $ordersResult = $this->db->executeQuery($ordersQuery);
+        $orders = $this->db->fetch($ordersResult);
+        
+        $result = [];
+        foreach ($orders as $order) {
+            // Get items for each order
+            $itemsQuery = "SELECT product_name, quantity, product_price
+                          FROM order_items
+                          WHERE order_id = ?";
+            $itemsResult = $this->db->executeQuery($itemsQuery, [$order['id']]);
+            $items = $this->db->fetch($itemsResult);
+            
+            $result[] = [
+                'orderID' => $order['id'],
+                'userID' => $order['user_id'],
+                'userEmail' => $order['email'],
+                'totalAmount' => $order['total_amount'],
+                'orderDate' => $order['order_date'],
+                'status' => $order['status'],
+                'itemCount' => count($items),
+                'items' => $items
+            ];
+        }
+        
+        return $result;
+    }
 }
