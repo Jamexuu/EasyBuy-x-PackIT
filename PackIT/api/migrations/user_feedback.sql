@@ -20,3 +20,8 @@ CREATE TABLE `user_feedback` (
 ALTER TABLE `user_feedback`
   ADD CONSTRAINT `FK_user_feedback_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `FK_user_feedback_handledby` FOREIGN KEY (`handled_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- Add unread flag and acknowledged timestamp to user_feedback
+ALTER TABLE `user_feedback`
+  ADD COLUMN `user_unread` TINYINT(1) NOT NULL DEFAULT 0 AFTER `handled_by`,
+  ADD COLUMN `acknowledged_at` DATETIME DEFAULT NULL AFTER `user_unread`;
