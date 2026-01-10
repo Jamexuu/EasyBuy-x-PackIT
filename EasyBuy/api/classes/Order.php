@@ -16,12 +16,12 @@ class Order{
         return $this->db->fetch($result);
     }
 
-    function addOrder($userId, $totalAmount, $totalWeight, $paymentMethod, $shippingFee, $cartItems){
+    function addOrder($userId, $totalAmount, $totalWeight, $paymentMethod, $shippingFee, $cartItems, $paymentStatus = 'pending', $transactionId = null){
         // insert into orders table
-        $query = "INSERT INTO orders (user_id, total_amount, total_weight_grams, payment_method, shipping_fee) 
-                VALUES (?, ?, ?, ?, ?)";
+        $query = "INSERT INTO orders (user_id, total_amount, total_weight_grams, payment_method, shipping_fee, payment_status, transaction_id) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)";
         
-        $params = [$userId, $totalAmount, $totalWeight, $paymentMethod, $shippingFee];
+        $params = [$userId, $totalAmount, $totalWeight, $paymentMethod, $shippingFee, $paymentStatus, $transactionId];
         $this->db->executeQuery($query, $params);
         
         // get the order ID
