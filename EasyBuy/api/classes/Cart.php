@@ -120,4 +120,10 @@ class Cart {
         return ['subtotal' => $subtotal, 'shipping' => $shipping, 'total' => $total];
     }
 
+    function updateCartItemQuantity($itemId, $quantity) {
+        $updateQuery = "UPDATE cart_items SET quantity = ? WHERE id = ?";
+        $this->db->executeQuery($updateQuery, [$quantity, $itemId]);
+        return true;
+    }
+
 }
