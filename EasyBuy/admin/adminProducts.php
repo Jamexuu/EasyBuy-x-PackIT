@@ -28,6 +28,7 @@
 <body>
     <?php include '../frontend/components/adminNavBar.php'; ?>
     <?php include '../frontend/components/messageModal.php'; ?>
+    <?php include '../frontend/components/confirmModal.php'; ?>
 
     <div class="container py-5" id="productListView">
         <div class="row align-items-center mb-4">
@@ -165,6 +166,22 @@
             document.getElementById('saveProductBtn').textContent = isEdit ? 'Update Product' : 'Add Product';
         }
 
+        function clearForm() {
+            document.getElementById('productName').value = '';
+            document.getElementById('productWeight').value = '';
+            document.getElementById('productSize').value = '';
+            document.getElementById('productCategory').value = 'all';
+            document.getElementById('productPrice').value = '';
+            document.getElementById('productStocks').value = '';
+            document.getElementById('discountPercentage').value = '';
+            document.getElementById('imagePreview').src = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('removeImageBtn').style.display = 'none';
+            document.getElementById('fileInput').value = '';
+            currentImageData = '';
+            editingProductId = null;
+        }
+
         document.getElementById('addProductBtn').addEventListener('click', function () {
             editingProductId = null;
             showProductForm(false);
@@ -178,155 +195,136 @@
         });
 
         document.getElementById('fileInput').addEventListener('change', async function (e) {
-            const file = e.target.files[0];
-            if (file) {
-                const formData = new FormData();
-                formData.append('image', file);
+            var file = e.target.files[0];
+            if (!file) return;
 
-                try {
-                    const response = await fetch('../api/uploadProductImage.php', {
-                        method: 'POST',
-                        body: formData
-                    });
+            var formData = new FormData();
+            formData.append('image', file);
 
-                    const result = await response.json();
-                    if (result.success) {
-                        const img = document.getElementById('imagePreview');
-                        const removeBtn = document.getElementById('removeImageBtn');
-                        currentImageData = result.path;
-                        img.src = currentImageData;
-                        img.style.display = 'block';
-                        removeBtn.style.display = 'flex';
-                    } else {
-                        alert('Failed to upload image');
-                    }
-                } catch (error) {
-                    alert('Error uploading image');
-                    console.error(error);
+            try {
+                var response = await fetch('../api/uploadProductImage.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                var result = await response.json();
+                if (result.success) {
+                    var img = document.getElementById('imagePreview');
+                    var removeBtn = document.getElementById('removeImageBtn');
+                    currentImageData = result.path;
+                    img.src = currentImageData;
+                    img.style.display = 'block';
+                    removeBtn.style.display = 'flex';
+                } else {
+                    alert('Failed to upload image');
                 }
+            } catch (error) {
+                alert('Error uploading image');
+                console.error(error);
             }
         });
 
         document.getElementById('removeImageBtn').addEventListener('click', function () {
-            const img = document.getElementById('imagePreview');
-            const removeBtn = document.getElementById('removeImageBtn');
-            const fileInput = document.getElementById('fileInput');
+            document.getElementById('imagePreview').src = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('removeImageBtn').style.display = 'none';
+            document.getElementById('fileInput').value = '';
             currentImageData = '';
-            img.src = '';
-            img.style.display = 'none';
-            removeBtn.style.display = 'none';
-            fileInput.value = '';
         });
 
         document.getElementById('saveProductBtn').addEventListener('click', async function () {
-            const productName = document.getElementById('productName').value;
-            const productWeight = document.getElementById('productWeight').value;
-            const productSize = document.getElementById('productSize').value;
-            const productCategory = document.getElementById('productCategory').value;
-            const productPrice = document.getElementById('productPrice').value.trim();
-            const salePercentage = document.getElementById('discountPercentage').value;
-            const productStocks = document.getElementById('productStocks').value;
-            var isSale = 0;
+            var productName = document.getElementById('productName').value.trim();
+            var productWeight = document.getElementById('productWeight').value.trim();
+            var productSize = document.getElementById('productSize').value.trim();
+            var productCategory = document.getElementById('productCategory').value;
+            var productPrice = document.getElementById('productPrice').value.trim();
+            var salePercentage = document.getElementById('discountPercentage').value.trim();
+            var productStocks = document.getElementById('productStocks').value.trim();
 
-            if (!productName || !productSize || !productCategory || !productPrice || !productStocks) {
-                alert('Please fill in all fields');
+            if (!productName || !productSize || !productCategory || !productPrice || !productStocks || !currentImageData) {
+                showMessage('error', 'Missing Information', 'Please fill in all required fields and upload an image.', 'OK');
                 return;
             }
 
-            if (salePercentage > 0){
-                isSale = 1;
-            }
+            var actionText = editingProductId !== null ? 'update' : 'add';
+            var confirmResult = await showConfirm(
+                'info',
+                'Confirm ' + (editingProductId !== null ? 'Update' : 'Add'),
+                'Are you sure you want to ' + actionText + ' this product?',
+                editingProductId !== null ? 'Update' : 'Add',
+                'Cancel'
+            );
 
-            if (!currentImageData) {
-                alert('Please upload a product image');
-                return;
-            }
+            if (!confirmResult) return;
+
+            var productData = {
+                product_name: productName,
+                size: productSize,
+                weight_grams: productWeight,
+                category: productCategory,
+                price: productPrice,
+                stocks: productStocks,
+                is_sale: salePercentage > 0 ? 1 : 0,
+                sale_percentage: salePercentage || 0,
+                image: currentImageData
+            };
 
             try {
+                var url = editingProductId !== null ? '../api/updateProduct.php' : '../api/addProduct.php';
+                var method = editingProductId !== null ? 'PUT' : 'POST';
+                
                 if (editingProductId !== null) {
-                    // Update existing product
-                    const response = await fetch('../api/updateProduct.php', {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            product_id: editingProductId,
-                            product_name: productName,
-                            size: productSize,
-                            weight_grams: productWeight,
-                            category: productCategory,
-                            price: productPrice,
-                            stocks: productStocks,
-                            is_sale: isSale,
-                            sale_percentage: salePercentage,
-                            image: currentImageData
-                        })
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Failed to update product');
-                    }
-                } else {
-                    // Add new product
-                    const response = await fetch('../api/addProduct.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            product_name: productName,
-                            category: productCategory,
-                            price: productPrice,
-                            stocks: productStocks,
-                            is_sale: isSale,
-                            sale_percentage: salePercentage,
-                            weight_grams: productWeight,
-                            size: productSize,
-                            image: currentImageData
-                        })
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Failed to add product');
-                    }
+                    productData.product_id = editingProductId;
                 }
 
-                showMessageModal('success', 'Product Added', 'The product has been saved successfully.');
+                var response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(productData)
+                });
 
+                if (!response.ok) {
+                    throw new Error('Failed to save product');
+                }
+
+                showMessage('success', 'Product Saved', 'The product has been saved successfully.', 'Continue');
                 displayProducts();
                 showProductList();
             } catch (error) {
-                alert('Error saving product: ' + error.message);
+                showMessage('error', 'Error', 'Failed to save product. Please try again.', 'OK');
                 console.error(error);
             }
         });
 
         async function displayProducts() {
-            const response = await fetch("../api/getAllProducts.php");
+            var response = await fetch("../api/getAllProducts.php");
             products = await response.json();
             filteredProducts = products;
             getProducts();
         }
 
         function getProducts() {
-            const productList = document.getElementById('productList');
+            var productList = document.getElementById('productList');
             productList.innerHTML = '';
+            
             if (filteredProducts.length === 0) {
                 productList.innerHTML = '<div class="text-center text-muted py-5"><p>No products yet. Click "Add Product" to get started.</p></div>';
                 return;
             }
-            filteredProducts.forEach(product => {
-                const productItem = document.createElement('div');
+            
+            filteredProducts.forEach(function(product) {
+                var productId = product.id || product.product_id;
+                var productName = product.name || product.product_name;
+                var productItem = document.createElement('div');
                 productItem.className = 'product-item d-flex justify-content-between align-items-center rounded-3 mb-3';
                 productItem.style.cssText = 'background-color: #e8e8e8; padding: 1.25rem 1.5rem;';
                 productItem.innerHTML = `
-                    <span>${product.name || product.product_name}</span>
+                    <span>${productName}</span>
                     <div class="d-flex gap-2">
-                        <button class="action-btn btn border-0 bg-transparent p-1" style="cursor: pointer;" onclick="editProduct(${product.id || product.product_id})">
+                        <button class="action-btn btn border-0 bg-transparent p-1" style="cursor: pointer;" onclick="editProduct(${productId})">
                             <span class="material-symbols-rounded">edit</span>
                         </button>
-                        <button class="action-btn btn border-0 bg-transparent p-1" style="cursor: pointer;" onclick="deleteProduct(${product.id || product.product_id})">
+                        <button class="action-btn btn border-0 bg-transparent p-1" style="cursor: pointer;" onclick="deleteProduct(${productId})">
                             <span class="material-symbols-rounded text-danger">delete</span>
                         </button>
                     </div>
@@ -336,66 +334,64 @@
         }
 
         async function deleteProduct(id) {
-            if (confirm('Are you sure you want to delete this product?')) {
-                try {
-                    const response = await fetch('../api/deleteProduct.php', {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ productId: id })
-                    });
+            var confirmResult = await showConfirm(
+                'delete',
+                'Delete Product',
+                'Are you sure you want to delete this product? This action cannot be undone.',
+                'Delete',
+                'Cancel'
+            );
 
-                    if (response.ok) {
-                        products = products.filter(p => (p.id || p.product_id) !== id);
-                        filteredProducts = products;
-                        getProducts();
-                    } else {
-                        alert('Failed to delete product.');
-                    }
-                } catch (error) {
-                    alert('An error occurred while deleting the product.');
+            if (!confirmResult) return;
+
+            try {
+                var response = await fetch('../api/deleteProduct.php', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId: id })
+                });
+
+                if (response.ok) {
+                    products = products.filter(function(p) { return (p.id || p.product_id) !== id; });
+                    filteredProducts = products;
+                    getProducts();
+                    showMessage('success', 'Product Deleted', 'The product has been deleted successfully.', 'OK');
+                } else {
+                    showMessage('error', 'Delete Failed', 'Failed to delete product. Please try again.', 'OK');
                 }
+            } catch (error) {
+                showMessage('error', 'Error', 'An error occurred while deleting the product.', 'OK');
             }
         }
 
         function editProduct(id) {
-            const product = products.find(p => (p.id || p.product_id) === id);
-            if (product) {
-                editingProductId = product.id || product.product_id;
-                document.getElementById('productName').value = product.name || product.product_name || '';
-                document.getElementById('productSize').value = product.size || product.product_size || '';
-                document.getElementById('productCategory').value = product.category || product.product_category || 'all';
-                document.getElementById('productPrice').value = product.price || product.product_price || '';
-                if (product.image || product.product_image) {
-                    const img = document.getElementById('imagePreview');
-                    const removeBtn = document.getElementById('removeImageBtn');
-                    currentImageData = product.image || product.product_image;
-                    img.src = currentImageData;
-                    img.style.display = 'block';
-                    removeBtn.style.display = 'flex';
-                }
-                showProductForm(true);
-            }
-        }
+            var product = products.find(function(p) { return (p.id || p.product_id) === id; });
+            if (!product) return;
 
-        function clearForm() {
-            document.getElementById('productName').value = '';
-            document.getElementById('productSize').value = '';
-            document.getElementById('productCategory').value = 'all';
-            document.getElementById('productPrice').value = '';
-            currentImageData = '';
-            document.getElementById('imagePreview').src = '';
-            document.getElementById('imagePreview').style.display = 'none';
-            document.getElementById('removeImageBtn').style.display = 'none';
-            document.getElementById('fileInput').value = '';
-            editingProductId = null;
+            editingProductId = product.id || product.product_id;
+            document.getElementById('productName').value = product.name || product.product_name || '';
+            document.getElementById('productWeight').value = product.weight_grams || '';
+            document.getElementById('productSize').value = product.size || product.product_size || '';
+            document.getElementById('productCategory').value = product.category || product.product_category || 'all';
+            document.getElementById('productPrice').value = product.price || product.product_price || '';
+            document.getElementById('productStocks').value = product.stocks || '';
+            document.getElementById('discountPercentage').value = product.sale_percentage || '';
+            
+            var productImage = product.image || product.product_image;
+            if (productImage) {
+                currentImageData = productImage;
+                document.getElementById('imagePreview').src = productImage;
+                document.getElementById('imagePreview').style.display = 'block';
+                document.getElementById('removeImageBtn').style.display = 'flex';
+            }
+            
+            showProductForm(true);
         }
 
         document.getElementById('searchInput').addEventListener('input', function (e) {
-            const searchTerm = e.target.value.toLowerCase();
-            filteredProducts = products.filter(product => {
-                const productName = (product.name || product.product_name || '').toLowerCase();
+            var searchTerm = e.target.value.toLowerCase();
+            filteredProducts = products.filter(function(product) {
+                var productName = (product.name || product.product_name || '').toLowerCase();
                 return productName.includes(searchTerm);
             });
             getProducts();
