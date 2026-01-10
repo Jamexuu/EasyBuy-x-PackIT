@@ -1,45 +1,34 @@
 <?php
 // Frontend navbar for PackIT (updated with notifications bell - uses camelCase endpoints)
-// Place at: frontend/components/navbar.php
 
-// Base URL for your project on localhost — update if your folder/location changes
 $BASE_URL = '/EasyBuy-x-PackIT/PackIT';
 
-// Ensure session is started (some pages may have started it already)
 if (session_status() === PHP_SESSION_NONE) {
     @session_start();
 }
 
-// Current page filename (used to mark active link)
+// Ensure CSRF token exists (needed by notificationsMarkRead.php)
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $page = basename($_SERVER['PHP_SELF']);
 
-// Helper to build full URL
 function u($path)
 {
     global $BASE_URL;
     return rtrim($BASE_URL, '/') . '/' . ltrim($path, '/');
 }
 
-// Simple user detection (set by your login logic)
 $loggedIn = isset($_SESSION['user']) && !empty($_SESSION['user']['id']);
 $userName = $loggedIn ? trim(($_SESSION['user']['firstName'] ?? '') . ' ' . ($_SESSION['user']['lastName'] ?? '')) : '';
-$userId = $loggedIn ? (int)($_SESSION['user']['id']) : null;
-
-// Provide CSRF token to JS if present
-$csrfToken = $_SESSION['csrf_token'] ?? '';
+$csrfToken = $_SESSION['csrf_token'];
 ?>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <style>
-    :root {
-        --brand-yellow: #f8e15b;
-        --brand-dark: #111;
-    }
+    :root { --brand-yellow: #f8e15b; --brand-dark: #111; }
+    .bg-brand { background-color: var(--brand-yellow) !important; }
 
-    .bg-brand {
-        background-color: var(--brand-yellow) !important;
-    }
-
-    /* Notification badge small red dot */
     .notif-badge {
         position: absolute;
         top: -6px;
@@ -52,25 +41,10 @@ $csrfToken = $_SESSION['csrf_token'] ?? '';
         line-height: 1;
         box-shadow: 0 0 0 2px rgba(255,255,255,0.6);
     }
-
-    .notif-dropdown {
-        width: 320px;
-        max-width: calc(100vw - 40px);
-    }
-
-    .notif-item {
-        cursor: pointer;
-    }
-
-    .notif-item .small-excerpt {
-        font-size: 0.85rem;
-        color: #444;
-    }
-
-    .notif-empty {
-        padding: 12px;
-        color: #666;
-    }
+    .notif-dropdown { width: 320px; max-width: calc(100vw - 40px); }
+    .notif-item { cursor: pointer; }
+    .notif-item .small-excerpt { font-size: 0.85rem; color: #444; }
+    .notif-empty { padding: 12px; color: #666; }
 </style>
 
 <div class="container">
@@ -81,30 +55,32 @@ $csrfToken = $_SESSION['csrf_token'] ?? '';
             </a>
 
             <div class="d-flex align-items-center gap-2 gap-lg-3 order-lg-3">
-                <!-- Notifications bell -->
                 <?php if ($loggedIn): ?>
                     <div class="position-relative" id="notifRoot">
-                        <button id="notifToggleBtn" class="btn btn-sm btn-white text-dark p-0 border-0" aria-expanded="false" title="Notifications" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                        <button id="notifToggleBtn" class="btn btn-sm btn-white text-dark p-0 border-0"
+                                aria-expanded="false" title="Notifications"
+                                data-bs-toggle="dropdown" data-bs-auto-close="outside">
                             <i class="bi bi-bell" style="font-size:1.4rem;"></i>
                         </button>
 
-                        <!-- badge -->
                         <span id="notifBadge" class="notif-badge d-none">0</span>
 
-                        <!-- dropdown -->
                         <div id="notifDropdown" class="dropdown-menu dropdown-menu-end notif-dropdown shadow-lg mt-2" aria-labelledby="notifToggleBtn">
                             <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
                                 <strong>Notifications</strong>
-                                <button id="notifMarkAllRead" class="btn btn-link btn-sm">Mark all read</button>
+                                <button id="notifMarkAllRead" class="btn btn-link btn-sm" type="button">Mark all read</button>
                             </div>
+
                             <div id="notifList" style="max-height: 320px; overflow:auto;"></div>
+
                             <div class="border-top text-center">
-                                <a href="<?= htmlspecialchars(u('frontend/profile.php')) ?>" class="d-block text-decoration-none py-2">View feedback</a>
+                                <a href="<?= htmlspecialchars(u('frontend/profile.php#feedback')) ?>" class="d-block text-decoration-none py-2">
+                                    View feedback
+                                </a>
                             </div>
                         </div>
                     </div>
                 <?php else: ?>
-                    <!-- empty placeholder to keep alignment -->
                     <div style="width:34px;height:34px;"></div>
                 <?php endif; ?>
 
@@ -133,7 +109,6 @@ $csrfToken = $_SESSION['csrf_token'] ?? '';
                 <div class="offcanvas-body">
                     <ul class="navbar-nav justify-content-center flex-grow-1 gap-3 text-uppercase small fw-bold">
                         <?php
-                        // Standard Nav Items
                         $navItems = [
                             'index.php' => 'Home',
                             'frontend/vehicle.php' => 'Vehicles',
@@ -172,17 +147,14 @@ $csrfToken = $_SESSION['csrf_token'] ?? '';
 
 <script>
 (function(){
-  // Configured backend endpoints (PHP will fill URLs)
   const notifFetchUrl = '<?= htmlspecialchars(u("frontend/notificationsFetch.php")) ?>';
   const notifMarkReadUrl = '<?= htmlspecialchars(u("frontend/notificationsMarkRead.php")) ?>';
   const csrfToken = <?= json_encode($csrfToken) ?>;
   const userLoggedIn = <?= $loggedIn ? 'true' : 'false' ?>;
 
-  // UI elements
   const badge = document.getElementById('notifBadge');
   const list = document.getElementById('notifList');
   const markAllBtn = document.getElementById('notifMarkAllRead');
-  const dropdownEl = document.getElementById('notifDropdown');
   const toggleBtn = document.getElementById('notifToggleBtn');
 
   function setBadge(count) {
@@ -195,9 +167,15 @@ $csrfToken = $_SESSION['csrf_token'] ?? '';
     }
   }
 
+  function escapeHtml(s) {
+    if (!s) return '';
+    return String(s).replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
   function renderNotifications(items) {
     if (!list) return;
     list.innerHTML = '';
+
     if (!items || items.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'notif-empty';
@@ -205,54 +183,57 @@ $csrfToken = $_SESSION['csrf_token'] ?? '';
       list.appendChild(empty);
       return;
     }
-    items.forEach(function(it) {
-      const a = document.createElement('div');
-      a.className = 'dropdown-item notif-item';
-      a.dataset.id = it.id;
-      a.innerHTML = '<div class="d-flex justify-content-between align-items-start"><div><strong>' + escapeHtml(it.subject || 'Feedback update') + '</strong><div class="small-excerpt">' + escapeHtml(it.excerpt || '') + '</div></div><div class="text-muted small ms-2">' + escapeHtml(it.time) + '</div></div>';
-      a.addEventListener('click', function(){
-        // On click, mark this notification read and navigate to profile/feedback area
-        fetch(notifMarkReadUrl, {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: { 'Accept': 'application/json' },
-          body: new URLSearchParams({ id: it.id, csrf_token: csrfToken })
-        }).then(() => {
-          window.location.href = '<?= htmlspecialchars(u("frontend/profile.php")) ?>';
-        }).catch(() => {
-          window.location.href = '<?= htmlspecialchars(u("frontend/profile.php")) ?>';
-        });
+
+    items.forEach((it) => {
+      const row = document.createElement('div');
+      row.className = 'dropdown-item notif-item';
+      row.dataset.id = it.id;
+
+      row.innerHTML =
+        '<div class="d-flex justify-content-between align-items-start">' +
+          '<div>' +
+            '<strong>' + escapeHtml(it.subject || 'Feedback update') + '</strong>' +
+            '<div class="small-excerpt">' + escapeHtml(it.excerpt || '') + '</div>' +
+          '</div>' +
+          '<div class="text-muted small ms-2">' + escapeHtml(it.time || '') + '</div>' +
+        '</div>';
+
+      row.addEventListener('click', async () => {
+        try {
+          const res = await fetch(notifMarkReadUrl, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Accept': 'application/json' },
+            body: new URLSearchParams({ id: it.id, csrf_token: csrfToken })
+          });
+          const j = await res.json().catch(() => null);
+          if (!res.ok || !j?.success) {
+            console.error('Mark read failed:', j);
+          }
+        } catch (e) {
+          console.error('Mark read request failed:', e);
+        }
+        window.location.href = '<?= htmlspecialchars(u("frontend/profile.php#feedback")) ?>';
       });
-      list.appendChild(a);
+
+      list.appendChild(row);
     });
   }
 
-  function escapeHtml(s) {
-    if (!s) return '';
-    return s.replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; });
-  }
-
-  async function fetchNotifications() {
+  async function fetchNotifications(alsoRender = false) {
     if (!userLoggedIn) return;
     try {
       const res = await fetch(notifFetchUrl, { credentials: 'same-origin' });
       const j = await res.json();
       if (!res.ok || !j) return;
+
       setBadge(j.count || 0);
-      if (document.getElementById('notifDropdown').classList.contains('show')) {
-        renderNotifications((j.items || []).map(it => ({
-          id: it.id,
-          subject: it.subject,
-          excerpt: it.excerpt,
-          time: it.time,
-        })));
-      }
+      if (alsoRender) renderNotifications(j.items || []);
     } catch (err) {
       console.error('Failed to fetch notifications', err);
     }
   }
 
-  // Mark all unread as read
   async function markAllRead() {
     if (!userLoggedIn) return;
     try {
@@ -260,58 +241,39 @@ $csrfToken = $_SESSION['csrf_token'] ?? '';
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Accept': 'application/json' },
-        body: new URLSearchParams({ csrf_token: csrfToken }) // no id => mark all
+        body: new URLSearchParams({ csrf_token: csrfToken })
       });
-      const j = await res.json();
-      if (res.ok && j && j.success) {
-        setBadge(0);
-        renderNotifications([]);
+      const j = await res.json().catch(() => null);
+
+      if (!res.ok || !j || !j.success) {
+        console.error('Mark all read failed:', j);
+        alert(j?.message || 'Mark all read failed');
+        return;
       }
+
+      setBadge(0);
+      renderNotifications([]);
     } catch (err) {
       console.error('Failed to mark notifications read', err);
     }
   }
 
-  // When dropdown opens, fetch and render and then mark them read after a short delay
+  // When dropdown opens, fetch & render
   if (toggleBtn) {
-    toggleBtn.addEventListener('click', async function(){
-      setTimeout(async function(){
-        try {
-          const res = await fetch(notifFetchUrl, { credentials: 'same-origin' });
-          const j = await res.json();
-          if (res.ok && j) {
-            renderNotifications((j.items || []).map(it => ({
-              id: it.id,
-              subject: it.subject,
-              excerpt: it.excerpt,
-              time: it.time,
-            })));
-            // Mark all read on open (you may remove this behaviour if you want explicit user action)
-            await fetch(notifMarkReadUrl, {
-              method: 'POST',
-              credentials: 'same-origin',
-              headers: { 'Accept': 'application/json' },
-              body: new URLSearchParams({ csrf_token: csrfToken })
-            });
-            setBadge(0);
-          }
-        } catch (err) {
-          console.error(err);
-        }
-      }, 150);
+    toggleBtn.addEventListener('click', () => {
+      setTimeout(() => fetchNotifications(true), 50);
     });
   }
 
   if (markAllBtn) {
-    markAllBtn.addEventListener('click', function(e){
+    markAllBtn.addEventListener('click', (e) => {
       e.preventDefault();
       markAllRead();
     });
   }
 
-  // Poll every 25 seconds
-  fetchNotifications();
-  setInterval(fetchNotifications, 25000);
-
+  // Poll
+  fetchNotifications(false);
+  setInterval(() => fetchNotifications(false), 25000);
 })();
 </script>

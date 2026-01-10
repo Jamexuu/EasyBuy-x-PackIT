@@ -73,7 +73,6 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
     .menu-btn[aria-expanded="true"] .bi-chevron-down { transform: rotate(180deg); }
     .bi-chevron-down { transition: transform 0.2s; }
     .hover-dark:hover { color: #000 !important; }
-    /* Feedback modal tweaks */
     .feedback-category .btn { min-width: 110px; }
   </style>
 </head>
@@ -116,7 +115,7 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
         </div>
 
         <form id="avatarForm" class="d-none" enctype="multipart/form-data">
-          <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+          <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
           <input type="file" id="fileInput" name="avatar" accept="image/*">
         </form>
 
@@ -130,6 +129,7 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
     <div class="col-12 col-lg-8">
       <div class="profile-menu-container p-4 p-md-5 bg-white h-100">
 
+        <!-- Account & Security -->
         <div class="mb-3 border-bottom pb-2">
           <a class="menu-btn d-flex justify-content-between align-items-center w-100 py-2"
              data-bs-toggle="collapse" href="#accountCollapse" role="button" aria-expanded="false">
@@ -152,6 +152,7 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
           </div>
         </div>
 
+        <!-- Accessibility -->
         <div class="mb-3 border-bottom pb-2">
           <a class="menu-btn d-flex justify-content-between align-items-center w-100 py-2"
              data-bs-toggle="collapse" href="#accessCollapse" role="button" aria-expanded="false">
@@ -163,8 +164,13 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
           </div>
         </div>
 
+        <!-- ✅ Anchor for notifications "View feedback" -->
+        <div id="feedback"></div>
+
+        <!-- Feedback -->
         <div class="mb-3 border-bottom pb-2">
-          <a class="menu-btn d-flex justify-content-between align-items-center w-100 py-2"
+          <a id="feedbackToggle"
+             class="menu-btn d-flex justify-content-between align-items-center w-100 py-2"
              data-bs-toggle="collapse" href="#feedbackCollapse" role="button" aria-expanded="false">
             <span class="fw-medium">Feedback</span>
             <i class="bi bi-chevron-down small"></i>
@@ -172,13 +178,13 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
           <div class="collapse mt-2" id="feedbackCollapse">
             <ul class="list-unstyled ms-3 mb-0">
               <li>
-                <!-- Open feedback modal -->
                 <button id="openFeedbackBtn" type="button" class="btn btn-link text-secondary p-0">Create Feedback</button>
               </li>
             </ul>
           </div>
         </div>
 
+        <!-- About -->
         <div class="mb-4">
           <a class="menu-btn d-flex justify-content-between align-items-center w-100 py-2"
              data-bs-toggle="collapse" href="#aboutCollapse" role="button" aria-expanded="false">
@@ -405,7 +411,6 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
       });
     }
 
-    // Submit handler
     feedbackForm.addEventListener('submit', async function(e){
       e.preventDefault();
       hideAlert();
@@ -431,7 +436,7 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
         fd.append('message', message);
         fd.append('csrf_token', csrf);
 
-        const res = await fetch('submit_feedback.php', {
+        const res = await fetch('submitFeedback.php', {
           method: 'POST',
           body: fd,
           credentials: 'same-origin'
@@ -458,6 +463,20 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
         feedbackSubmitText.textContent = 'Submit Feedback';
       }
     });
+  })();
+
+  // ✅ Auto-open Feedback section when coming from notifications (profile.php#feedback)
+  (function () {
+    if (window.location.hash === '#feedback' && window.bootstrap) {
+      const anchor = document.getElementById('feedback');
+      if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      const feedbackCollapseEl = document.getElementById('feedbackCollapse');
+      if (feedbackCollapseEl) {
+        const c = bootstrap.Collapse.getOrCreateInstance(feedbackCollapseEl, { toggle: false });
+        c.show();
+      }
+    }
   })();
 </script>
 

@@ -10,10 +10,9 @@
 </head>
 
 <body>
-
     <div class="navbar navbar-expand-lg" style="background: var(--gradient-color-adminNav);">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">
+            <a class="navbar-brand" href="/EasyBuy-x-PackIT/EasyBuy/admin/adminDashboard.php">
                 <img src="/EasyBuy-x-PackIT/EasyBuy/assets/navbar_logo.svg" alt="EasyBuy" class="img-fluid px-lg-3 p-2 ms-5"
                     style="max-height: 60px;">
             </a>
@@ -25,19 +24,19 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav ms-auto me-5 gap-5">
                     <li class="nav-item">
-                        <a class="nav-link text-white fw-normal" href="#">Dashboard</a>
+                        <a class="nav-link text-white fw-normal" href="adminDashboard.php">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white fw-normal" href="#">Products</a>
+                        <a class="nav-link text-white fw-normal" href="adminProducts.php">Products</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white fw-normal" href="#">Orders</a>
+                        <a class="nav-link text-white fw-normal" href="adminOrders.php">Orders</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white fw-normal" href="#">Email</a>
+                        <a class="nav-link text-white fw-normal" href="adminEmail.php">Email</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white fw-normal" href="#">SMS</a>
+                        <a class="nav-link text-white fw-normal" href="adminSMS.php">SMS</a>
                     </li>
                 </ul>
             </div>

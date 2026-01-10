@@ -64,4 +64,54 @@ class Product {
         mysqli_stmt_close($stmt);
         return $data;
     }
+
+    function deleteProduct($productId){
+        $query = "DELETE FROM products WHERE id = ?";
+        $params = [$productId];
+
+        $stmt = $this->db->executeQuery($query, $params);
+        mysqli_stmt_close($stmt);
+    }
+
+    function addProduct($productData){
+        $query = "INSERT INTO products (product_name, category, price, stocks, is_sale, sale_percentage, weight_grams, size, image)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        $params = [
+            $productData['product_name'],
+            $productData['category'],
+            $productData['price'],
+            $productData['stocks'],
+            $productData['is_sale'],
+            $productData['sale_percentage'],
+            $productData['weight_grams'],
+            $productData['size'],
+            $productData['image']
+        ];
+
+        $stmt = $this->db->executeQuery($query, $params);
+        mysqli_stmt_close($stmt);
+    }
+
+    function updateProduct($productId, $productData){
+        $query = "UPDATE products 
+                  SET product_name = ?, category = ?, price = ?, stocks = ?, is_sale = ?, sale_percentage = ?, weight_grams = ?, size = ?, image = ?
+                  WHERE id = ?";
+        
+        $params = [
+            $productData['product_name'],
+            $productData['category'],
+            $productData['price'],
+            $productData['stocks'],
+            $productData['is_sale'],
+            $productData['sale_percentage'],
+            $productData['weight_grams'],
+            $productData['size'],
+            $productData['image'],
+            $productId
+        ];
+
+        $stmt = $this->db->executeQuery($query, $params);
+        mysqli_stmt_close($stmt);
+    }
 }
