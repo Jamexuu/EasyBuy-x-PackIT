@@ -1,14 +1,16 @@
+<?php require_once '../api/config.php'; ?>
 <!doctype html>
 <html lang="en">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bootstrap demo</title>
+    <title>Checkout - EasyBuy</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
     <link rel="stylesheet" href="../assets/css/style.css">
+    <script src="https://www.paypal.com/sdk/js?client-id=<?php echo htmlspecialchars($_ENV['PAYPAL_CLIENT_ID']); ?>&currency=USD"></script>
 </head>
 
 <body>
@@ -65,25 +67,29 @@
                 <div class="col-12 col-md-6 p-0 ps-md-2 mb-5 mb-md-0">
                     <div class="card rounded-4 overflow-hidden shadow-sm border-0">
                         <div class="card-header bg-secondary-subtle">
-                            <div class="h6 m-0 p-2">Order Summary</div>
+                            <div class="h6 m-0 p-2">Payment Method</div>
                         </div>
                         <div class="card-body px-5 py-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="radioDefault" id="cashOnDelivery" checked>
-                                <label class="form-check-label" for="cashOnDelivery">
-                                    Cash on Delivery
-                                </label>
-                                <p class="fw-normal">Your order will be delivered to your default address</p>
+                            <div id="payment-options">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="radioDefault" id="cashOnDelivery" checked>
+                                    <label class="form-check-label" for="cashOnDelivery">
+                                        Cash on Delivery
+                                    </label>
+                                    <p class="fw-normal">Your order will be delivered to your default address</p>
+                                </div>
+                                <hr>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="radioDefault" id="paypal">
+                                    <label class="form-check-label" for="paypal">
+                                        PayPal
+                                    </label>
+                                    <p class="fw-normal">Pay online using your PayPal e-wallet and receive your order at
+                                        your default address</p>
+                                </div>
                             </div>
-                            <hr>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="radioDefault" id="paypal">
-                                <label class="form-check-label" for="paypal">
-                                    PayPal
-                                </label>
-                                <p class="fw-normal">Pay online using your PayPal e-wallet and receive your order at
-                                    your default address</p>
-                            </div>
+                            <div id="paypal-button-container" style="display: none;"></div>
+                            <button id="back-to-payment" class="btn btn-outline-secondary mt-3" style="display: none;">← Back to Payment Options</button>
                         </div>
                     </div>
                 </div>
@@ -114,6 +120,8 @@
         var placeOrderButton = document.getElementById('placeOrder');
         var orderSummary = document.getElementById('orderSummary');
         var placeOrderSection = document.getElementById('placeOrderSection');
+        var orderData = null;
+        var paypalButtonsRendered = false;
 
         async function getUserCartItems(){
 
@@ -196,7 +204,16 @@
                     <input type="button" id="placeOrder" class="btn text-white" style="background-color: #6EC064;" value="Place Order">
                 `;
 
+                orderData = {
+                    items: data,
+                    subtotal: subTotal,
+                    shippingFee: shippingFee,
+                    totalWeight: totalWeight,
+                    totalAmount: totalAmount
+                };
+
                 submitOrder(data, subTotal, shippingFee, totalWeight, totalAmount);
+                initPaypalButtons(totalAmount);
 
             }catch(error){
                 console.error('Error fetching cart items:', error);
@@ -225,7 +242,9 @@
                     subtotal: subtotal,
                     shipping_fee: totalShipping,
                     total_weight: totalWeight,
-                    total_amount: total
+                    total_amount: total,
+                    payment_status: paymentMethod === 'COD' ? 'pending' : 'pending',
+                    transaction_id: null
                 };
                 
                 try {
@@ -256,6 +275,131 @@
         function getPaymentMethod(){
             const paymentMethod = document.getElementById('cashOnDelivery').checked ? 'cod' : 'paypal';
             return paymentMethod;
+        }
+
+        // Handle payment method change
+        document.addEventListener('DOMContentLoaded', function() {
+            var codRadio = document.getElementById('cashOnDelivery');
+            var paypalRadio = document.getElementById('paypal');
+            var backButton = document.getElementById('back-to-payment');
+            
+            if (codRadio && paypalRadio) {
+                codRadio.addEventListener('change', togglePaymentUI);
+                paypalRadio.addEventListener('change', togglePaymentUI);
+            }
+            
+            if (backButton) {
+                backButton.addEventListener('click', function() {
+                    document.getElementById('cashOnDelivery').checked = true;
+                    togglePaymentUI();
+                });
+            }
+        });
+
+        function togglePaymentUI() {
+            var paymentMethod = getPaymentMethod();
+            var placeOrderBtn = document.getElementById('placeOrder');
+            var paypalContainer = document.getElementById('paypal-button-container');
+            var paymentOptions = document.getElementById('payment-options');
+            var backButton = document.getElementById('back-to-payment');
+            
+            if (paymentMethod === 'paypal') {
+                if (placeOrderBtn) placeOrderBtn.style.display = 'none';
+                paymentOptions.style.display = 'none';
+                paypalContainer.style.display = 'block';
+                backButton.style.display = 'block';
+            } else {
+                if (placeOrderBtn) placeOrderBtn.style.display = 'inline-block';
+                paymentOptions.style.display = 'block';
+                paypalContainer.style.display = 'none';
+                backButton.style.display = 'none';
+            }
+        }
+
+        function initPaypalButtons(amount) {
+            if (paypalButtonsRendered) return;
+
+            var amountUSD = (amount / 58).toFixed(2);
+
+            paypal.Buttons({
+                createOrder: function(data, actions) {
+                    return fetch('../api/createPaypalOrder.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            amount: amountUSD,
+                            description: 'EasyBuy Grocery Order'
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('PayPal Order Response:', data);
+                        if (!data.success) {
+                            console.error('Order creation failed:', data);
+                            throw new Error(data.error || 'Failed to create order');
+                        }
+                        return data.orderId;
+                    })
+                    .catch(error => {
+                        console.error('Create order error:', error);
+                        throw error;
+                    });
+                },
+                onApprove: function(data, actions) {
+                    return fetch('../api/capturePaypalPayment.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            paypalOrderId: data.orderID
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(captureData => {
+                        if (!captureData.success) throw new Error('Payment capture failed');
+                        
+                        // Now save the order to database with transaction ID
+                        return saveOrderWithPaypal(captureData.transactionId);
+                    })
+                    .then(result => {
+                        if (result.success) {
+                            window.location.href = 'orderConfirmation.php?orderId=' + result.order_id;
+                        } else {
+                            alert('Error saving order: ' + result.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('PayPal error:', error);
+                        alert('Payment processing failed. Please try again.');
+                    });
+                },
+                onError: function(err) {
+                    console.error('PayPal Buttons error:', err);
+                    alert('Payment error occurred. Please try again.');
+                }
+            }).render('#paypal-button-container');
+
+            paypalButtonsRendered = true;
+        }
+
+        async function saveOrderWithPaypal(transactionId) {
+            var payload = {
+                checkout_items: orderData.items,
+                payment_method: 'paypal',
+                subtotal: orderData.subtotal,
+                shipping_fee: orderData.shippingFee,
+                total_weight: orderData.totalWeight,
+                total_amount: orderData.totalAmount,
+                payment_status: 'completed',
+                transaction_id: transactionId
+            };
+
+            var response = await fetch('../api/addOrder.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            return await response.json();
         }
 
     </script>

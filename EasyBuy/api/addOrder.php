@@ -40,6 +40,8 @@ $shippingFee = $data['shipping_fee'];
 $subtotal = $data['subtotal'];
 $totalWeight = $data['total_weight'];
 $totalAmount = $data['total_amount'];
+$paymentStatus = $data['payment_status'] ?? 'pending';
+$transactionId = $data['transaction_id'] ?? null;
 
 $success = $order->addOrder(
     $userId, 
@@ -47,7 +49,9 @@ $success = $order->addOrder(
     $totalWeight, 
     $paymentMethod, 
     $shippingFee, 
-    $orderItems
+    $orderItems,
+    $paymentStatus,
+    $transactionId
 );
 
 $cart = new Cart();
