@@ -93,7 +93,7 @@
                             <div class="card-body">
                                 <div class="card-title d-flex justify-content-between align-items-center">
                                     <div class="h3 mb-3" style="color: #6EC064;">Orders</div>
-                                    <a href="userOrders.php" class="text-decoration-none" style="color: #6EC064; font-size: 14px;">View order history ›</a>
+                                    <a href="orderHistory.php" class="text-decoration-none" style="color: #6EC064; font-size: 14px;">View order history ›</a>
                                 </div>
                                 <div class="card-text d-flex justify-content-center gap-5">
                                     <a href="userOrders.php?tab=to-ship" class="btn border-0 bg-transparent d-flex flex-column align-items-center text-decoration-none">
