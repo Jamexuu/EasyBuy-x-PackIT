@@ -131,6 +131,7 @@ class Order{
         $this->db->executeQuery($query, [$orderId, $userId]);
         
         return true;
+    }
 
     function getAllOrdersWithItems(){
         $ordersQuery = "SELECT o.id, o.user_id, o.total_amount, o.order_date, o.status, u.email
