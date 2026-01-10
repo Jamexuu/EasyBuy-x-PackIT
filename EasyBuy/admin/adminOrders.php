@@ -20,7 +20,6 @@
             </div>
         </div>
 
-        <!-- Orders Header -->
         <div class="row mb-3" style="background-color: #fff; padding: 15px 20px; border-radius: 8px;">
             <div class="col-2">
                 <strong style="color: #666;">Order #</strong>
@@ -30,7 +29,6 @@
             </div>
         </div>
 
-        <!-- Orders Container -->
         <div class="accordion" id="ordersAccordion">
             <div class="text-center py-5" id="loadingMessage">
                 <p style="color: #666;">Loading orders...</p>
@@ -44,14 +42,12 @@
         crossorigin="anonymous"></script>
     
     <script>
-        // Fetch orders from API
         fetch('../api/getAllOrders.php')
             .then(response => response.json())
             .then(orders => {
                 const accordion = document.getElementById('ordersAccordion');
                 const loadingMessage = document.getElementById('loadingMessage');
                 
-                // Remove loading message
                 if (loadingMessage) {
                     loadingMessage.remove();
                 }
@@ -65,10 +61,8 @@
                     return;
                 }
                 
-                // Build orders HTML
                 let html = '';
                 orders.forEach(order => {
-                    // All orders as accordion with email in header
                     html += `
                         <div class="accordion-item mb-3" style="border: none; border-radius: 8px; overflow: hidden;">
                             <h2 class="accordion-header">
@@ -110,7 +104,6 @@
                 `;
             });
         
-        // Helper function to escape HTML
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
