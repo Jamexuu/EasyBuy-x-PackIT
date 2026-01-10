@@ -27,6 +27,7 @@
 
 <body>
     <?php include '../frontend/components/adminNavBar.php'; ?>
+    <?php include '../frontend/components/messageModal.php'; ?>
 
     <div class="container py-5" id="productListView">
         <div class="row align-items-center mb-4">
@@ -89,9 +90,9 @@
                                 placeholder="ARLA Milk Goodness Full Cream">
                         </div>
                         <div class="col-12 col-lg-6 mb-3">
-                            <label class="fw-medium mb-2" style="color: #6a6a6a;">Size *</label>
-                            <input type="text" id="productSize" class="form-control border-0 rounded-pill"
-                                style="background-color: #f5f5f5; padding: 0.6rem 1rem;" placeholder="400 ml">
+                            <label class="fw-medium mb-2" style="color: #6a6a6a;">Weight in Grams *</label>
+                            <input type="text" id="productWeight" class="form-control border-0 rounded-pill"
+                                style="background-color: #f5f5f5; padding: 0.6rem 1rem;" placeholder="400">
                         </div>
                         <div class="col-12 col-lg-6 mb-3">
                             <label class="fw-medium mb-2" style="color: #6a6a6a;">Category *</label>
@@ -109,9 +110,24 @@
                             </select>
                         </div>
                         <div class="col-12 col-lg-6 mb-3">
+                            <label class="fw-medium mb-2" style="color: #6a6a6a;">Size in ML</label>
+                            <input type="text" id="productSize" class="form-control border-0 rounded-pill"
+                                style="background-color: #f5f5f5; padding: 0.6rem 1rem;" placeholder="400 ml">
+                        </div>
+                        <div class="col-12 col-lg-6 mb-3">
+                            <label class="fw-medium mb-2" style="color: #6a6a6a;">Discount</label>
+                            <input type="text" id="discountPercentage" class="form-control border-0 rounded-pill"
+                                style="background-color: #f5f5f5; padding: 0.6rem 1rem;" placeholder="1%-99%">
+                        </div>
+                        <div class="col-12 col-lg-6 mb-3">
                             <label class="fw-medium mb-2" style="color: #6a6a6a;">Price *</label>
                             <input type="text" id="productPrice" class="form-control border-0 rounded-pill"
                                 style="background-color: #f5f5f5; padding: 0.6rem 1rem;" placeholder="123.35">
+                        </div>
+                        <div class="col-12 col-lg-6 mb-3">
+                            <label class="fw-medium mb-2" style="color: #6a6a6a;">Stocks *</label>
+                            <input type="text" id="productStocks" class="form-control border-0 rounded-pill"
+                                style="background-color: #f5f5f5; padding: 0.6rem 1rem;" placeholder="100">
                         </div>
                     </div>
                     <div class="row mt-3">
@@ -161,19 +177,33 @@
             document.getElementById('fileInput').click();
         });
 
-        document.getElementById('fileInput').addEventListener('change', function (e) {
+        document.getElementById('fileInput').addEventListener('change', async function (e) {
             const file = e.target.files[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = function (event) {
-                    const img = document.getElementById('imagePreview');
-                    const removeBtn = document.getElementById('removeImageBtn');
-                    currentImageData = event.target.result;
-                    img.src = currentImageData;
-                    img.style.display = 'block';
-                    removeBtn.style.display = 'flex';
-                };
-                reader.readAsDataURL(file);
+                const formData = new FormData();
+                formData.append('image', file);
+
+                try {
+                    const response = await fetch('../api/uploadProductImage.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        const img = document.getElementById('imagePreview');
+                        const removeBtn = document.getElementById('removeImageBtn');
+                        currentImageData = result.path;
+                        img.src = currentImageData;
+                        img.style.display = 'block';
+                        removeBtn.style.display = 'flex';
+                    } else {
+                        alert('Failed to upload image');
+                    }
+                } catch (error) {
+                    alert('Error uploading image');
+                    console.error(error);
+                }
             }
         });
 
@@ -188,44 +218,88 @@
             fileInput.value = '';
         });
 
-        document.getElementById('saveProductBtn').addEventListener('click', function () {
+        document.getElementById('saveProductBtn').addEventListener('click', async function () {
             const productName = document.getElementById('productName').value;
+            const productWeight = document.getElementById('productWeight').value;
             const productSize = document.getElementById('productSize').value;
             const productCategory = document.getElementById('productCategory').value;
             const productPrice = document.getElementById('productPrice').value.trim();
+            const salePercentage = document.getElementById('discountPercentage').value;
+            const productStocks = document.getElementById('productStocks').value;
+            var isSale = 0;
 
-            if (!productName || !productSize || !productCategory || !productPrice) {
+            if (!productName || !productSize || !productCategory || !productPrice || !productStocks) {
                 alert('Please fill in all fields');
                 return;
             }
 
-            if (editingProductId !== null) {
-                const productIndex = products.findIndex(p => p.id === editingProductId);
-                if (productIndex !== -1) {
-                    products[productIndex] = {
-                        id: editingProductId,
-                        name: productName,
-                        size: productSize,
-                        category: productCategory,
-                        price: productPrice,
-                        image: currentImageData
-                    };
-                }
-                editingProductId = null;
-            } else {
-                const product = {
-                    id: Date.now(),
-                    name: productName,
-                    size: productSize,
-                    category: productCategory,
-                    price: productPrice,
-                    image: currentImageData
-                };
-                products.push(product);
+            if (salePercentage > 0){
+                isSale = 1;
             }
 
-            displayProducts();
-            showProductList();
+            if (!currentImageData) {
+                alert('Please upload a product image');
+                return;
+            }
+
+            try {
+                if (editingProductId !== null) {
+                    // Update existing product
+                    const response = await fetch('../api/updateProduct.php', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            product_id: editingProductId,
+                            product_name: productName,
+                            size: productSize,
+                            weight_grams: productWeight,
+                            category: productCategory,
+                            price: productPrice,
+                            stocks: productStocks,
+                            is_sale: isSale,
+                            sale_percentage: salePercentage,
+                            image: currentImageData
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to update product');
+                    }
+                } else {
+                    // Add new product
+                    const response = await fetch('../api/addProduct.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            product_name: productName,
+                            category: productCategory,
+                            price: productPrice,
+                            stocks: productStocks,
+                            is_sale: isSale,
+                            sale_percentage: salePercentage,
+                            weight_grams: productWeight,
+                            size: productSize,
+                            image: currentImageData
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to add product');
+                    }
+                }
+
+                showMessageModal('success', 'Product Added', 'The product has been saved successfully.');
+
+                displayProducts();
+                showProductList();
+            } catch (error) {
+                alert('Error saving product: ' + error.message);
+                console.error(error);
+            }
         });
 
         async function displayProducts() {
@@ -261,11 +335,27 @@
             });
         }
 
-        function deleteProduct(id) {
+        async function deleteProduct(id) {
             if (confirm('Are you sure you want to delete this product?')) {
-                products = products.filter(p => (p.id || p.product_id) !== id);
-                filteredProducts = products;
-                getProducts();
+                try {
+                    const response = await fetch('../api/deleteProduct.php', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ productId: id })
+                    });
+
+                    if (response.ok) {
+                        products = products.filter(p => (p.id || p.product_id) !== id);
+                        filteredProducts = products;
+                        getProducts();
+                    } else {
+                        alert('Failed to delete product.');
+                    }
+                } catch (error) {
+                    alert('An error occurred while deleting the product.');
+                }
             }
         }
 
