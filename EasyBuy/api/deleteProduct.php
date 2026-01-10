@@ -23,6 +23,15 @@ if (!$productId) {
 
 $product = new Product();
 try {
+    $productData = $product->getProductById($productId);
+    
+    if ($productData && !empty($productData['image'])) {
+        $imagePath = '../' . $productData['image'];
+        if (file_exists($imagePath)) {
+            unlink($imagePath);
+        }
+    }
+    
     $product->deleteProduct($productId);
     echo json_encode(['success' => true]);
 } catch (Exception $e) {
