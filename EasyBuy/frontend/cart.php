@@ -120,6 +120,26 @@
         
     </div>
 
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteConfirmModal" class="modal fade" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-4 rounded-5 shadow text-center border-0"
+                style="width: 85%; max-width: 320px; margin: auto;">
+                <div class="h5 fw-bold mb-2">Remove Item</div>
+                <p class="mb-4">Are you sure you want to remove this item from your cart?</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <button type="button" class="btn px-4" style="background-color: #e8e8e8; color: #666;"
+                        data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="button" class="btn px-4 text-white" style="background-color: #dc3545;"
+                        id="confirmDeleteBtn">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <?php include "components/footer.php"; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
@@ -129,6 +149,8 @@
         var cartItemContainerMobile = document.getElementById('cartItemContainerMobile');
         var checkoutSection = document.getElementById('checkoutSection');
         var qtyBoxes = document.querySelectorAll('.qty-box');
+        var deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+        var itemToDelete = null;
 
         async function getCartItems() {
             try {
@@ -172,7 +194,7 @@
                                 ` : `<div class="fw-bold" data-cart-id="`+ item.id + `" data-type="subtotal">`+ formatPhp((item.final_price * item.quantity)) + `</div>` }
                             </td>
                             <td class="align-middle text-center">
-                                <button class="btn" onclick="deleteItem(`+ item.id + `)">
+                                <button class="btn" onclick="showDeleteModal(`+ item.id + `)">
                                     <span class="material-symbols-outlined">
                                         delete
                                     </span>
@@ -203,7 +225,7 @@
                                     <input type="text" class="qty-box" value="`+ item.quantity + `" readonly>
                                     <button class="qty-btn" onclick="increaseQty(this, `+ item.id + `)">+</button>
                                 </div>
-                                <button class="btn" onclick="deleteItem(`+ item.id + `)">
+                                <button class="btn" onclick="showDeleteModal(`+ item.id + `)">
                                     <span class="material-symbols-outlined">
                                         delete
                                     </span>
@@ -346,11 +368,20 @@
 
         document.addEventListener('DOMContentLoaded', updateTotals);
 
-        async function deleteItem(cartItemId) {
-            if (!confirm('Are you sure you want to delete this item?')) {
-                return;
-            }
+        function showDeleteModal(cartItemId) {
+            itemToDelete = cartItemId;
+            deleteModal.show();
+        }
 
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+            if (itemToDelete !== null) {
+                await deleteItem(itemToDelete);
+                deleteModal.hide();
+                itemToDelete = null;
+            }
+        });
+
+        async function deleteItem(cartItemId) {
             try {
                 const response = await fetch('../api/deleteCartItem.php', {
                     method: 'POST',
