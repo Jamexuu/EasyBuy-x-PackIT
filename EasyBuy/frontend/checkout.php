@@ -225,7 +225,7 @@
                     const result = await response.json();
                     
                     if (result.success) {
-                        window.location.href = 'orderConfirmation.php?orderId=' + result.order_id;
+                        window.location.href = 'orderConfirmation.php?order_id=' + result.order_id;
                     } else {
                         alert('Error: ' + result.error);
                     }

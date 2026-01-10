@@ -41,7 +41,7 @@ $orderId = $_GET['order_id'];
                             <img src="../assets/order successfully.svg" alt="Order Successful" style="width: 250px; height: 250px;">
                         </div>
                     </div>
-                    <h3 class="mt-3" style="color: #6BBF59; font-weight: 700;">Order Successful!</h3>
+                    <h3 class="mt-3" style="color: #6BBF59; font-weight: 700;"></h3>
                 </div>
             </div>
         </div>
