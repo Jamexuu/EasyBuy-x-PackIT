@@ -22,6 +22,9 @@ $profileUrl = "driverProfile.php";
     .bg-brand { background-color: var(--brand-yellow) !important; }
     .navbar-pill { border-radius: 50px; max-width: 95%; }
     .nav-link { color: var(--brand-dark) !important; font-weight: 800; text-transform: uppercase; font-size: 0.85rem; }
+    .driver-name-link { font-weight: 800; text-transform: uppercase; font-size: 0.85rem; color: var(--brand-dark) !important; text-decoration: none; }
+    /* keep the name readable on small screens */
+    .driver-name-container { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
 </style>
 
 <div class="container">
@@ -40,13 +43,18 @@ $profileUrl = "driverProfile.php";
                     <li class="nav-item"><a class="nav-link" href="<?php echo htmlspecialchars($homeUrl); ?>">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="<?php echo htmlspecialchars($bookingsUrl); ?>">Bookings</a></li>
                     <li class="nav-item"><a class="nav-link" href="<?php echo htmlspecialchars($transactionsUrl); ?>">Transactions</a></li>
-                    <li class="nav-item"><a class="nav-link" href="<?php echo htmlspecialchars($profileUrl); ?>">Profile</a></li>
+                    <!-- Keep 'Profile' out of the center menu since the name will be placed at the end side -->
                 </ul>
             </div>
 
-            <div class="d-none d-lg-flex align-items-center">
+            <!-- Driver name at the right end. If logged in show name (links to profile). Otherwise show 'Profile' link. -->
+            <div class="d-flex align-items-center driver-name-container ms-3">
                 <?php if ($driverName): ?>
-                    <span class="fw-bold small text-uppercase"><?php echo htmlspecialchars($driverName); ?></span>
+                    <a class="driver-name-link" href="<?php echo htmlspecialchars($profileUrl); ?>">
+                        <?php echo htmlspecialchars($driverName); ?>
+                    </a>
+                <?php else: ?>
+                    <a class="nav-link driver-name-link" href="<?php echo htmlspecialchars($profileUrl); ?>">Profile</a>
                 <?php endif; ?>
             </div>
         </div>
