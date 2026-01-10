@@ -177,10 +177,8 @@
         }
 
         function updateOrderStatus(orderId, newStatus) {
-            // TODO: Send API request to update order status
             console.log(`Updating order ${orderId} to status: ${newStatus}`);
 
-            // Update dropdown color
             const select = event.target;
             select.style.backgroundColor = getStatusColor(newStatus);
         }
