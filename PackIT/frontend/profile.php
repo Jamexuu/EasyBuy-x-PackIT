@@ -27,7 +27,7 @@ if (!$userDetails) {
 $displayName  = trim(($userDetails['first_name'] ?? '') . ' ' . ($userDetails['last_name'] ?? ''));
 $email        = $userDetails['email'] ?? '';
 $contact      = $userDetails['contact_number'] ?? '';
-$profileImage = $userDetails['profile_image'] ?? null; // Now fetched from DB
+$profileImage = $userDetails['profile_image'] ?? null;
 
 function formatAddress($u) {
     if (!$u) return '--';
@@ -55,227 +55,279 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Profile Dashboard</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Profile Dashboard</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <style>
-        :root { --brand-yellow: #fce354; }
-        .profile-card { background-color: var(--brand-yellow); border-radius: 40px; }
-        .profile-menu-container { border: 3px solid var(--brand-yellow); border-radius: 35px; }
-        .avatar-container { width: 180px; height: 180px; border: 5px solid #fff; }
-        .camera-btn { width: 40px; height: 40px; cursor: pointer; transition: transform 0.2s; }
-        .camera-btn:hover { transform: scale(1.1); }
-        .menu-btn { text-align: left; font-size: 1.1rem; color: #212529; text-decoration: none; }
-        .menu-btn[aria-expanded="true"] .bi-chevron-down { transform: rotate(180deg); }
-        .bi-chevron-down { transition: transform 0.2s; }
-        /* Add hover effect for links */
-        .hover-dark:hover { color: #000 !important; }
-    </style>
+  <style>
+    :root { --brand-yellow: #fce354; }
+    .profile-card { background-color: var(--brand-yellow); border-radius: 40px; }
+    .profile-menu-container { border: 3px solid var(--brand-yellow); border-radius: 35px; }
+    .avatar-container { width: 180px; height: 180px; border: 5px solid #fff; }
+    .camera-btn { width: 40px; height: 40px; cursor: pointer; transition: transform 0.2s; }
+    .camera-btn:hover { transform: scale(1.1); }
+    .menu-btn { text-align: left; font-size: 1.1rem; color: #212529; text-decoration: none; }
+    .menu-btn[aria-expanded="true"] .bi-chevron-down { transform: rotate(180deg); }
+    .bi-chevron-down { transition: transform 0.2s; }
+    .hover-dark:hover { color: #000 !important; }
+    /* Feedback modal tweaks */
+    .feedback-category .btn { min-width: 110px; }
+  </style>
 </head>
-
 <body class="d-flex flex-column min-vh-100 bg-white">
 
 <?php include("components/navbar.php"); ?>
 
 <main class="container my-5 flex-grow-1">
-    <div class="row g-4 align-items-center">
+  <div class="row g-4 align-items-center">
 
-        <div class="col-12 col-lg-4">
-            <div class="profile-card shadow-sm p-5 text-center position-relative h-100 d-flex flex-column align-items-center justify-content-center">
-                
-                <?php if (isset($_SESSION['success'])): ?>
-                    <div class="alert alert-success w-100 py-2 small mb-2"><?= htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?></div>
-                <?php endif; ?>
-                <?php if (isset($_SESSION['error'])): ?>
-                    <div class="alert alert-danger w-100 py-2 small mb-2"><?= htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?></div>
-                <?php endif; ?>
+    <div class="col-12 col-lg-4">
+      <div class="profile-card shadow-sm p-5 text-center position-relative h-100 d-flex flex-column align-items-center justify-content-center">
 
-                <div class="position-relative mb-3">
-                    <div class="avatar-container rounded-circle overflow-hidden bg-light mx-auto">
-                        <img id="profileDisplay" 
-                             src="<?= htmlspecialchars($profileImage ?: $defaultAvatar) ?>" 
-                             alt="Profile" 
-                             class="w-100 h-100 object-fit-cover"
-                             onerror="this.src='<?= $defaultAvatar ?>'">
-                    </div>
-                    
-                    <div class="camera-btn position-absolute bottom-0 end-0 bg-white border border-2 border-warning rounded-circle d-flex align-items-center justify-content-center shadow-sm"
-                         onclick="document.getElementById('fileInput').click()">
-                         <i class="bi bi-camera-fill text-dark"></i>
-                    </div>
+        <?php if (isset($_SESSION['success'])): ?>
+          <div class="alert alert-success w-100 py-2 small mb-2"><?= htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?></div>
+        <?php endif; ?>
+        <?php if (isset($_SESSION['error'])): ?>
+          <div class="alert alert-danger w-100 py-2 small mb-2"><?= htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?></div>
+        <?php endif; ?>
 
-                    <div id="avatarSpinner" class="position-absolute top-50 start-50 translate-middle d-none">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
-                </div>
+        <div class="position-relative mb-3">
+          <div class="avatar-container rounded-circle overflow-hidden bg-light mx-auto">
+            <img id="profileDisplay"
+                 src="<?= htmlspecialchars($profileImage ?: $defaultAvatar) ?>"
+                 alt="Profile"
+                 class="w-100 h-100 object-fit-cover"
+                 onerror="this.src='<?= $defaultAvatar ?>'">
+          </div>
 
-                <form id="avatarForm" class="d-none" enctype="multipart/form-data">
-                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-                    <input type="file" id="fileInput" name="avatar" accept="image/*">
-                </form>
+          <div class="camera-btn position-absolute bottom-0 end-0 bg-white border border-2 border-warning rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+               onclick="document.getElementById('fileInput').click()">
+               <i class="bi bi-camera-fill text-dark"></i>
+          </div>
 
-                <h2 class="fw-bold text-dark mb-1"><?= htmlspecialchars($displayName) ?></h2>
-                <p class="text-secondary mb-2"><?= htmlspecialchars($email) ?></p>
-                <h5 class="fw-medium text-dark mb-1"><?= htmlspecialchars($contact ?: '--') ?></h5>
-                <small class="text-secondary d-block mb-3"><?= htmlspecialchars($displayAddress) ?></small>
+          <div id="avatarSpinner" class="position-absolute top-50 start-50 translate-middle d-none">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
             </div>
+          </div>
         </div>
 
-        <div class="col-12 col-lg-8">
-            <div class="profile-menu-container p-4 p-md-5 bg-white h-100">
-                
-                <div class="mb-3 border-bottom pb-2">
-                    <a class="menu-btn d-flex justify-content-between align-items-center w-100 py-2" 
-                       data-bs-toggle="collapse" href="#accountCollapse" role="button" aria-expanded="false">
-                        <span class="fw-medium">Account & Security</span>
-                        <i class="bi bi-chevron-down small"></i>
-                    </a>
-                    <div class="collapse mt-2" id="accountCollapse">
-                        <ul class="list-unstyled ms-3 mb-0">
-                            <li>
-                                <a href="#" class="text-decoration-none text-secondary d-block py-1 hover-dark" data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                                    Edit Profile Details
-                                </a>
-                            </li>
-                            <li>
-                                <a href="changePassword.php" class="text-decoration-none text-secondary d-block py-1 hover-dark">
-                                    Change Password
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+        <form id="avatarForm" class="d-none" enctype="multipart/form-data">
+          <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+          <input type="file" id="fileInput" name="avatar" accept="image/*">
+        </form>
 
-                <div class="mb-3 border-bottom pb-2">
-                    <a class="menu-btn d-flex justify-content-between align-items-center w-100 py-2" 
-                       data-bs-toggle="collapse" href="#accessCollapse" role="button" aria-expanded="false">
-                        <span class="fw-medium">Accessibility</span>
-                        <i class="bi bi-chevron-down small"></i>
-                    </a>
-                    <div class="collapse mt-2" id="accessCollapse">
-                        <p class="text-muted ms-3 small mb-0 py-1">Accessibility settings coming soon.</p>
-                    </div>
-                </div>
-
-                <div class="mb-3 border-bottom pb-2">
-                    <a class="menu-btn d-flex justify-content-between align-items-center w-100 py-2" 
-                       data-bs-toggle="collapse" href="#feedbackCollapse" role="button" aria-expanded="false">
-                        <span class="fw-medium">Feedback</span>
-                        <i class="bi bi-chevron-down small"></i>
-                    </a>
-                    <div class="collapse mt-2" id="feedbackCollapse">
-                        <ul class="list-unstyled ms-3 mb-0">
-                            <li><a href="#" class="text-decoration-none text-secondary d-block py-1 hover-dark">Create Feedback</a></li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    <a class="menu-btn d-flex justify-content-between align-items-center w-100 py-2" 
-                       data-bs-toggle="collapse" href="#aboutCollapse" role="button" aria-expanded="false">
-                        <span class="fw-medium">About</span>
-                        <i class="bi bi-chevron-down small"></i>
-                    </a>
-                    <div class="collapse mt-2" id="aboutCollapse">
-                        <ul class="list-unstyled ms-3 mb-0">
-                            <li><a href="#" class="text-decoration-none text-secondary d-block py-1 hover-dark">App Version 1.0</a></li>
-                            <li><a href="#" class="text-decoration-none text-secondary d-block py-1 hover-dark">Privacy Policy</a></li>
-                        </ul>
-                    </div>
-                </div>
-
-                <a href="logout.php" class="btn btn-warning w-100 fw-bold py-2 rounded-pill shadow-sm">Logout</a>
-            </div>
-        </div>
-
+        <h2 class="fw-bold text-dark mb-1"><?= htmlspecialchars($displayName) ?></h2>
+        <p class="text-secondary mb-2"><?= htmlspecialchars($email) ?></p>
+        <h5 class="fw-medium text-dark mb-1"><?= htmlspecialchars($contact ?: '--') ?></h5>
+        <small class="text-secondary d-block mb-3"><?= htmlspecialchars($displayAddress) ?></small>
+      </div>
     </div>
+
+    <div class="col-12 col-lg-8">
+      <div class="profile-menu-container p-4 p-md-5 bg-white h-100">
+
+        <div class="mb-3 border-bottom pb-2">
+          <a class="menu-btn d-flex justify-content-between align-items-center w-100 py-2"
+             data-bs-toggle="collapse" href="#accountCollapse" role="button" aria-expanded="false">
+            <span class="fw-medium">Account & Security</span>
+            <i class="bi bi-chevron-down small"></i>
+          </a>
+          <div class="collapse mt-2" id="accountCollapse">
+            <ul class="list-unstyled ms-3 mb-0">
+              <li>
+                <a href="#" class="text-decoration-none text-secondary d-block py-1 hover-dark" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                  Edit Profile Details
+                </a>
+              </li>
+              <li>
+                <a href="changePassword.php" class="text-decoration-none text-secondary d-block py-1 hover-dark">
+                  Change Password
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="mb-3 border-bottom pb-2">
+          <a class="menu-btn d-flex justify-content-between align-items-center w-100 py-2"
+             data-bs-toggle="collapse" href="#accessCollapse" role="button" aria-expanded="false">
+            <span class="fw-medium">Accessibility</span>
+            <i class="bi bi-chevron-down small"></i>
+          </a>
+          <div class="collapse mt-2" id="accessCollapse">
+            <p class="text-muted ms-3 small mb-0 py-1">Accessibility settings coming soon.</p>
+          </div>
+        </div>
+
+        <div class="mb-3 border-bottom pb-2">
+          <a class="menu-btn d-flex justify-content-between align-items-center w-100 py-2"
+             data-bs-toggle="collapse" href="#feedbackCollapse" role="button" aria-expanded="false">
+            <span class="fw-medium">Feedback</span>
+            <i class="bi bi-chevron-down small"></i>
+          </a>
+          <div class="collapse mt-2" id="feedbackCollapse">
+            <ul class="list-unstyled ms-3 mb-0">
+              <li>
+                <!-- Open feedback modal -->
+                <button id="openFeedbackBtn" type="button" class="btn btn-link text-secondary p-0">Create Feedback</button>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <a class="menu-btn d-flex justify-content-between align-items-center w-100 py-2"
+             data-bs-toggle="collapse" href="#aboutCollapse" role="button" aria-expanded="false">
+            <span class="fw-medium">About</span>
+            <i class="bi bi-chevron-down small"></i>
+          </a>
+          <div class="collapse mt-2" id="aboutCollapse">
+            <ul class="list-unstyled ms-3 mb-0">
+              <li><a href="#" class="text-decoration-none text-secondary d-block py-1 hover-dark">App Version 1.0</a></li>
+              <li><a href="#" class="text-decoration-none text-secondary d-block py-1 hover-dark">Privacy Policy</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <a href="logout.php" class="btn btn-warning w-100 fw-bold py-2 rounded-pill shadow-sm">Logout</a>
+      </div>
+    </div>
+
+  </div>
 </main>
 
+<!-- Edit Profile Modal (unchanged) -->
 <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content rounded-4 border-0">
-            <form action="editProfileProcess.php" method="POST">
-                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
-                
-                <div class="modal-header border-bottom-0 pb-0">
-                    <h5 class="modal-title fw-bold" id="editProfileLabel">Edit Profile Information</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                
-                <div class="modal-body p-4">
-                    <h6 class="text-uppercase text-muted small fw-bold mb-3">Personal Details</h6>
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label small">First Name</label>
-                            <input type="text" class="form-control" name="firstName" value="<?= htmlspecialchars($userDetails['first_name'] ?? '') ?>" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small">Last Name</label>
-                            <input type="text" class="form-control" name="lastName" value="<?= htmlspecialchars($userDetails['last_name'] ?? '') ?>" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small">Mobile Number</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-white text-muted">+63</span>
-                                <input type="text" class="form-control" name="contact" value="<?= htmlspecialchars($userDetails['contact_number'] ?? '') ?>" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small">Email (Cannot be changed)</label>
-                            <input type="text" class="form-control bg-light" value="<?= htmlspecialchars($userDetails['email'] ?? '') ?>" disabled>
-                        </div>
-                    </div>
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0">
+      <form action="editProfileProcess.php" method="POST">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
 
-                    <h6 class="text-uppercase text-muted small fw-bold mb-3">Address Information</h6>
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label small">House/Unit No.</label>
-                            <input type="text" class="form-control" name="houseNumber" value="<?= htmlspecialchars($userDetails['house_number'] ?? '') ?>">
-                        </div>
-                        <div class="col-md-8">
-                            <label class="form-label small">Street</label>
-                            <input type="text" class="form-control" name="street" value="<?= htmlspecialchars($userDetails['street'] ?? '') ?>">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small">Subdivision</label>
-                            <input type="text" class="form-control" name="subdivision" value="<?= htmlspecialchars($userDetails['subdivision'] ?? '') ?>">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small">Barangay</label>
-                            <input type="text" class="form-control" name="barangay" value="<?= htmlspecialchars($userDetails['barangay'] ?? '') ?>">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small">City/Municipality</label>
-                            <input type="text" class="form-control" name="city" value="<?= htmlspecialchars($userDetails['city'] ?? '') ?>">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small">Province</label>
-                            <input type="text" class="form-control" name="province" value="<?= htmlspecialchars($userDetails['province'] ?? '') ?>">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small">Postal Code</label>
-                            <input type="text" class="form-control" name="postal" value="<?= htmlspecialchars($userDetails['postal_code'] ?? '') ?>">
-                        </div>
-                        <div class="col-md-8">
-                            <label class="form-label small">Landmark</label>
-                            <input type="text" class="form-control" name="landmark" value="<?= htmlspecialchars($userDetails['landmark'] ?? '') ?>">
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="modal-footer border-top-0 pt-0 pb-4 pe-4">
-                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold">Save Changes</button>
-                </div>
-            </form>
+        <div class="modal-header border-bottom-0 pb-0">
+          <h5 class="modal-title fw-bold" id="editProfileLabel">Edit Profile Information</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
+
+        <div class="modal-body p-4">
+          <h6 class="text-uppercase text-muted small fw-bold mb-3">Personal Details</h6>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label small">First Name</label>
+              <input type="text" class="form-control" name="firstName" value="<?= htmlspecialchars($userDetails['first_name'] ?? '') ?>" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Last Name</label>
+              <input type="text" class="form-control" name="lastName" value="<?= htmlspecialchars($userDetails['last_name'] ?? '') ?>" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Mobile Number</label>
+              <div class="input-group">
+                <span class="input-group-text bg-white text-muted">+63</span>
+                <input type="text" class="form-control" name="contact" value="<?= htmlspecialchars($userDetails['contact_number'] ?? '') ?>" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Email (Cannot be changed)</label>
+              <input type="text" class="form-control bg-light" value="<?= htmlspecialchars($userDetails['email'] ?? '') ?>" disabled>
+            </div>
+          </div>
+
+          <h6 class="text-uppercase text-muted small fw-bold mb-3">Address Information</h6>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label small">House/Unit No.</label>
+              <input type="text" class="form-control" name="houseNumber" value="<?= htmlspecialchars($userDetails['house_number'] ?? '') ?>">
+            </div>
+            <div class="col-md-8">
+              <label class="form-label small">Street</label>
+              <input type="text" class="form-control" name="street" value="<?= htmlspecialchars($userDetails['street'] ?? '') ?>">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Subdivision</label>
+              <input type="text" class="form-control" name="subdivision" value="<?= htmlspecialchars($userDetails['subdivision'] ?? '') ?>">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Barangay</label>
+              <input type="text" class="form-control" name="barangay" value="<?= htmlspecialchars($userDetails['barangay'] ?? '') ?>">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">City/Municipality</label>
+              <input type="text" class="form-control" name="city" value="<?= htmlspecialchars($userDetails['city'] ?? '') ?>">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Province</label>
+              <input type="text" class="form-control" name="province" value="<?= htmlspecialchars($userDetails['province'] ?? '') ?>">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Postal Code</label>
+              <input type="text" class="form-control" name="postal" value="<?= htmlspecialchars($userDetails['postal_code'] ?? '') ?>">
+            </div>
+            <div class="col-md-8">
+              <label class="form-label small">Landmark</label>
+              <input type="text" class="form-control" name="landmark" value="<?= htmlspecialchars($userDetails['landmark'] ?? '') ?>">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer border-top-0 pt-0 pb-4 pe-4">
+          <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold">Save Changes</button>
+        </div>
+      </form>
     </div>
+  </div>
+</div>
+
+<!-- Feedback Modal -->
+<div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4">
+      <form id="feedbackForm" method="POST" novalidate>
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" id="feedbackModalLabel">Create Feedback</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div id="feedbackAlert" class="alert d-none" role="alert"></div>
+
+          <div class="mb-3">
+            <label class="form-label small">Category</label>
+            <select name="category" id="feedbackCategory" class="form-select form-select-sm">
+              <option value="bug">Bug / Error</option>
+              <option value="question">Question</option>
+              <option value="suggestion">Suggestion</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small">Subject (optional)</label>
+            <input type="text" name="subject" id="feedbackSubject" class="form-control form-control-sm" maxlength="255" placeholder="Short summary (optional)">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small">Feedback</label>
+            <textarea name="message" id="feedbackMessage" class="form-control form-control-sm" rows="5" placeholder="Describe the issue, question, or suggestion..." required></textarea>
+            <div class="form-text small">Keep it concise. Avoid sharing passwords or sensitive data.</div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" id="feedbackSubmitBtn" class="btn btn-primary rounded-pill px-4">
+            <span id="feedbackSubmitText">Submit Feedback</span>
+            <span id="feedbackSpinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
 <?php include("components/footer.php"); ?>
@@ -284,49 +336,129 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    const fileInput = document.getElementById('fileInput');
-    const profileDisplay = document.getElementById('profileDisplay');
-    const avatarSpinner = document.getElementById('avatarSpinner');
+  const fileInput = document.getElementById('fileInput');
+  const profileDisplay = document.getElementById('profileDisplay');
+  const avatarSpinner = document.getElementById('avatarSpinner');
 
-    if (fileInput) {
-        fileInput.addEventListener('change', async function() {
-            if (!this.files || !this.files[0]) return;
+  if (fileInput) {
+    fileInput.addEventListener('change', async function() {
+      if (!this.files || !this.files[0]) return;
 
-            // Show spinner
-            profileDisplay.style.opacity = '0.5';
-            avatarSpinner.classList.remove('d-none');
+      profileDisplay.style.opacity = '0.5';
+      avatarSpinner.classList.remove('d-none');
 
-            const formData = new FormData();
-            formData.append('avatar', this.files[0]);
-            // Get token from the hidden input inside the form
-            formData.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
+      const formData = new FormData();
+      formData.append('avatar', this.files[0]);
+      formData.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
 
-            try {
-                const response = await fetch('../api/user/update_avatar.php', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const result = await response.json();
-
-                if (response.ok && result.ok) {
-                    // Update image immediately with the returned path + timestamp to force refresh
-                    profileDisplay.src = result.path + '?t=' + new Date().getTime();
-                } else {
-                    alert(result.error || 'Failed to upload image');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred while uploading.');
-            } finally {
-                // Hide spinner
-                profileDisplay.style.opacity = '1';
-                avatarSpinner.classList.add('d-none');
-                // Clear input so selecting same file triggers change again
-                fileInput.value = '';
-            }
+      try {
+        const response = await fetch('../api/user/update_avatar.php', {
+          method: 'POST',
+          body: formData
         });
+
+        const result = await response.json();
+
+        if (response.ok && result.ok) {
+          profileDisplay.src = result.path + '?t=' + new Date().getTime();
+        } else {
+          alert(result.error || 'Failed to upload image');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while uploading.');
+      } finally {
+        profileDisplay.style.opacity = '1';
+        avatarSpinner.classList.add('d-none');
+        fileInput.value = '';
+      }
+    });
+  }
+
+  // Feedback modal interactions
+  (function(){
+    const openFeedbackBtn = document.getElementById('openFeedbackBtn');
+    const feedbackModalEl = document.getElementById('feedbackModal');
+    const feedbackForm = document.getElementById('feedbackForm');
+    const feedbackAlert = document.getElementById('feedbackAlert');
+    const feedbackSubmitBtn = document.getElementById('feedbackSubmitBtn');
+    const feedbackSpinner = document.getElementById('feedbackSpinner');
+    const feedbackSubmitText = document.getElementById('feedbackSubmitText');
+
+    function showAlert(type, text) {
+      feedbackAlert.className = 'alert alert-' + type;
+      feedbackAlert.textContent = text;
+      feedbackAlert.classList.remove('d-none');
     }
+    function hideAlert() {
+      feedbackAlert.classList.add('d-none');
+      feedbackAlert.textContent = '';
+    }
+
+    if (openFeedbackBtn && feedbackModalEl) {
+      openFeedbackBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        hideAlert();
+        feedbackForm.reset();
+        const bs = new bootstrap.Modal(feedbackModalEl);
+        bs.show();
+      });
+    }
+
+    // Submit handler
+    feedbackForm.addEventListener('submit', async function(e){
+      e.preventDefault();
+      hideAlert();
+
+      const subject = document.getElementById('feedbackSubject').value.trim();
+      const category = document.getElementById('feedbackCategory').value;
+      const message = document.getElementById('feedbackMessage').value.trim();
+      const csrf = document.querySelector('input[name="csrf_token"]').value;
+
+      if (!message || message.length < 5) {
+        showAlert('warning', 'Please enter your feedback (at least 5 characters).');
+        return;
+      }
+
+      feedbackSubmitBtn.disabled = true;
+      feedbackSpinner.classList.remove('d-none');
+      feedbackSubmitText.textContent = 'Submitting...';
+
+      try {
+        const fd = new FormData();
+        fd.append('subject', subject);
+        fd.append('category', category);
+        fd.append('message', message);
+        fd.append('csrf_token', csrf);
+
+        const res = await fetch('submit_feedback.php', {
+          method: 'POST',
+          body: fd,
+          credentials: 'same-origin'
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data) {
+          showAlert('danger', 'Unable to submit feedback. Please try again later.');
+        } else if (!data.success) {
+          showAlert('danger', data.message || 'Submission failed.');
+        } else {
+          showAlert('success', data.message || 'Feedback submitted. Thank you!');
+          setTimeout(function(){
+            try { bootstrap.Modal.getInstance(feedbackModalEl).hide(); } catch(e){}
+          }, 1200);
+        }
+      } catch (err) {
+        console.error(err);
+        showAlert('danger', 'Network error. Please try again.');
+      } finally {
+        feedbackSubmitBtn.disabled = false;
+        feedbackSpinner.classList.add('d-none');
+        feedbackSubmitText.textContent = 'Submit Feedback';
+      }
+    });
+  })();
 </script>
 
 </body>
