@@ -40,38 +40,7 @@
 </head>
 
 <body>
-    <div class="navbar navbar-expand-lg" style="background: var(--gradient-color-adminNav);">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <img src="../assets/navbar_logo.svg" alt="EasyBuy" class="img-fluid px-lg-3 p-2 ms-5"
-                    style="max-height: 60px;">
-            </a>
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
-                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
-                aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav ms-auto me-5 gap-5">
-                    <li class="nav-item">
-                        <a class="nav-link text-white fw-normal" href="#">Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white fw-normal" href="#">Products</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white fw-normal" href="#">Orders</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white fw-normal" href="#">Email</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white fw-normal" href="#">SMS</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
+    <?php include '../frontend/components/adminNavBar.php'; ?>      
 
     <div class="container-fluid px-5 py-4">
         <div class="row g-4 mb-4">
