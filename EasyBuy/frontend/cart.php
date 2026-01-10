@@ -160,15 +160,15 @@
                                 </div>
                             </td>
                             <td class="align-middle text-center">
-                                <button class="qty-btn" onclick="decreaseQty()">-</button>
-                                <input type="text" id="qty" class="qty-box" value="`+ item.quantity + `" readonly>
-                                <button class="qty-btn" onclick="increaseQty()">+</button>
+                                <button class="qty-btn" onclick="decreaseQty(this, `+ item.id + `)">-</button>
+                                <input type="text" class="qty-box" value="`+ item.quantity + `" readonly>
+                                <button class="qty-btn" onclick="increaseQty(this, `+ item.id + `)">+</button>
                             </td>
                             <td class="align-middle text-center">
                                 ${ item.is_sale == 1 ? `
-                                    <div><small class="text-decoration-line-through text-muted">`+ formatPhp((item.price * item.quantity)) + `</small></div>
-                                    <div class="fw-bold text-success">`+ formatPhp((item.final_price * item.quantity)) + `</div>
-                                ` : formatPhp((item.final_price * item.quantity)) }
+                                    <div><small class="text-decoration-line-through text-muted" data-cart-id="`+ item.id + `" data-type="original">`+ formatPhp((item.price * item.quantity)) + `</small></div>
+                                    <div class="fw-bold text-success" data-cart-id="`+ item.id + `" data-type="subtotal">`+ formatPhp((item.final_price * item.quantity)) + `</div>
+                                ` : `<div class="fw-bold" data-cart-id="`+ item.id + `" data-type="subtotal">`+ formatPhp((item.final_price * item.quantity)) + `</div>` }
                             </td>
                             <td class="align-middle text-center">
                                 <button class="btn" onclick="deleteItem(`+ item.id + `)">
@@ -191,16 +191,16 @@
                                     <small class="text-muted d-block mb-2">`+ item.category + `</small>
                                     ${ item.is_sale == 1 ? `<span class="badge mb-2" style="background-color:#28a745;">`+ item.sale_percentage + `% Off</span>` : '' }
                                     ${ item.is_sale == 1 ? `
-                                        <div><small class="text-decoration-line-through text-muted">`+ formatPhp((item.price * item.quantity)) + `</small></div>
-                                        <div class="fw-bold text-success fs-5">`+ formatPhp((item.final_price * item.quantity)) + `</div>
-                                    ` : `<div class="fw-bold text-success fs-5">`+ formatPhp((item.final_price * item.quantity)) + `</div>` }
+                                        <div><small class="text-decoration-line-through text-muted" data-cart-id="`+ item.id + `" data-type="original">`+ formatPhp((item.price * item.quantity)) + `</small></div>
+                                        <div class="fw-bold text-success fs-5" data-cart-id="`+ item.id + `" data-type="subtotal">`+ formatPhp((item.final_price * item.quantity)) + `</div>
+                                    ` : `<div class="fw-bold text-success fs-5" data-cart-id="`+ item.id + `" data-type="subtotal">`+ formatPhp((item.final_price * item.quantity)) + `</div>` }
                                 </div>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="d-flex align-items-center gap-2">
-                                    <button class="qty-btn" onclick="decreaseQty()">-</button>
+                                    <button class="qty-btn" onclick="decreaseQty(this, `+ item.id + `)">-</button>
                                     <input type="text" class="qty-box" value="`+ item.quantity + `" readonly>
-                                    <button class="qty-btn" onclick="increaseQty()">+</button>
+                                    <button class="qty-btn" onclick="increaseQty(this, `+ item.id + `)">+</button>
                                 </div>
                                 <button class="btn" onclick="deleteItem(`+ item.id + `)">
                                     <span class="material-symbols-outlined">
@@ -279,21 +279,37 @@
             return '₱' + n.toFixed(2);
         }
 
-        function increaseQty() {
-            const qtyEl = document.getElementById('qty');
-            if (!qtyEl) return;
-            let current = parseInt(qtyEl.value) || 1;
-            current += 1;
-            qtyEl.value = current;
-            updateTotals();
+        function increaseQty(button, cartItemId) {
+            updateQty(button, cartItemId, 1);
         }
 
-        function decreaseQty() {
-            const qtyEl = document.getElementById('qty');
-            if (!qtyEl) return;
-            let current = parseInt(qtyEl.value) || 1;
-            if (current > 1) current -= 1;
-            qtyEl.value = current;
+        function decreaseQty(button, cartItemId) {
+            updateQty(button, cartItemId, -1);
+        }
+
+        function updateQty(button, cartItemId, change) {
+            var container = button.parentElement;
+            var qtyEl = container.querySelector('.qty-box');
+            var qty = parseInt(qtyEl.value) + change;
+            if (qty < 1) qty = 1;
+            
+            qtyEl.value = qty;
+            
+            var checkbox = document.querySelector('.cart-checkbox[value="' + cartItemId + '"]');
+            var price = parseFloat(checkbox.dataset.price);
+            var originalPrice = parseFloat(checkbox.dataset.originalprice || price);
+            checkbox.dataset.quantity = qty;
+            
+            var subtotalElements = document.querySelectorAll('[data-cart-id="' + cartItemId + '"][data-type="subtotal"]');
+            subtotalElements.forEach(function(el) {
+                el.textContent = formatPhp(price * qty);
+            });
+            
+            var originalElements = document.querySelectorAll('[data-cart-id="' + cartItemId + '"][data-type="original"]');
+            originalElements.forEach(function(el) {
+                el.textContent = formatPhp(originalPrice * qty);
+            });
+            
             updateTotals();
         }
 
@@ -357,11 +373,8 @@
             };
         }
 
-        function handleCheckboxChange() {
-            const checkedItems = getCheckedItems();
-            console.log('Checked items:', checkedItems);
-            
-            // Calculate totals for selected items
+        function updateTotals() {
+            // Recalculate totals based on current quantities and selections
             const totals = calculateSelectedTotal();
             
             // Update display
@@ -384,6 +397,12 @@
                     checkoutBtn.style.opacity = '0.5';
                 }
             }
+        }
+
+        function handleCheckboxChange() {
+            const checkedItems = getCheckedItems();
+            console.log('Checked items:', checkedItems);
+            updateTotals();
         }
     </script>
 </body>
