@@ -128,6 +128,7 @@
         var cartItemContainer = document.getElementById('cartItemContainer');
         var cartItemContainerMobile = document.getElementById('cartItemContainerMobile');
         var checkoutSection = document.getElementById('checkoutSection');
+        var qtyBoxes = document.querySelectorAll('.qty-box');
 
         async function getCartItems() {
             try {
@@ -280,24 +281,29 @@
         }
 
         function increaseQty(button, cartItemId) {
-            updateQty(button, cartItemId, 1);
+            var container = button.parentElement;
+            var qtyEl = container.querySelector('.qty-box');
+            var qty = parseInt(qtyEl.value) + 1;
+            
+            qtyEl.value = qty;
+            updateItemDisplay(cartItemId, qty);
+            updateQty(cartItemId, qty);
         }
 
         function decreaseQty(button, cartItemId) {
-            updateQty(button, cartItemId, -1);
-        }
-
-        function updateQty(button, cartItemId, change) {
             var container = button.parentElement;
             var qtyEl = container.querySelector('.qty-box');
-            var qty = parseInt(qtyEl.value) + change;
+            var qty = parseInt(qtyEl.value) - 1;
             if (qty < 1) qty = 1;
             
             qtyEl.value = qty;
-            
+            updateItemDisplay(cartItemId, qty);
+            updateQty(cartItemId, qty);
+        }
+
+        function updateItemDisplay(cartItemId, qty) {
             var checkbox = document.querySelector('.cart-checkbox[value="' + cartItemId + '"]');
             var price = parseFloat(checkbox.dataset.price);
-            var originalPrice = parseFloat(checkbox.dataset.originalprice || price);
             checkbox.dataset.quantity = qty;
             
             var subtotalElements = document.querySelectorAll('[data-cart-id="' + cartItemId + '"][data-type="subtotal"]');
@@ -306,11 +312,36 @@
             });
             
             var originalElements = document.querySelectorAll('[data-cart-id="' + cartItemId + '"][data-type="original"]');
-            originalElements.forEach(function(el) {
-                el.textContent = formatPhp(originalPrice * qty);
-            });
+            if (originalElements.length > 0) {
+                var originalPrice = price / (1 - parseFloat(checkbox.closest('tr, .border-bottom').querySelector('.badge')?.textContent || '0') / 100);
+                originalElements.forEach(function(el) {
+                    el.textContent = formatPhp(originalPrice * qty);
+                });
+            }
             
             updateTotals();
+        }
+
+        async function updateQty(cartItemId, quantity) {
+            try {
+                var response = await fetch('../api/updateCartQuantity.php', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        itemId: cartItemId,
+                        quantity: quantity
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update quantity');
+                }
+            } catch (error) {
+                console.error('Error updating quantity:', error);
+                alert('Failed to update quantity. Please try again.');
+            }
         }
 
         document.addEventListener('DOMContentLoaded', updateTotals);
