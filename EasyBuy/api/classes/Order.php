@@ -17,17 +17,14 @@ class Order{
     }
 
     function addOrder($userId, $totalAmount, $totalWeight, $paymentMethod, $shippingFee, $cartItems){
-        // insert into orders table
         $query = "INSERT INTO orders (user_id, total_amount, total_weight_grams, payment_method, shipping_fee) 
                 VALUES (?, ?, ?, ?, ?)";
         
         $params = [$userId, $totalAmount, $totalWeight, $paymentMethod, $shippingFee];
         $this->db->executeQuery($query, $params);
         
-        // get the order ID
         $orderId = $this->db->lastInsertId();
         
-        // insert each item into order_items table
         $query = "INSERT INTO order_items (order_id, product_id, product_name, product_price, quantity) 
                 VALUES (?, ?, ?, ?, ?)";
         
@@ -57,5 +54,36 @@ class Order{
         $result = $this->db->executeQuery($query);
         $data = $this->db->fetch($result);
         return $data[0]['count'];
+    }
+
+    function getAllOrdersWithItems(){
+        $ordersQuery = "SELECT o.id, o.user_id, o.total_amount, o.order_date, o.status, u.email
+                        FROM orders o
+                        INNER JOIN users u ON o.user_id = u.id
+                        ORDER BY o.order_date DESC";
+        $ordersResult = $this->db->executeQuery($ordersQuery);
+        $orders = $this->db->fetch($ordersResult);
+        
+        $result = [];
+        foreach ($orders as $order) {
+            $itemsQuery = "SELECT product_name, quantity, product_price
+                          FROM order_items
+                          WHERE order_id = ?";
+            $itemsResult = $this->db->executeQuery($itemsQuery, [$order['id']]);
+            $items = $this->db->fetch($itemsResult);
+            
+            $result[] = [
+                'orderID' => $order['id'],
+                'userID' => $order['user_id'],
+                'userEmail' => $order['email'],
+                'totalAmount' => $order['total_amount'],
+                'orderDate' => $order['order_date'],
+                'status' => $order['status'],
+                'itemCount' => count($items),
+                'items' => $items
+            ];
+        }
+        
+        return $result;
     }
 }
