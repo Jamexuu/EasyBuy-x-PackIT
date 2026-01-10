@@ -1,5 +1,5 @@
 <?php
-// frontend/submit_feedback.php
+// frontend/submitFeedback.php
 // Accepts POST feedback from authenticated users and stores into user_feedback table.
 // Returns JSON { success: bool, message: string, id?: int }
 
@@ -32,9 +32,9 @@ if (!isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], (st
 }
 
 // Basic sanitization and validation
-$subject = trim((string)($_POST['subject'] ?? ''));
+$subject  = trim((string)($_POST['subject'] ?? ''));
 $category = trim((string)($_POST['category'] ?? ''));
-$message = trim((string)($_POST['message'] ?? ''));
+$message  = trim((string)($_POST['message'] ?? ''));
 
 if ($message === '') {
     http_response_code(400);
@@ -50,18 +50,13 @@ if ($subject === '') {
     $subject = mb_substr($message, 0, 120);
 }
 
-// Load DB adapter (expects $pdo to be provided by api/db.php)
-$pdo = null;
-$dbPath = __DIR__ . '/../api/db.php';
-if (file_exists($dbPath)) {
-    try {
-        require_once $dbPath; // should set $pdo to a PDO instance
-    } catch (Throwable $e) {
-        error_log("Could not require api/db.php: " . $e->getMessage());
-    }
-}
+// Load Database class and get PDO
+require_once __DIR__ . '/../api/classes/Database.php';
 
-if (!isset($pdo) || !($pdo instanceof PDO)) {
+$database = new Database();
+$pdo = $database->pdo();
+
+if (!($pdo instanceof PDO)) {
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Database not available.']);
     exit;
@@ -72,6 +67,7 @@ try {
     $stmt = $pdo->prepare("SELECT id, role FROM users WHERE id = :id LIMIT 1");
     $stmt->execute([':id' => $userId]);
     $u = $stmt->fetch(PDO::FETCH_ASSOC);
+
     if (!$u) {
         http_response_code(401);
         echo json_encode(['success' => false, 'message' => 'Invalid user.']);
@@ -91,7 +87,10 @@ try {
 
 // Insert feedback
 try {
-    $stmt = $pdo->prepare("INSERT INTO user_feedback (user_id, subject, category, message, user_agent, ip) VALUES (:user_id, :subject, :category, :message, :user_agent, :ip)");
+    $stmt = $pdo->prepare("
+        INSERT INTO user_feedback (user_id, subject, category, message, user_agent, ip)
+        VALUES (:user_id, :subject, :category, :message, :user_agent, :ip)
+    ");
     $stmt->execute([
         ':user_id'    => $userId,
         ':subject'    => $subject,
@@ -100,8 +99,8 @@ try {
         ':user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
         ':ip'         => $_SERVER['REMOTE_ADDR'] ?? null
     ]);
-    $insertId = (int)$pdo->lastInsertId();
 
+    $insertId = (int)$pdo->lastInsertId();
     echo json_encode(['success' => true, 'message' => 'Thank you — your feedback has been submitted.', 'id' => $insertId]);
     exit;
 } catch (Throwable $e) {

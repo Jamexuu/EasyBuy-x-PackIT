@@ -1,13 +1,15 @@
 <?php
 // frontend/notificationsMarkRead.php
-// Marks notifications as read for the logged-in user.
-// Accepts POST: csrf_token and optional id (single notification id). If id omitted, marks all unread as read.
+// Marks feedback notifications as read for the logged-in user.
+// Accepts POST: csrf_token and optional id (single feedback row id). If id omitted, marks all unread as read.
 // Returns JSON { success: bool, message: string }
 
 declare(strict_types=1);
 header('Content-Type: application/json; charset=utf-8');
 
-session_start();
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -23,33 +25,45 @@ if (!$userId) {
 }
 
 // CSRF check
-$csrf = $_POST['csrf_token'] ?? '';
-if (!isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], (string)$csrf)) {
+$csrf = (string)($_POST['csrf_token'] ?? '');
+if (!isset($_SESSION['csrf_token']) || !hash_equals((string)$_SESSION['csrf_token'], $csrf)) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Invalid CSRF token']);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Invalid CSRF token'
+    ]);
     exit;
 }
 
-// Load DB adapter
-$pdo = null;
-$dbPath = __DIR__ . '/../api/db.php';
-if (file_exists($dbPath)) {
-    require_once $dbPath;
-}
-if (!isset($pdo) || !($pdo instanceof PDO)) {
+// ✅ Correct include path (DO NOT include ../PackIT/...)
+require_once __DIR__ . '/../api/classes/Database.php';
+
+$database = new Database();
+$pdo = $database->pdo();
+
+if (!($pdo instanceof PDO)) {
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Database not available.']);
     exit;
 }
 
-$id = isset($_POST['id']) ? (int)$_POST['id'] : null;
+$idRaw = $_POST['id'] ?? null;
+$id = ($idRaw !== null && $idRaw !== '') ? (int)$idRaw : null;
 
 try {
-    if ($id) {
-        $stmt = $pdo->prepare("UPDATE user_feedback SET user_unread = 0 WHERE id = :id AND user_id = :uid");
+    if ($id !== null && $id > 0) {
+        $stmt = $pdo->prepare("
+            UPDATE user_feedback
+            SET user_unread = 0
+            WHERE id = :id AND user_id = :uid
+        ");
         $stmt->execute([':id' => $id, ':uid' => $userId]);
     } else {
-        $stmt = $pdo->prepare("UPDATE user_feedback SET user_unread = 0 WHERE user_id = :uid AND user_unread = 1");
+        $stmt = $pdo->prepare("
+            UPDATE user_feedback
+            SET user_unread = 0
+            WHERE user_id = :uid AND user_unread = 1
+        ");
         $stmt->execute([':uid' => $userId]);
     }
 

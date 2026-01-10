@@ -114,7 +114,7 @@ $basePath   = $basePath ?? '../';
                 <a href="dbTables.php?view=bookings" class="admin-nav-card shadow-sm <?= $activePage === 'bookings' ? 'active' : '' ?>">
                     Bookings
                 </a>
-                
+
                 <a href="dbTables.php?view=smslogs" class="admin-nav-card shadow-sm <?= $activePage === 'smslogs' ? 'active' : '' ?>">
                     SMS Logs
                 </a>
@@ -125,6 +125,11 @@ $basePath   = $basePath ?? '../';
 
                 <a href="dbTables.php?view=chat_history" class="admin-nav-card shadow-sm <?= $activePage === 'chat_history' ? 'active' : '' ?>">
                     Chat History
+                </a>
+
+                <!-- NEW: User Feedback (admin UI page lives in frontend/) -->
+                <a href="../frontend/userFeedback.php" class="admin-nav-card shadow-sm <?= $activePage === 'userFeedback' ? 'active' : '' ?>">
+                    User Feedback
                 </a>
             </div>
         </div>
