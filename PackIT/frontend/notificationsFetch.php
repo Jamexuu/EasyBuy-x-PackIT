@@ -1,7 +1,7 @@
 <?php
 // frontend/notificationsFetch.php
 // Returns unread notifications (feedback updates) for the logged-in user in JSON.
-// Response: { success: true, count: int, items: [ { id, subject, excerpt, status, time } ] }
+// Response: { success: true, count: int, items: [ { id, subject, excerpt, status, time, admin_reply? } ] }
 
 declare(strict_types=1);
 header('Content-Type: application/json; charset=utf-8');
@@ -15,14 +15,13 @@ if (!$userId) {
     exit;
 }
 
-// Load DB adapter (expects $pdo from api/db.php)
-$pdo = null;
-$dbPath = __DIR__ . '/../api/db.php';
-if (file_exists($dbPath)) {
-    require_once $dbPath;
-}
+// Load Database class and get PDO
+require_once __DIR__ . '/../api/classes/Database.php';
 
-if (!isset($pdo) || !($pdo instanceof PDO)) {
+$database = new Database();
+$pdo = $database->pdo();
+
+if (!($pdo instanceof PDO)) {
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Database not available.']);
     exit;
@@ -31,7 +30,13 @@ if (!isset($pdo) || !($pdo instanceof PDO)) {
 try {
     // Fetch unread notifications for the user (user_unread = 1)
     $stmt = $pdo->prepare("
-        SELECT id, subject, message, status, COALESCE(acknowledged_at, created_at) AS updated_at
+        SELECT
+            id,
+            subject,
+            message,
+            admin_reply,
+            status,
+            COALESCE(acknowledged_at, created_at) AS updated_at
         FROM user_feedback
         WHERE user_id = :uid AND user_unread = 1
         ORDER BY updated_at DESC
@@ -42,13 +47,20 @@ try {
 
     $items = [];
     foreach ($rows as $r) {
-        $excerpt = mb_substr(trim(preg_replace('/\s+/', ' ', strip_tags($r['message'])),), 0, 200);
+        $previewText = !empty($r['admin_reply']) ? $r['admin_reply'] : $r['message'];
+        $excerpt = mb_substr(
+            trim(preg_replace('/\s+/', ' ', strip_tags((string)$previewText))),
+            0,
+            200
+        );
+
         $items[] = [
-            'id' => (int)$r['id'],
-            'subject' => $r['subject'] ?? 'Feedback update',
-            'excerpt' => $excerpt,
-            'status' => $r['status'],
-            'time' => date('M j, H:i', strtotime($r['updated_at'])),
+            'id'          => (int)$r['id'],
+            'subject'     => $r['subject'] ?? 'Feedback update',
+            'excerpt'     => $excerpt,
+            'status'      => $r['status'],
+            'time'        => date('M j, H:i', strtotime((string)$r['updated_at'])),
+            'admin_reply' => $r['admin_reply'] ?? null,
         ];
     }
 

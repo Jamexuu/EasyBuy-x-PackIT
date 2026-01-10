@@ -39,4 +39,34 @@ if (!is_admin_or_driver($user) && (int)$booking['user_id'] !== (int)$user['id'])
     exit();
 }
 
-echo json_encode(['success' => true, 'data' => $booking]);
+// Attach driver info (safe fields only)
+$driver = null;
+$driverId = isset($booking['driver_id']) ? (int)$booking['driver_id'] : 0;
+
+if ($driverId > 0) {
+    $stmt = $db->executeQuery(
+        "SELECT
+            id,
+            first_name,
+            last_name,
+            contact_number,
+            vehicle_type,
+            license_plate,
+            is_available
+         FROM drivers
+         WHERE id = ?",
+        [$driverId]
+    );
+    $driverRows = $db->fetch($stmt);
+    if (!empty($driverRows)) {
+        $driver = $driverRows[0];
+    }
+}
+
+echo json_encode([
+    'success' => true,
+    'data' => [
+        'booking' => $booking,
+        'driver' => $driver
+    ]
+]);
