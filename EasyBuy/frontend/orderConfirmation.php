@@ -29,6 +29,8 @@ $orderId = $_GET['order_id'];
             <div class="col-12 text-center">
                 <p
                     style="color: #6c757d; font-size: 0.9rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2rem;">
+                    Order #<span id="orderNumber"><?php echo htmlspecialchars($orderId); ?></span>
+                </p>
             </div>
         </div>
 
@@ -41,7 +43,6 @@ $orderId = $_GET['order_id'];
                             <img src="../assets/order successfully.svg" alt="Order Successful" style="width: 250px; height: 250px;">
                         </div>
                     </div>
-                    <h3 class="mt-3" style="color: #6BBF59; font-weight: 700;"></h3>
                 </div>
             </div>
         </div>
@@ -114,7 +115,7 @@ $orderId = $_GET['order_id'];
 
         <div class="row justify-content-center mt-4 mb-5">
             <div class="col-auto">
-                <button type="button"
+                <button type="button" id="cancelOrderBtn"
                     style="background: #6c757d; border: none; color: white; padding: 0.75rem 2.5rem; border-radius: 0.5rem; font-weight: 600; text-transform: uppercase; transition: all 0.3s ease;"
                     onmouseover="this.style.background='#5a6268'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(108, 117, 125, 0.3)'"
                     onmouseout="this.style.background='#6c757d'; this.style.transform='translateY(0)'; this.style.boxShadow='none'"
@@ -152,6 +153,7 @@ $orderId = $_GET['order_id'];
     <script>
         const orderId = <?php echo json_encode($orderId); ?>;
         let cancelModal;
+        let currentOrderStatus = 'order placed';
 
         document.addEventListener('DOMContentLoaded', function () {
             cancelModal = new bootstrap.Modal(document.getElementById('cancelModal'));
@@ -163,8 +165,18 @@ $orderId = $_GET['order_id'];
                 const response = await fetch(`../api/getOrderDetails.php?order_id=${orderId}`);
                 const data = await response.json();
 
-                if (data.success) {
+                if (data.success && data.order) {
+                    currentOrderStatus = data.order.status;
                     updateStatusDisplay(data.order.status);
+                    
+                    if (data.order.status !== 'order placed') {
+                        const cancelBtn = document.getElementById('cancelOrderBtn');
+                        if (cancelBtn) {
+                            cancelBtn.style.display = 'none';
+                        }
+                    }
+                } else {
+                    console.error('Failed to load order details:', data.error);
                 }
             } catch (error) {
                 console.error('Error loading order status:', error);
@@ -198,6 +210,10 @@ $orderId = $_GET['order_id'];
         }
 
         function cancelOrder() {
+            if (currentOrderStatus !== 'order placed') {
+                alert('This order cannot be cancelled as it has already been processed.');
+                return;
+            }
             cancelModal.show();
         }
 

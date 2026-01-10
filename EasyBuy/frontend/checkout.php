@@ -131,6 +131,12 @@
                 }
 
                 const data = await response.json();
+                
+                if (!data || data.length === 0) {
+                    checkoutItems.innerHTML = '<tr><td colspan="3" class="text-center py-4">No items to checkout</td></tr>';
+                    return;
+                }
+                
                 var totalAmount = 0;
                 var shippingFee = 50;
                 var totalWeight = 0;
@@ -190,19 +196,26 @@
                     <input type="button" id="placeOrder" class="btn text-white" style="background-color: #6EC064;" value="Place Order">
                 `;
 
-                submbitOrder(data, subTotal, shippingFee, totalWeight, totalAmount);
+                submitOrder(data, subTotal, shippingFee, totalWeight, totalAmount);
 
             }catch(error){
                 console.error('Error fetching cart items:', error);
+                checkoutItems.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-danger">Error loading checkout items</td></tr>';
             }
 
         }
 
         getUserCartItems();
 
-        function submbitOrder(checkoutItems, subtotal, totalShipping, totalWeight, total){
-            placeOrder.addEventListener('click', async function(e){
+        function submitOrder(checkoutItems, subtotal, totalShipping, totalWeight, total){
+            const placeOrderBtn = document.getElementById('placeOrder');
+            if (!placeOrderBtn) return;
+            
+            placeOrderBtn.addEventListener('click', async function(e){
                 e.preventDefault();
+                
+                placeOrderBtn.disabled = true;
+                placeOrderBtn.value = 'Processing...';
                 
                 const paymentMethod = getPaymentMethod();
                 
@@ -227,17 +240,21 @@
                     if (result.success) {
                         window.location.href = 'orderConfirmation.php?order_id=' + result.order_id;
                     } else {
-                        alert('Error: ' + result.error);
+                        alert('Error: ' + (result.error || 'Failed to place order'));
+                        placeOrderBtn.disabled = false;
+                        placeOrderBtn.value = 'Place Order';
                     }
                 } catch(error) {
                     console.error('Error placing order:', error);
                     alert('Failed to place order. Please try again.');
+                    placeOrderBtn.disabled = false;
+                    placeOrderBtn.value = 'Place Order';
                 }
             });
         }
 
         function getPaymentMethod(){
-            const paymentMethod = document.getElementById('cashOnDelivery').checked ? 'COD' : 'paypal';
+            const paymentMethod = document.getElementById('cashOnDelivery').checked ? 'cod' : 'paypal';
             return paymentMethod;
         }
 
