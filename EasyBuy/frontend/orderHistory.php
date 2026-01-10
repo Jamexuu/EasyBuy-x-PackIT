@@ -117,7 +117,6 @@
             });
         });
 
-        // Example orders data for visualization
         const exampleOrders = {
             all: [
                 {
@@ -177,7 +176,6 @@
             ]
         };
 
-        // Filter orders
         exampleOrders.completed = exampleOrders.all.filter(order => order.status === 'Completed');
         exampleOrders.cancelled = exampleOrders.all.filter(order => order.status === 'Cancelled');
 
