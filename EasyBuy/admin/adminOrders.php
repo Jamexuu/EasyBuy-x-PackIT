@@ -167,16 +167,18 @@
         }
 
         function getStatusColor(status) {
-            switch (status) {
-                case 'Order Placed':
+            const normalizedStatus = status.toLowerCase();
+            
+            switch (normalizedStatus) {
+                case 'order placed':
                     return '#AAAAAA';
-                case 'Waiting for Courier':
+                case 'waiting for courier':
                     return '#f4d03f';
-                case 'Picked up':
+                case 'picked up':
                     return '#7dcea0';
-                case 'Delivered':
+                case 'delivered':
                     return '#3498db';
-                case 'Cancelled':
+                case 'cancelled':
                     return '#e74c3c';
                 default:
                     return '#e8e8e8';
