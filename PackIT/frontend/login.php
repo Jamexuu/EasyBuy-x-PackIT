@@ -1,53 +1,10 @@
 <?php
 session_start();
 
-// Include the User and Auth classes
-require_once __DIR__ .'/../api/classes/User.php';
-require_once __DIR__ .'/../api/classes/Auth.php';
+require_once __DIR__ . '/../api/classes/Auth.php';
 
 // Redirect if already logged in
 Auth::redirectIfLoggedIn();
-
-$error = '';
-
-// Check if form is submitted
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim($_POST['email'] ?? '');
-    $password = $_POST['password'] ?? '';
-
-    if (empty($email) || empty($password)) {
-        $error = "Please fill in all fields.";
-    } else {
-        // Initialize User class
-        $userObj = new User();
-        
-        // Attempt login (returns user data or false)
-        $user = $userObj->login($email, $password);
-
-        if ($user) {
-            // Login successful - regenerate session id
-            session_regenerate_id(true);
-
-            $fullName = $user['first_name'] . ' ' . $user['last_name'];
-            
-            // Use Auth::login() to set consistent session variables
-            Auth::login($user['id'], $user['email'], $fullName, $user['role']);
-
-            // Redirect based on role
-            if ($user['role'] === 'admin') {
-                header('Location: ../admin/dashboard.php');
-            } elseif ($user['role'] === 'driver') {
-                header('Location: ../driver/dashboard.php');
-            } else {
-                // Regular users go to their profile page
-                header('Location: profile.php');
-            }
-            exit();
-        } else {
-            $error = "Invalid email or password.";
-        }
-    }
-}
 ?>
 <!doctype html>
 <html lang="en">
@@ -110,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         Sign in to your PackIT account
                     </p>
 
+                    <!-- Optional: success messages stored in session -->
                     <?php if (!empty($_SESSION['success'])): ?>
                         <div class="alert alert-success small">
                             <?= htmlspecialchars((string)$_SESSION['success']) ?>
@@ -117,13 +75,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?php unset($_SESSION['success']); ?>
                     <?php endif; ?>
 
-                    <?php if (!empty($error)): ?>
-                        <div class="alert alert-danger small">
-                            <?= htmlspecialchars($error) ?>
-                        </div>
-                    <?php endif; ?>
+                    <!-- Client-side error box -->
+                    <div id="errorBox" class="alert alert-danger small d-none"></div>
 
-                    <form action="" method="POST" novalidate>
+                    <form action="" method="POST" novalidate onsubmit="loginWithApi(event); return false;">
 
                         <!-- EMAIL -->
                         <div class="mb-3">
@@ -217,6 +172,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         });
     })();
+
+    function showError(message) {
+        const box = document.getElementById('errorBox');
+        box.textContent = message || 'Login failed.';
+        box.classList.remove('d-none');
+    }
+
+    function clearError() {
+        const box = document.getElementById('errorBox');
+        box.textContent = '';
+        box.classList.add('d-none');
+    }
+
+    async function loginWithApi(event) {
+        event.preventDefault();
+        clearError();
+
+        const payload = {
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value
+        };
+
+        try {
+            const res = await fetch('../api/login.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+            if (!res.ok || !data.success) {
+                showError(data.error || 'Invalid email or password.');
+                return;
+            }
+
+            // Role-based redirect (same behavior as your old PHP login)
+            const role = data.role || 'user';
+            if (role === 'admin') {
+                window.location.href = '../admin/dashboard.php';
+            } else if (role === 'driver') {
+                window.location.href = '../driver/dashboard.php';
+            } else {
+                window.location.href = 'profile.php';
+            }
+        } catch (e) {
+            console.error(e);
+            showError('Network error. Please try again.');
+        }
+    }
 </script>
 
 </body>
