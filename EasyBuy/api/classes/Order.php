@@ -128,7 +128,7 @@ class Order{
         $query = "DELETE FROM order_items WHERE order_id = ?";
         $this->db->executeQuery($query, [$orderId]);
         
-        $query = "DELETE FROM orders WHERE id = ? AND user_id = ?";
+        $query = "UPDATE orders SET status = 'cancelled', payment_status = 'cancelled' WHERE id = ? AND user_id = ?";        $this->db->executeQuery($query, [$orderId, $userId]);
         $this->db->executeQuery($query, [$orderId, $userId]);
         
         return true;
