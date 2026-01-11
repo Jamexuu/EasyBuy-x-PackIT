@@ -98,6 +98,16 @@
         }
 
         document.addEventListener('DOMContentLoaded', loadDashboardStats);
+        
+        // Refresh dashboard stats when page becomes visible
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                loadDashboardStats();
+            }
+        });
+        
+        // Auto-refresh every 30 seconds
+        setInterval(loadDashboardStats, 30000);
     </script>
 </body>
 

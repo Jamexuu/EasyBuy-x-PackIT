@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     exit();
 }
 
-$user = Auth::requireAdmin();
+Auth::requireAdmin();
 try{
     $imap = new Imap();
     $emails = $imap->fetchUnreadEmails(20);
@@ -32,6 +32,8 @@ try{
             ];
         }
     }
+
+    $unreadEmailList = array_reverse($unreadEmailList);
 
     echo json_encode(['success' => true, 'emails' => $unreadEmailList]);
 }catch (Exception $e) {

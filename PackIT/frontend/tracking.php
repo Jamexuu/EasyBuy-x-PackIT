@@ -75,6 +75,7 @@ function buildTimeline(string $status, string $createdAt): array {
             'title' => $steps[$key]['title'],
             'desc' => $steps[$key]['desc'],
             'active' => $i <= $currentIndex,
+            'is_last' => $i === count($order) - 1 // Helper to hide line for last item
         ];
     }
     return $timeline;
@@ -82,7 +83,6 @@ function buildTimeline(string $status, string $createdAt): array {
 
 // ----------------------------
 // Fetch list of bookings for user
-// NOTE: Delivered bookings are excluded from tracking view and will appear in Transaction (history).
 // ----------------------------
 $stmt = $db->executeQuery(
     "SELECT id, user_id, driver_id,
@@ -108,10 +108,10 @@ foreach ($rows as $r) {
     $orders[$id] = [
         'id' => $id,
         'parcel_name' => (string)($r['vehicle_type'] ?? 'Delivery'),
-        'items_count' => 1, // You don’t have items table yet; keep as 1 for now
+        'items_count' => 1,
         'price' => (float)($r['total_amount'] ?? 0),
         'status' => strtoupper(str_replace('_', ' ', $status)),
-        'est_delivery' => date('M d', strtotime($createdAt . ' +1 day')), // placeholder estimate
+        'est_delivery' => date('M d', strtotime($createdAt . ' +1 day')),
         'pickup' => trim((string)($r['pickup_municipality'] ?? '') . ', ' . (string)($r['pickup_province'] ?? '')),
         'drop' => trim((string)($r['drop_municipality'] ?? '') . ', ' . (string)($r['drop_province'] ?? '')),
         'timeline' => buildTimeline($status, $createdAt),
@@ -122,7 +122,6 @@ foreach ($rows as $r) {
 
 // ----------------------------
 // View selection: list or detail
-// If user requests a track_id that is delivered, redirect them to transactions (history) instead.
 // ----------------------------
 $view = 'list';
 $activeOrder = null;
@@ -133,7 +132,6 @@ if ($trackId > 0) {
         $view = 'detail';
         $activeOrder = $orders[$trackId];
     } else {
-        // Possibly the booking was delivered (and thus excluded). Redirect to transactions page.
         header('Location: transaction.php');
         exit;
     }
@@ -148,114 +146,22 @@ if ($trackId > 0) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-
-    <style>
-        :root {
-            --gradient-color: linear-gradient(90deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-            --secondary-teal: #203a43;
-            --card-border: #203a43;
-        }
-
-        body {
-            background-color: #f4f6f8;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        .main-content {
-            flex: 1;
-            padding: 3rem 1rem;
-        }
-
-        .main-container {
-            background: #ffffff;
-            border-radius: 15px;
-            border: 2px solid var(--card-border);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            min-height: 500px;
-        }
-
-        .order-card-item {
-            background-color: #f8f9fa;
-            border-radius: 15px;
-            border: 1px solid #e9ecef;
-            transition: transform 0.2s;
-        }
-        .order-card-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-
-        .status-badge-green {
-            background-color: #c9f29d;
-            color: #2c5206;
-            font-weight: 600;
-            font-size: 0.8rem;
-            padding: 5px 15px;
-            border-radius: 20px;
-            display: inline-block;
-        }
-
-        .empty-state-container {
-            text-align: center;
-            padding: 4rem 1rem;
-            color: #6c757d;
-        }
-        .empty-state-img {
-            width: 150px;
-            margin-bottom: 1.5rem;
-            opacity: 0.8;
-        }
-
-        .timeline {
-            position: relative;
-            padding-left: 3.5rem;
-        }
-        .timeline::before {
-            content: '';
-            position: absolute;
-            left: 24px; top: 8px; bottom: 0; width: 2px;
-            background-color: #e0e0e0;
-        }
-        .timeline-item { position: relative; margin-bottom: 2.5rem; }
-        .timeline-dot {
-            position: absolute; left: -2.05rem; top: 6px;
-            width: 14px; height: 14px;
-            border-radius: 50%; background-color: #e0e0e0; border: 2px solid #fff; z-index: 1;
-        }
-        .timeline-item.active .timeline-dot {
-            background-color: var(--secondary-teal);
-            transform: scale(1.3);
-        }
-        .timeline-date {
-            position: absolute; left: -7rem; width: 4.5rem; text-align: right;
-            font-size: 0.85rem; color: #6c757d; font-weight: 700; text-transform: uppercase; top: 4px;
-        }
-        @media (max-width: 768px) {
-            .timeline { padding-left: 1.5rem; border-left: 2px solid #e0e0e0; }
-            .timeline::before { display: none; }
-            .timeline-item { margin-bottom: 2rem; padding-left: 1rem; }
-            .timeline-dot { left: -1.55rem; top: 5px; }
-            .timeline-date { position: relative; left: 0; text-align: left; display: block; width: 100%; margin-bottom: 5px; }
-        }
-    </style>
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100" style="background-color: #f4f6f8; font-family: 'Segoe UI', sans-serif;">
 
 <?php include 'components/navbar.php'; ?>
 
-<div class="main-content">
+<main class="flex-grow-1 py-5">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-12 col-xl-10">
-                <div class="main-container p-4 p-md-5">
+                
+                <div class="bg-white p-4 p-md-5" 
+                     style="border-radius: 15px; border: 2px solid #203a43; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); min-height: 500px;">
 
                     <?php if (empty($orders)): ?>
-                        <div class="empty-state-container">
-                            <img src="../assets/box.png" alt="No Orders" class="empty-state-img">
+                        <div class="text-center py-5 text-secondary">
+                            <img src="../assets/box.png" alt="No Orders" class="mb-4" style="width: 150px; opacity: 0.8;">
                             <h4 class="fw-bold text-dark">No Active Orders</h4>
                             <p class="mb-4">It looks like you haven't booked any active deliveries yet. Delivered orders move to your Transaction History.</p>
                             <a href="booking/package.php" class="btn btn-warning fw-bold px-4 py-2 shadow-sm text-uppercase">
@@ -267,13 +173,17 @@ if ($trackId > 0) {
 
                         <?php if ($view === 'list'): ?>
 
-                            <h4 class="fw-bold mb-4" style="color: var(--secondary-teal);">
+                            <h4 class="fw-bold mb-4" style="color: #203a43;">
                                 <span class="material-symbols-outlined align-middle me-2">list_alt</span>
                                 My Orders
                             </h4>
 
                             <?php foreach ($orders as $order): ?>
-                                <div class="order-card-item p-4 mb-4">
+                                <div class="p-4 mb-4" 
+                                     style="background-color: #f8f9fa; border-radius: 15px; border: 1px solid #e9ecef; transition: transform 0.2s;"
+                                     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.05)'"
+                                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                    
                                     <div class="row align-items-center">
 
                                         <div class="col-md-2 text-center mb-3 mb-md-0">
@@ -284,7 +194,8 @@ if ($trackId > 0) {
 
                                         <div class="col-md-7 mb-3 mb-md-0">
                                             <div class="mb-2">
-                                                <span class="status-badge-green">
+                                                <span class="badge rounded-pill" 
+                                                      style="background-color: #c9f29d; color: #2c5206; font-size: 0.8rem; padding: 6px 15px;">
                                                     EXPECTED DELIVERY <?= h((string)$order['est_delivery']) ?>
                                                 </span>
                                             </div>
@@ -302,7 +213,7 @@ if ($trackId > 0) {
                                         </div>
                                     </div>
 
-                                    <hr class="my-3 text-muted opacity-25">
+                                    <hr class="my-3 opacity-25">
 
                                     <div class="row align-items-center">
                                         <div class="col-md-6 text-muted small">
@@ -329,7 +240,8 @@ if ($trackId > 0) {
                             </div>
 
                             <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-2">
-                                <span class="status-badge-green fs-6 px-4 py-2">
+                                <span class="badge rounded-pill fs-6 px-4 py-2" 
+                                      style="background-color: #c9f29d; color: #2c5206;">
                                     EXPECTED DELIVERY: <?= h((string)$activeOrder['est_delivery']) ?>
                                 </span>
                                 <span class="fw-bold text-warning text-uppercase">
@@ -338,7 +250,7 @@ if ($trackId > 0) {
                             </div>
 
                             <div class="mb-5 border-bottom pb-4">
-                                <h2 class="fw-bold mb-1" style="color: var(--secondary-teal);">
+                                <h2 class="fw-bold mb-1" style="color: #203a43;">
                                     ₱ <?= h(formatMoney($activeOrder['price'])) ?>
                                 </h2>
                                 <p class="mb-1 fw-bold text-secondary fs-5"><?= h((string)$activeOrder['parcel_name']) ?></p>
@@ -349,15 +261,35 @@ if ($trackId > 0) {
                                 </div>
                             </div>
 
-                            <div class="timeline">
+                            <div class="ps-md-4 ps-2">
                                 <?php foreach ($activeOrder['timeline'] as $log): ?>
-                                    <div class="timeline-item <?= !empty($log['active']) ? 'active' : '' ?>">
-                                        <span class="timeline-date"><?= h((string)$log['date']) ?></span>
-                                        <div class="timeline-dot"></div>
-                                        <h6 class="fw-bold mb-1" style="color: #0f2027;"><?= h((string)$log['title']) ?></h6>
-                                        <?php if (!empty($log['desc'])): ?>
-                                            <small class="text-muted"><?= h((string)$log['desc']) ?></small>
-                                        <?php endif; ?>
+                                    <?php 
+                                        $isActive = !empty($log['active']);
+                                        $dotColor = $isActive ? '#203a43' : '#e0e0e0';
+                                        $scale = $isActive ? 'transform: scale(1.3);' : '';
+                                        $lineDisplay = isset($log['is_last']) && $log['is_last'] ? 'display:none;' : '';
+                                    ?>
+                                    <div class="d-flex gap-4 position-relative pb-4">
+                                        
+                                        <div class="text-end d-none d-md-block pt-1" style="width: 80px; min-width: 80px;">
+                                            <span class="small fw-bold text-secondary text-uppercase"><?= h((string)$log['date']) ?></span>
+                                        </div>
+
+                                        <div class="d-flex flex-column align-items-center position-relative" style="width: 24px;">
+                                            <div style="width: 14px; height: 14px; border-radius: 50%; background-color: <?= $dotColor ?>; border: 2px solid #fff; z-index: 2; flex-shrink: 0; margin-top: 6px; <?= $scale ?>"></div>
+                                            <div style="width: 2px; background-color: #e0e0e0; flex-grow: 1; <?= $lineDisplay ?>"></div>
+                                        </div>
+
+                                        <div class="pb-2">
+                                            <div class="d-block d-md-none mb-1">
+                                                <span class="small fw-bold text-secondary text-uppercase"><?= h((string)$log['date']) ?></span>
+                                            </div>
+                                            
+                                            <h6 class="fw-bold mb-1" style="color: #0f2027;"><?= h((string)$log['title']) ?></h6>
+                                            <?php if (!empty($log['desc'])): ?>
+                                                <small class="text-muted"><?= h((string)$log['desc']) ?></small>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
@@ -370,7 +302,7 @@ if ($trackId > 0) {
             </div>
         </div>
     </div>
-</div>
+</main>
 
 <?php include("../frontend/components/chat.php"); ?>
 <?php include 'components/footer.php'; ?>

@@ -79,7 +79,7 @@
                     </div>
                     <div class="d-flex justify-content-center">
                         <!--This is where the endpoint of PACKIT-->
-                        <a href="" class="btn w-100 d-flex align-items-center justify-content-center gap-2 rounded-3"
+                        <a href="../../PackIT/frontend/login.php" class="btn w-100 d-flex align-items-center justify-content-center gap-2 rounded-3"
                             style="background-color: #F8E15B;">
                             <!--This is where the logo of PACKIT-->
                             <img src="../../PackIT/assets/LOGO.svg" width="30" height="30" alt="logo of packit">
