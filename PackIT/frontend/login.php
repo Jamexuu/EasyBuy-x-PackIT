@@ -48,6 +48,14 @@ Auth::redirectIfLoggedIn();
         .form-control.bg-light {
             border: 1px solid rgba(0,0,0,.08);
         }
+
+        .easybuy-btn {
+            background: #F8E15B;
+            color: #000;
+            border-radius: 999px;
+            padding: .6rem 1rem;
+            font-weight: 600;
+        }
     </style>
 </head>
 
@@ -139,6 +147,14 @@ Auth::redirectIfLoggedIn();
                             Don't have an account?
                             <a href="signUp.php" class="text-dark fw-bold">Sign up</a>
                         </p>
+                    </div>
+
+                    <!-- EasyBuy Sign-in (uses PackIT account) -->
+                    <div class="text-center mt-3">
+                        <p class="small text-muted mb-1">Or</p>
+                        <a href="easyBuyLogin.php" class="btn easybuy-btn w-100">
+                            <i class="bi bi-box-seam me-2"></i> Sign in with PackIT (EasyBuy)
+                        </a>
                     </div>
 
                 </div>
