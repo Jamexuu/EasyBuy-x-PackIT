@@ -174,6 +174,10 @@
                     return '#f4d03f';
                 case 'Picked up':
                     return '#7dcea0';
+                case 'Delivered':
+                    return '#3498db';
+                case 'Cancelled':
+                    return '#e74c3c';
                 default:
                     return '#e8e8e8';
             }
@@ -185,7 +189,7 @@
             const previousStatus = select.options[select.selectedIndex].text;
             
             const confirmed = await showConfirm(
-                'warning',
+                'info',
                 'Update Order Status',
                 `Are you sure you want to change order #${orderId} status to "${newStatus}"?`,
                 'Update',

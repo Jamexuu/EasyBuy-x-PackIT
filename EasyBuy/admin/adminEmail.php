@@ -149,9 +149,19 @@ Auth::requireAdmin();
         }
 
         async function expandEmail(index) {
+            mainContent.innerHTML = `
+                <div class="row">
+                    <div class="col text-center py-5">
+                        <div class="spinner-grow" role="status" style="color: #398250;">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-secondary">Loading email...</p>
+                    </div>
+                </div>
+            `;
+            
             const email = emailsData[index];
             
-            // Mark email as read if it's unread
             if (email.isUnread) {
                 try {
                     await fetch('../api/markEmailAsRead.php', {
@@ -161,7 +171,6 @@ Auth::requireAdmin();
                         },
                         body: JSON.stringify({ emailIndex: index })
                     });
-                    // Update local state
                     emailsData[index].isUnread = false;
                 } catch (error) {
                     console.error('Error marking email as read:', error);
