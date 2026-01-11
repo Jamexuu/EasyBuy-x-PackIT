@@ -53,6 +53,21 @@ if (!in_array($selectedTable, $tables, true)) {
     $colRes = $conn->query("DESCRIBE `$selectedTable`");
     if ($colRes) {
         while ($c = $colRes->fetch_assoc()) {
+            
+            // --- UPDATED LOGIC START ---
+            // List of columns to HIDE from the table view
+            $hiddenColumns = [
+                'replied_at', 
+                'user_unread', 
+                'acknowledged_at'
+            ];
+
+            // If the current column is in the hidden list, skip it
+            if (in_array($c['Field'], $hiddenColumns)) {
+                continue;
+            }
+            // --- UPDATED LOGIC END ---
+
             $columns[] = $c['Field'];
         }
     }
