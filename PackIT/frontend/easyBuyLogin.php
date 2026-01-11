@@ -107,7 +107,7 @@ Auth::redirectIfLoggedIn();
             try {
                 // NOTE: This posts to your existing login endpoint to reuse your current auth logic.
                 // If you'd prefer a separate endpoint (e.g. ../api/loginWithPackIT.php), I can add it.
-                const response = await fetch('../api/login.php', {
+                const response = await fetch('../api/loginWithEasyBuy.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
