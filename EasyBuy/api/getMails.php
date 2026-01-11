@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     exit();
 }
 
-$user = Auth::requireAdmin();
+Auth::requireAdmin();
 
 // cache for 5 minutes
 $cacheKey = 'emails_cache';
@@ -40,6 +40,9 @@ try{
             'isUnread' => !$email->hasFlag('Seen')
         ];
     }
+
+    // Reverse array for LIFO (Last In First Out) - newest emails first
+    $emailList = array_reverse($emailList);
 
     // store in cache
     $_SESSION[$cacheKey] = [
