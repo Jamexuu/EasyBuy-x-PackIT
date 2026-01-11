@@ -125,9 +125,6 @@ class Order{
             $this->db->executeQuery($restoreStockQuery, [$item['quantity'], $item['product_id']]);
         }
         
-        $query = "DELETE FROM order_items WHERE order_id = ?";
-        $this->db->executeQuery($query, [$orderId]);
-        
         $query = "UPDATE orders SET status = 'cancelled', payment_status = 'cancelled' WHERE id = ? AND user_id = ?";        $this->db->executeQuery($query, [$orderId, $userId]);
         $this->db->executeQuery($query, [$orderId, $userId]);
         
@@ -163,5 +160,11 @@ class Order{
         }
         
         return $result;
+    }
+
+    function updateStatus($orderId, $newStatus){
+        $query = "UPDATE orders SET status = ? WHERE id = ?";
+        $this->db->executeQuery($query, [$newStatus, $orderId]);
+        return true;
     }
 }
