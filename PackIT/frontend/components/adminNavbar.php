@@ -19,14 +19,16 @@ $basePath   = $basePath ?? '../';
     .admin-nav-card {
         display: block;
         width: 100%;
-        padding: 1.5rem 1rem;
+        /* Reduced padding to make it smaller */
+        padding: 0.8rem 0.5rem; 
         text-align: center;
         text-decoration: none;
         color: var(--brand-dark);
         background-color: white;
         border: 2px solid var(--border-gray);
-        border-radius: 1rem;
-        font-weight: 500;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        font-size: 0.9rem; /* Slightly smaller font */
         transition: all 0.2s ease-in-out;
     }
 
@@ -52,14 +54,14 @@ $basePath   = $basePath ?? '../';
 </style>
 
 <div class="container">
-    <nav class="navbar navbar-expand-lg my-3 mx-auto rounded-pill shadow px-4 py-2 bg-brand" style="max-width: 95%;">
+    <nav class="navbar navbar-expand-lg my-3 mx-auto rounded-pill shadow px-4 py-2 bg-brand" style="max-width: 98%;">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center gap-2" href="dashboard.php">
-                <img src="<?= htmlspecialchars($basePath) ?>assets/LOGO.svg" alt="PackIT" height="40" class="object-fit-contain">
-                <span class="fw-bold">PackIT Admin</span>
+                <img src="<?= htmlspecialchars($basePath) ?>assets/LOGO.svg" alt="PackIT" height="35" class="object-fit-contain">
+                <span class="fw-bold fs-5">PackIT Admin</span>
             </a>
 
-            <a href="logout.php" class="text-dark text-decoration-none fw-bold text-uppercase lh-1 d-none d-lg-block" style="font-size: 0.9rem;">
+            <a href="logout.php" class="text-dark text-decoration-none fw-bold text-uppercase lh-1 d-none d-lg-block" style="font-size: 0.85rem;">
                 Logout <i class="bi bi-box-arrow-right ms-1"></i>
             </a>
 
@@ -82,10 +84,10 @@ $basePath   = $basePath ?? '../';
     </nav>
 </div>
 
-<div class="container pb-5">
-    <div class="row g-4">
-        <div class="col-lg-3 col-md-4">
-            <div class="d-grid gap-3" id="sidebarMenu">
+<div class="container-fluid px-4 pb-5">
+    <div class="row g-3">
+        <div class="col-lg-2 col-md-3">
+            <div class="d-grid gap-2" id="sidebarMenu">
                 <a href="dashboard.php" class="admin-nav-card shadow-sm <?= $activePage === 'dashboard' ? 'active' : '' ?>">
                     Dashboard
                 </a>
@@ -120,15 +122,14 @@ $basePath   = $basePath ?? '../';
                 </a>
 
                 <a href="dbTables.php?view=password_resets" class="admin-nav-card shadow-sm <?= $activePage === 'password_resets' ? 'active' : '' ?>">
-                    Password Resets
+                    Reset Logs
                 </a>
 
                 <a href="dbTables.php?view=chat_history" class="admin-nav-card shadow-sm <?= $activePage === 'chat_history' ? 'active' : '' ?>">
                     Chat History
                 </a>
 
-                <!-- NEW: User Feedback (admin UI page lives in frontend/) -->
-                <a href="../frontend/userFeedback.php" class="admin-nav-card shadow-sm <?= $activePage === 'userFeedback' ? 'active' : '' ?>">
+                <a href="dbTables.php?view=userFeedback" class="admin-nav-card shadow-sm <?= $activePage === 'userFeedback' ? 'active' : '' ?>">
                     User Feedback
                 </a>
             </div>

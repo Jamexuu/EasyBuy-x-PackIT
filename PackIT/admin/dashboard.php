@@ -96,10 +96,10 @@ $dashboardCards = [
         'icon'  => 'bi-chat-dots',
         'desc'  => 'View support chats'
     ],
-    // Admin UI page for feedback (NOT the user submit endpoint)
+    // ✅ CHANGED: Now points to the internal Admin Table (dbTables.php)
     [
         'title' => 'User Feedback',
-        'link'  => '../frontend/userFeedback.php',
+        'link'  => 'dbTables.php?view=userFeedback', 
         'icon'  => 'bi-inbox',
         'desc'  => 'Read and respond to user feedback'
     ],
@@ -115,50 +115,62 @@ $dashboardCards = [
     <style>
         .hover-outline { transition: all 0.3s ease; }
         .hover-outline:hover { box-shadow: 0 0 0 2px #ffc107 !important; }
+        .content-area {
+            background-color: white;
+            border-radius: 1rem;
+            border: 1px solid #dee2e6;
+        }
     </style>
 </head>
 <body>
 
 <?php include __DIR__ . '/../frontend/components/adminNavbar.php'; ?>
 
-        <div class="col-lg-9 col-md-8">
+        <div class="col-lg-10 col-md-9">
             <div class="content-area shadow-sm p-5">
-                <h4 class="fw-bold mb-2">Welcome, <?= htmlspecialchars($user['name'] ?? 'Admin') ?></h4>
-                <p class="text-muted mb-4">Select a section below to manage data.</p>
+                
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 class="fw-bold mb-1">Welcome, <?= htmlspecialchars($user['name'] ?? 'Admin') ?></h4>
+                        <p class="text-muted mb-0">Select a section below to manage data.</p>
+                    </div>
+                    <button onclick="history.back()" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-left me-1"></i> Go Back
+                    </button>
+                </div>
 
-                <!-- Feedback summary panel -->
                 <div class="row g-3 mb-4">
                     <div class="col-12">
-                        <div class="p-4 border rounded-4" style="background-color:#fff;">
+                        <div class="p-4 border rounded-4" style="background-color:#f8f9fa;">
                             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                                 <div>
-                                    <div class="fw-bold">User Feedback Summary</div>
+                                    <div class="fw-bold fs-5">User Feedback Summary</div>
                                     <div class="text-muted small">Quick overview from <code>user_feedback</code></div>
                                 </div>
-                                <a href="../frontend/userFeedback.php" class="btn btn-dark btn-sm rounded-pill">
+                                <a href="dbTables.php?view=userFeedback" class="btn btn-dark btn-sm rounded-pill px-4">
                                     Manage Feedback
                                 </a>
                             </div>
 
-                            <hr class="my-3">
+                            <hr class="my-3 text-secondary">
 
                             <div class="row g-3">
                                 <div class="col-md-4">
-                                    <div class="p-3 border rounded-4">
+                                    <div class="p-3 border rounded-4 bg-white">
                                         <div class="text-muted small">Total feedback</div>
                                         <div class="fs-4 fw-bold"><?= (int)$feedbackStats['total'] ?></div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
-                                    <div class="p-3 border rounded-4">
+                                    <div class="p-3 border rounded-4 bg-white">
                                         <div class="text-muted small">Open (status = 'open')</div>
-                                        <div class="fs-4 fw-bold"><?= (int)$feedbackStats['open'] ?></div>
+                                        <div class="fs-4 fw-bold text-warning"><?= (int)$feedbackStats['open'] ?></div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
-                                    <div class="p-3 border rounded-4">
-                                        <div class="text-muted small">Unread for users (user_unread = 1)</div>
-                                        <div class="fs-4 fw-bold"><?= (int)$feedbackStats['unread_for_user'] ?></div>
+                                    <div class="p-3 border rounded-4 bg-white">
+                                        <div class="text-muted small">Unread for users</div>
+                                        <div class="fs-4 fw-bold text-primary"><?= (int)$feedbackStats['unread_for_user'] ?></div>
                                     </div>
                                 </div>
                             </div>
@@ -186,10 +198,7 @@ $dashboardCards = [
             </div>
         </div>
 
-    </div>
-</div>
-
-<?php include '../frontend/components/adminFooter.php'; ?>
+    </div> </div> <?php include '../frontend/components/adminFooter.php'; ?>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

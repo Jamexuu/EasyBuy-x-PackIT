@@ -6,7 +6,7 @@ Auth::requireAdmin();
 
 $basePath = '../';
 
-// ✅ Added 'chat_history' to the mapping
+// View to Table Mapping
 $viewToTable = [
     'users'           => 'users',
     'addresses'       => 'addresses',
@@ -18,15 +18,17 @@ $viewToTable = [
     'driver_vehicles' => 'driver_vehicles',
     'password_resets' => 'password_resets',
     'chat_history'    => 'chat_history', 
+    'userFeedback'    => 'user_feedback', // Maps view 'userFeedback' to table 'user_feedback'
 ];
 
 $view = $_GET['view'] ?? 'users';
+// Ensure activePage logic matches the keys in $viewToTable
 $activePage = array_key_exists($view, $viewToTable) ? $view : 'users';
 
 $db = new Database();
 $conn = $db->connect();
 
-// Strict whitelist
+// Strict whitelist for security
 $tables = [];
 $res = $conn->query("SHOW TABLES");
 if ($res) {
@@ -64,7 +66,6 @@ if (!in_array($selectedTable, $tables, true)) {
     }
 }
 
-// Logic to disable "Next" button if we have fewer rows than the limit
 $hasNextPage = count($rows) === $limit;
 
 function prettyTitle(string $key): string {
@@ -78,27 +79,25 @@ function prettyTitle(string $key): string {
         'smslogs'         => 'SMS Logs',
         'driver_vehicles' => 'Driver Vehicles',
         'password_resets' => 'Password Resets',
-        'chat_history'    => 'Chat History', // ✅ Added Pretty Title
+        'chat_history'    => 'Chat History',
+        'userFeedback'    => 'User Feedback',
         default           => ucfirst(str_replace('_', ' ', $key)),
     };
 }
 
-// Helper to make data look nice (Badges for status, formatting dates)
+// Helper to make data look nice
 function formatValue($col, $val) {
     if ($val === null) return '<span class="text-muted fst-italic">NULL</span>';
     
-    // Format Dates
     if (str_contains($col, 'date') || str_contains($col, 'created_at') || str_contains($col, 'updated_at') || str_contains($col, 'expires_at')) {
         $time = strtotime($val);
         if ($time) return '<span class="text-secondary small">' . date('M j, Y • g:i A', $time) . '</span>';
     }
 
-    // Format IDs (Monospace)
     if (str_contains($col, 'id') || str_contains($col, 'code') || str_contains($col, 'token')) {
         return '<code class="text-dark bg-light px-1 rounded">' . htmlspecialchars($val) . '</code>';
     }
 
-    // Format Status (Simple Badges)
     if (str_contains($col, 'status') || str_contains($col, 'role')) {
         $statusClass = match(strtolower($val)) {
             'active', 'completed', 'paid', 'delivered', 'sent', 'success' => 'bg-success-subtle text-success',
@@ -110,7 +109,6 @@ function formatValue($col, $val) {
         return "<span class='badge $statusClass fw-medium px-2 py-1'>" . htmlspecialchars(ucfirst($val)) . "</span>";
     }
 
-    // Truncate long text
     if (strlen($val) > 50) {
         return '<span title="'.htmlspecialchars($val).'">' . htmlspecialchars(substr($val, 0, 47)) . '...</span>';
     }
@@ -126,19 +124,17 @@ $activePageTitle = prettyTitle($activePage);
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>PackIT Admin - <?= htmlspecialchars($activePageTitle) ?></title>
-    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f4f6f9; /* Light gray background */
+            background-color: #f4f6f9;
         }
         .content-area {
             background: #ffffff;
             border-radius: 12px;
             border: 1px solid #e9ecef;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02); /* Very subtle shadow */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
         }
         h4.page-title {
             color: #111827;
@@ -146,9 +142,7 @@ $activePageTitle = prettyTitle($activePage);
             letter-spacing: -0.5px;
         }
         /* Table Styling */
-        .table-custom {
-            margin-bottom: 0;
-        }
+        .table-custom { margin-bottom: 0; }
         .table-custom thead th {
             background-color: #f9fafb;
             color: #6b7280;
@@ -167,13 +161,9 @@ $activePageTitle = prettyTitle($activePage);
             font-size: 0.875rem;
             border-bottom: 1px solid #f3f4f6;
         }
-        .table-custom tbody tr:last-child td {
-            border-bottom: none;
-        }
-        .table-custom tbody tr:hover {
-            background-color: #f9fafb;
-        }
-        /* Pagination Buttons */
+        .table-custom tbody tr:last-child td { border-bottom: none; }
+        .table-custom tbody tr:hover { background-color: #f9fafb; }
+        
         .btn-page {
             border: 1px solid #e5e7eb;
             color: #374151;
@@ -201,7 +191,7 @@ $activePageTitle = prettyTitle($activePage);
 
 <?php include __DIR__ . '/../frontend/components/adminNavbar.php'; ?>
 
-        <div class="col-lg-9 col-md-8">
+        <div class="col-lg-10 col-md-9"> 
             <div class="content-area p-0 overflow-hidden">
                 
                 <div class="p-4 border-bottom border-light">
@@ -278,7 +268,7 @@ $activePageTitle = prettyTitle($activePage);
             </div>
         </div>
 
-    </div></div><?php include '../frontend/components/adminFooter.php'; ?>
+    </div> </div> <?php include '../frontend/components/adminFooter.php'; ?>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
