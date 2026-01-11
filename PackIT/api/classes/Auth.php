@@ -5,7 +5,6 @@ class Auth
     public static function start()
     {
         if (session_status() === PHP_SESSION_NONE) {
-            session_name('PACKIT_SESSION');
             session_start();
         }
     }
