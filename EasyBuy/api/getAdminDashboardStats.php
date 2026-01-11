@@ -3,6 +3,7 @@
 require_once 'classes/Order.php';
 require_once 'classes/Product.php';
 require_once 'classes/Auth.php';
+require_once 'classes/Imap.php';
 
 $auth = new Auth();
 
@@ -18,10 +19,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $pickedUpOrderCount = $order->getPickedUpOrderCount();
     $productCount = $product->getProductCount();
 
+    $unreadEmailCount = 0;
+    try {
+        $imap = new Imap();
+        $unreadEmailCount = $imap->countUnreadEmails();
+    } catch (Exception $e) {
+        error_log('Error fetching unread emails: ' . $e->getMessage());
+    }
+
     $response = [
         'placedOrderCount' => $placedOrderCount,
         'pickedUpOrderCount' => $pickedUpOrderCount,
-        'allProducts' => $productCount
+        'allProducts' => $productCount,
+        'unreadEmails' => $unreadEmailCount,
+        'unreadMessages' => 0 
     ];
 
     header('Content-Type: application/json');
