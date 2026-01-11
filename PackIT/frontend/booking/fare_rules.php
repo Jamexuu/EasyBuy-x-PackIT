@@ -21,10 +21,12 @@ function compute_distance_fare(?string $pickupRegion, ?string $dropRegion): ?int
 
   $table = get_distance_fare_by_region();
 
-  if ($pickupRegion === "MINDANAO" && $dropRegion === "MINDANAO") {
-    return $table["NCR"];
+  // Same-region rule: any region to the same region => 100
+  if ($pickupRegion === $dropRegion) {
+    return 100;
   }
 
+  // For cross-region trips, use the dropRegion mapping if available
   return $table[$dropRegion] ?? null;
 }
 
