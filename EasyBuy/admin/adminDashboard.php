@@ -79,8 +79,8 @@ Auth::requireAdmin();
         <div class="row g-4 mb-4 mt-2 d-flex justify-content-center">
             <div class="col-12 col-md-7 col-lg-5">
                 <div class="dashboard-card">
-                    <div class="dashboard-label fw-bold">Order Delivered</div>
-                    <div class="dashboard-number" id="orderDelivered">0</div>
+                    <div class="dashboard-label fw-bold">Order Arrived</div>
+                    <div class="dashboard-number" id="orderArrived">0</div>
                 </div>
             </div>
         </div>
@@ -99,7 +99,7 @@ Auth::requireAdmin();
                 document.getElementById('pickedUp').textContent = data.pickedUpOrderCount || 0;
                 document.getElementById('unreadEmails').textContent = data.unreadEmails || 0;
                 document.getElementById('unreadMessages').textContent = data.unreadMessages || 0;
-                document.getElementById('orderDelivered').textContent = data.orderDeliveredCount || 0;
+                document.getElementById('orderArrived').textContent = data.orderArrivedCount || 0;
             } catch (error) {
                 console.error('Error loading dashboard stats:', error);
             }

@@ -122,7 +122,7 @@
                                             <option value="Order Placed" ${order.status === 'order placed' ? 'selected' : ''}>Order Placed</option>
                                             <option value="Waiting for Courier" ${order.status === 'waiting for courier' ? 'selected' : ''}>Waiting for Courier</option>
                                             <option value="Picked up" ${order.status === 'picked up' ? 'selected' : ''}>Picked up</option>
-                                            <option value="Delivered" ${order.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                                            <option value="Order Arrived" ${order.status === 'order arrived' ? 'selected' : ''}>Order Arrived</option>
                                             <option value="Cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
                                         </select>
                                     </div>
@@ -168,7 +168,7 @@
 
         function getStatusColor(status) {
             const normalizedStatus = status.toLowerCase();
-            
+
             switch (normalizedStatus) {
                 case 'order placed':
                     return '#AAAAAA';
@@ -176,12 +176,12 @@
                     return '#f4d03f';
                 case 'picked up':
                     return '#7dcea0';
-                case 'delivered':
+                case 'order arrived':
                     return '#3498db';
                 case 'cancelled':
                     return '#e74c3c';
                 default:
-                    return '#e8e8e8';
+                    return '#AAAAAA';
             }
         }
 
@@ -189,7 +189,7 @@
             const select = event.target;
             const previousValue = select.value;
             const previousStatus = select.options[select.selectedIndex].text;
-            
+
             const confirmed = await showConfirm(
                 'info',
                 'Update Order Status',
