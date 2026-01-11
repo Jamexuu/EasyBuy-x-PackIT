@@ -1,3 +1,4 @@
+<?php include 'messageModal.php' ?>
 <script>
     async function addToCart(productId, quantity = 1) {
         try {
@@ -17,11 +18,11 @@
             }
 
             if (response.ok) {
-                const data = await response.json();
-                return { message: data.message };
+                showMessage('success', 'Added to Cart', 'The item has been added to your cart successfully.', 'OK');
+                return { success: true };
             } else {
-                const errorData = await response.json();
-                return { error: errorData.message || 'Failed to add item to cart.' };
+                showMessage('error', 'Error', 'Failed to add the item to your cart. Please try again.', 'OK');
+                return { error: 'Failed to add to cart.' };
             }
         } catch (error) {
             console.error('Error adding to cart:', error);
