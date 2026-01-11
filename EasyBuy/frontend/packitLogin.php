@@ -1,7 +1,5 @@
 <?php
     require_once '../api/classes/Auth.php';
-    require_once '../api/config.php';
-
     Auth::redirectIfLoggedIn();
 ?>
 
@@ -11,7 +9,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>EasyBuy - Login or Sign Up</title>
+    <title>EasyBuy - Sign in with PackIT</title>
     <link rel="shortcut icon" href="../assets/easybuylogo.svg" type="image/x-icon">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
@@ -30,8 +28,8 @@
     <div class="container">
         <div class="row">
             <div class="col d-flex justify-content-center align-items-center">
-                <img src="../assets/easybuylogo.svg" alt="Badge"
-                    style="height: 370px; width: 370px; object-fit: cover;">
+                <img src="../../PackIT/assets/LOGO.svg" alt="PackIT Logo"
+                    style="height: 200px; width: 200px; object-fit: cover;">
             </div>
         </div>
     </div>
@@ -48,49 +46,38 @@
                             <div class="h5 fw-bold mb-2">Error</div>
                             <p class="mb-4" id="errorMessage">Invalid Credentials</p>
                             <div class="d-flex justify-content-center">
-                                <button type="button" class="btn px-4 text-white" style="background-color: #6EC064;" data-bs-dismiss="modal">
+                                <button type="button" class="btn px-4 text-white" style="background-color: #F8E15B;" data-bs-dismiss="modal">
                                     OK
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <div class="text-center mb-4">
+                    <h3>Sign in with PackIT Account</h3>
+                    <p class="text-muted">Use your PackIT credentials to access EasyBuy</p>
+                </div>
+
                 <form method="POST" action="" onsubmit="postUserData(event); return false;">
                     <div class="mb-3">
                         <label class="form-label" for="Email">Email</label>
                         <input type="email" id="Email" placeholder="Email" name="Email"
-                            class="form-control p-2 rounded-3">
+                            class="form-control p-2 rounded-3" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label rounded-3" for="Password">Password</label>
                         <input type="password" id="Password" placeholder="Password" name="Password"
-                            class="form-control p-2">
-                    </div>
-                    <div class="form-check mb-3 ms-1">
-                        <input class="form-check-input" type="checkbox" id="rememberMe" name="rememberMe">
-                        <label class="form-check-label small text-muted" for="rememberMe">Remember me</label>
+                            class="form-control p-2" required>
                     </div>
 
                     <div class="d-flex justify-content-center">
                         <button type="submit" class="btn text-white px-4 py-2 fw-bold w-100 rounded-3"
-                            style="background-color: #6EC064">Log in</button>
+                            style="background-color: #F8E15B">Sign in with PackIT</button>
                     </div>
-                    <div class="mt-2 d-flex justify-content-center">
-                        <p class="text-muted">or</p>
-                    </div>
-                    <div class="d-flex justify-content-center">
-                        <!--This is where the endpoint of PACKIT-->
-                        <a href="packitLogin.php" class="btn w-100 d-flex align-items-center justify-content-center gap-2 rounded-3"
-                            style="background-color: #F8E15B;">
-                            <!--This is where the logo of PACKIT-->
-                            <img src="../../PackIT/assets/LOGO.svg" width="30" height="30" alt="logo of packit">
-                            Sign in with PackIT
-                        </a>
-                    </div>
-                    <p class="text-center mb-1 mt-2">
-                        Don't have an account?
-                        <a href="signUp.php" class="text-black text-decoration-underline ">Sign Up with
-                            EasyBuy</a>
+                    
+                    <p class="text-center mb-1 mt-3">
+                        <a href="login.php" class="text-black text-decoration-underline">Back to EasyBuy Login</a>
                     </p>
                 </form>
             </div>
@@ -103,12 +90,6 @@
     <script>
         const errorModalElement = document.getElementById('errorModal');
         const errorMessageElement = document.getElementById('errorMessage');
-    
-        <?php if (isset($_GET['error']) && $_GET['error'] == 'invalid_credentials'): ?>
-        const modal = new bootstrap.Modal(errorModalElement);
-        errorMessageElement.textContent = 'Invalid Credentials';
-        modal.show();
-        <?php endif; ?>
 
         function showErrorModal(message) {
             errorMessageElement.textContent = message;
@@ -125,7 +106,7 @@
             }
 
             try {
-                const response = await fetch('../api/login.php', {
+                const response = await fetch('../api/loginWithPackIT.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -138,14 +119,13 @@
                 if (response.ok && data.success) {
                     window.location.href = '../index.php';
                 } else {
-                    showErrorModal(data.error || 'Login failed. Please try again.');
+                    showErrorModal(data.error || 'Login failed. Please check your PackIT credentials.');
                 }
             } catch (error) {
                 console.error('Error:', error);
                 showErrorModal('An error occurred. Please try again.');
             }
         }
-
     </script>
 </body>
 

@@ -3,6 +3,7 @@ class Auth {
     
     public static function start() {
         if (session_status() === PHP_SESSION_NONE) {
+            session_name('EASYBUY_SESSION');
             session_start();
         }
     }
