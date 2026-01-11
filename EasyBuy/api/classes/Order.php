@@ -96,7 +96,7 @@ class Order{
     }
 
     function getPickedUpOrderCount(){
-        $query = "SELECT COUNT(*) as count FROM orders WHERE status = 'in transit'";
+        $query = "SELECT COUNT(*) as count FROM orders WHERE status = 'picked up'";
         $result = $this->db->executeQuery($query);
         $data = $this->db->fetch($result);
         return $data[0]['count'];

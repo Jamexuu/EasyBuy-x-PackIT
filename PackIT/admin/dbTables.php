@@ -102,6 +102,10 @@ $activePageTitle = prettyTitle($activePage);
                                     <?php foreach ($columns as $col): ?>
                                         <th class="text-nowrap text-uppercase small text-muted px-4 py-3"><?= htmlspecialchars(str_replace('_', ' ', $col)) ?></th>
                                     <?php endforeach; ?>
+                                    
+                                    <?php if ($activePage === 'userFeedback'): ?>
+                                        <th class="text-nowrap text-end pe-4">Action</th>
+                                    <?php endif; ?>
                                 </tr>
                             </thead>
                             <tbody>
@@ -119,6 +123,21 @@ $activePageTitle = prettyTitle($activePage);
                                                     <?= formatValue($col, $r[$col] ?? null) ?>
                                                 </td>
                                             <?php endforeach; ?>
+
+                                            <?php if ($activePage === 'userFeedback'): ?>
+                                                <td class="text-end pe-4">
+                                                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-medium"
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#replyModal"
+                                                            data-id="<?= $r['id'] ?>"
+                                                            data-user="<?= htmlspecialchars($r['user_id'] ?? 'Guest') ?>"
+                                                            data-status="<?= htmlspecialchars($r['status'] ?? 'open') ?>"
+                                                            data-message="<?= htmlspecialchars($r['message'] ?? '') ?>"
+                                                            data-reply="<?= htmlspecialchars($r['admin_reply'] ?? '') ?>">
+                                                        <i class="bi bi-pencil-square me-1"></i> Reply
+                                                    </button>
+                                                </td>
+                                            <?php endif; ?>
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
