@@ -51,6 +51,7 @@
 
 <body style="background-color: #f8f9fa;">
     <?php include '../frontend/components/adminNavBar.php'; ?>
+    <?php include '../frontend/components/confirmModal.php'; ?>
 
     <div class="container py-5">
         <div class="row mb-1">
@@ -118,9 +119,11 @@
                                     <div style="width: 25%; flex-shrink: 0; display: flex; justify-content: center;" onclick="event.stopPropagation();">
                                         <select class="status-dropdown" style="background-color: ${statusColor};" 
                                                 onchange="updateOrderStatus(${order.orderID}, this.value)">
-                                            <option value="Order Placed" ${order.status === 'Order Placed' ? 'selected' : ''}>Order Placed</option>
-                                            <option value="Waiting for Courier" ${order.status === 'Waiting for Courier' ? 'selected' : ''}>Waiting for Courier</option>
-                                            <option value="Picked up" ${order.status === 'Picked up' ? 'selected' : ''}>Picked up</option>
+                                            <option value="Order Placed" ${order.status === 'order placed' ? 'selected' : ''}>Order Placed</option>
+                                            <option value="Waiting for Courier" ${order.status === 'waiting for courier' ? 'selected' : ''}>Waiting for Courier</option>
+                                            <option value="Picked up" ${order.status === 'picked up' ? 'selected' : ''}>Picked up</option>
+                                            <option value="Delivered" ${order.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                                            <option value="Cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
                                         </select>
                                     </div>
                                 </div>
@@ -176,11 +179,68 @@
             }
         }
 
-        function updateOrderStatus(orderId, newStatus) {
-            console.log(`Updating order ${orderId} to status: ${newStatus}`);
-
+        async function updateOrderStatus(orderId, newStatus) {
             const select = event.target;
-            select.style.backgroundColor = getStatusColor(newStatus);
+            const previousValue = select.value;
+            const previousStatus = select.options[select.selectedIndex].text;
+            
+            const confirmed = await showConfirm(
+                'warning',
+                'Update Order Status',
+                `Are you sure you want to change order #${orderId} status to "${newStatus}"?`,
+                'Update',
+                'Cancel'
+            );
+
+            if (!confirmed) {
+                select.value = previousValue;
+                return;
+            }
+
+            try {
+                const response = await fetch('../api/updateStatus.php', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        orderId: orderId,
+                        newStatus: newStatus
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    select.style.backgroundColor = getStatusColor(newStatus);
+                    await showConfirm(
+                        'success',
+                        'Success',
+                        'Order status updated successfully!',
+                        'OK',
+                        ''
+                    );
+                } else {
+                    select.value = previousValue;
+                    await showConfirm(
+                        'error',
+                        'Error',
+                        data.error || 'Failed to update order status. Please try again.',
+                        'OK',
+                        ''
+                    );
+                }
+            } catch (error) {
+                console.error('Error updating order status:', error);
+                select.value = previousValue;
+                await showConfirm(
+                    'error',
+                    'Error',
+                    'An error occurred while updating the order status.',
+                    'OK',
+                    ''
+                );
+            }
         }
     </script>
 </body>
