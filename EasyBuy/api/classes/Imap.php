@@ -99,4 +99,18 @@ class Imap{
         
         return 'No content available';
     }
+
+    public function markAsRead($email){
+        $email->setFlag('Seen');
+    }
+
+    public function countEmails(){
+        $folder = $this->clientManager->getFolder('INBOX');
+        return $folder->messages()->all()->count();
+    }
+
+    public function countUnreadEmails(){
+        $folder = $this->clientManager->getFolder('INBOX');
+        return $folder->messages()->all()->unseen()->count();
+    }
 }
