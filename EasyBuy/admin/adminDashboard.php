@@ -1,6 +1,6 @@
-<?php 
-    require_once '../api/classes/Auth.php';
-    Auth::requireAdmin();
+<?php
+require_once '../api/classes/Auth.php';
+Auth::requireAdmin();
 ?>
 
 <!doctype html>
@@ -32,7 +32,6 @@
         }
 
         .dashboard-label {
-            font-size: 0.9rem;
             color: #6a6a6a;
             margin-bottom: 0.5rem;
         }
@@ -40,25 +39,25 @@
 </head>
 
 <body>
-    <?php include '../frontend/components/adminNavBar.php'; ?>      
+    <?php include '../frontend/components/adminNavBar.php'; ?>
 
     <div class="container-fluid px-5 py-4">
         <div class="row g-4 mb-4">
             <div class="col-12 col-md-6 col-lg-4">
                 <div class="dashboard-card">
-                    <div class="dashboard-label">All Products</div>
+                    <div class="dashboard-label fw-bold">All Products</div>
                     <div class="dashboard-number" id="allProducts">0</div>
                 </div>
             </div>
             <div class="col-12 col-md-6 col-lg-4">
                 <div class="dashboard-card">
-                    <div class="dashboard-label">Placed Orders</div>
+                    <div class="dashboard-label fw-bold">Placed Orders</div>
                     <div class="dashboard-number" id="placedOrders">0</div>
                 </div>
             </div>
             <div class="col-12 col-md-6 col-lg-4">
                 <div class="dashboard-card">
-                    <div class="dashboard-label">Picked up</div>
+                    <div class="dashboard-label fw-bold">Picked up</div>
                     <div class="dashboard-number" id="pickedUp">0</div>
                 </div>
             </div>
@@ -66,14 +65,22 @@
         <div class="row g-4">
             <div class="col-12 col-lg-6">
                 <div class="dashboard-card">
-                    <div class="dashboard-label">Unread emails</div>
+                    <div class="dashboard-label fw-bold">Unread emails</div>
                     <div class="dashboard-number" id="unreadEmails">0</div>
                 </div>
             </div>
             <div class="col-12 col-lg-6">
                 <div class="dashboard-card">
-                    <div class="dashboard-label">Unread messages</div>
+                    <div class="dashboard-label fw-bold">Unread messages</div>
                     <div class="dashboard-number" id="unreadMessages">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="row g-4 mb-4 mt-2 d-flex justify-content-center">
+            <div class="col-12 col-md-7 col-lg-5">
+                <div class="dashboard-card">
+                    <div class="dashboard-label fw-bold">Order Delivered</div>
+                    <div class="dashboard-number" id="orderDelivered">0</div>
                 </div>
             </div>
         </div>
@@ -92,20 +99,20 @@
                 document.getElementById('pickedUp').textContent = data.pickedUpOrderCount || 0;
                 document.getElementById('unreadEmails').textContent = data.unreadEmails || 0;
                 document.getElementById('unreadMessages').textContent = data.unreadMessages || 0;
+                document.getElementById('orderDelivered').textContent = data.orderDeliveredCount || 0;
             } catch (error) {
                 console.error('Error loading dashboard stats:', error);
             }
         }
 
         document.addEventListener('DOMContentLoaded', loadDashboardStats);
-        
-        // Refresh dashboard stats when page becomes visible
-        document.addEventListener('visibilitychange', function() {
+
+        document.addEventListener('visibilitychange', function () {
             if (!document.hidden) {
                 loadDashboardStats();
             }
         });
-        
+
         // Auto-refresh every 30 seconds
         setInterval(loadDashboardStats, 30000);
     </script>
