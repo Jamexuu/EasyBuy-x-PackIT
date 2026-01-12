@@ -1,8 +1,4 @@
 <?php
-// frontend/notificationsFetch.php
-// Returns unread notifications (feedback updates) for the logged-in user in JSON.
-// Response: { success: true, count: int, items: [ { id, subject, excerpt, status, time, admin_reply? } ] }
-
 declare(strict_types=1);
 header('Content-Type: application/json; charset=utf-8');
 
@@ -15,7 +11,6 @@ if (!$userId) {
     exit;
 }
 
-// Load Database class and get PDO
 require_once __DIR__ . '/../api/classes/Database.php';
 
 $database = new Database();
@@ -28,7 +23,11 @@ if (!($pdo instanceof PDO)) {
 }
 
 try {
-    // Fetch unread notifications for the user (user_unread = 1)
+    /**
+     * ✅ Use replied_at first (admin reply time),
+     * then acknowledged_at (if you use it),
+     * then created_at as fallback.
+     */
     $stmt = $pdo->prepare("
         SELECT
             id,
@@ -36,7 +35,7 @@ try {
             message,
             admin_reply,
             status,
-            COALESCE(acknowledged_at, created_at) AS updated_at
+            COALESCE(replied_at, acknowledged_at, created_at) AS updated_at
         FROM user_feedback
         WHERE user_id = :uid AND user_unread = 1
         ORDER BY updated_at DESC
@@ -58,13 +57,12 @@ try {
             'id'          => (int)$r['id'],
             'subject'     => $r['subject'] ?? 'Feedback update',
             'excerpt'     => $excerpt,
-            'status'      => $r['status'],
+            'status'      => $r['status'] ?? 'open',
             'time'        => date('M j, H:i', strtotime((string)$r['updated_at'])),
             'admin_reply' => $r['admin_reply'] ?? null,
         ];
     }
 
-    // Count unread
     $cntStmt = $pdo->prepare("SELECT COUNT(*) FROM user_feedback WHERE user_id = :uid AND user_unread = 1");
     $cntStmt->execute([':uid' => $userId]);
     $count = (int)$cntStmt->fetchColumn();
