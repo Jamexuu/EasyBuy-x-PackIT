@@ -48,103 +48,15 @@ $orderId = $_GET['order_id'];
         </div>
 
         <div class="row justify-content-center mt-4">
-            <div class="col-12 col-md-10 col-lg-8">
-                <div
-                    style="background: linear-gradient(135deg, #6BBF59 0%, #8BC97E 100%); border-radius: 1rem; padding: 2rem 1.5rem; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-                    <div class="d-flex justify-content-between align-items-start position-relative">
-                        <div style="position: relative; flex: 1; text-align: center;">
-                            <div
-                                style="position: absolute; top: 30px; left: 50%; right: -50%; height: 3px; background: rgba(255, 255, 255, 0.25); z-index: 1;">
-                            </div>
-                            <div style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem; position: relative; z-index: 2; transition: all 0.3s ease; background: white; color: #6BBF59; box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);"
-                                id="status-placed">
-                                <span class="material-symbols-rounded" style="font-size: 32px;">
-                                    shopping_cart
-                                </span>
-                            </div>
-                            <div style="color: white; font-size: 0.85rem; font-weight: 600; line-height: 1.3;">
-                                Order<br>Placed
-                            </div>
-                        </div>
-
-                        <div style="position: relative; flex: 1; text-align: center;">
-                            <div
-                                style="position: absolute; top: 30px; left: 50%; right: -50%; height: 3px; background: rgba(255, 255, 255, 0.25); z-index: 1;">
-                            </div>
-                            <div style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem; position: relative; z-index: 2; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.25); color: white;"
-                                id="status-waiting">
-                                <span class="material-symbols-rounded" style="font-size: 32px;">
-                                    inventory_2
-                                </span>
-                            </div>
-                            <div style="color: white; font-size: 0.85rem; font-weight: 600; line-height: 1.3;">
-                                Waiting<br>for courier
-                            </div>
-                        </div>
-
-                        <div style="position: relative; flex: 1; text-align: center;">
-                            <div
-                                style="position: absolute; top: 30px; left: 50%; right: -50%; height: 3px; background: rgba(255, 255, 255, 0.25); z-index: 1;">
-                            </div>
-                            <div style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem; position: relative; z-index: 2; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.25); color: white;"
-                                id="status-transit">
-                                <span class="material-symbols-rounded" style="font-size: 32px;">
-                                    local_shipping
-                                </span>
-                            </div>
-                            <div style="color: white; font-size: 0.85rem; font-weight: 600; line-height: 1.3;">
-                                In<br>Transit
-                            </div>
-                        </div>
-
-                        <div style="position: relative; flex: 1; text-align: center;">
-                            <div style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem; position: relative; z-index: 2; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.25); color: white;"
-                                id="status-delivered">
-                                <span class="material-symbols-rounded" style="font-size: 32px;">
-                                    home
-                                </span>
-                            </div>
-                            <div style="color: white; font-size: 0.85rem; font-weight: 600; line-height: 1.3;">
-                                Order<br>Delivered
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row justify-content-center mt-4 mb-5">
-            <div class="col-auto">
-                <button type="button" id="cancelOrderBtn"
-                    style="background: #6c757d; border: none; color: white; padding: 0.75rem 2.5rem; border-radius: 0.5rem; font-weight: 600; text-transform: uppercase; transition: all 0.3s ease;"
-                    onmouseover="this.style.background='#5a6268'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(108, 117, 125, 0.3)'"
-                    onmouseout="this.style.background='#6c757d'; this.style.transform='translateY(0)'; this.style.boxShadow='none'"
-                    onclick="cancelOrder()">
-                    Cancel Order
-                </button>
+            <div class="col-12 text-center">
+                <p style="color: #6c757d; font-size: 0.9rem;">
+                    Redirecting to home page in <span id="countdown">5</span> seconds...
+                </p>
             </div>
         </div>
     </div>
 
     <?php include 'components/footer.php'; ?>
-
-    <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title" id="cancelModalLabel">Cancel Order</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Are you sure you want to cancel this order? This action cannot be undone.
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep Order</button>
-                    <button type="button" class="btn btn-danger" onclick="confirmCancel()">Yes, Cancel Order</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
@@ -154,11 +66,25 @@ $orderId = $_GET['order_id'];
         const orderId = <?php echo json_encode($orderId); ?>;
         let cancelModal;
         let currentOrderStatus = 'order placed';
+        let countdown = 5;
 
         document.addEventListener('DOMContentLoaded', function () {
-            cancelModal = new bootstrap.Modal(document.getElementById('cancelModal'));
             loadOrderStatus();
+            startCountdown();
         });
+
+        function startCountdown() {
+            const countdownElement = document.getElementById('countdown');
+            const interval = setInterval(() => {
+                countdown--;
+                countdownElement.textContent = countdown;
+                
+                if (countdown <= 0) {
+                    clearInterval(interval);
+                    window.location.href = '/EasyBuy-x-PackIT/EasyBuy/index.php';
+                }
+            }, 1000);
+        }
 
         async function loadOrderStatus() {
             try {
@@ -181,32 +107,6 @@ $orderId = $_GET['order_id'];
             } catch (error) {
                 console.error('Error loading order status:', error);
             }
-        }
-
-        function updateStatusDisplay(status) {
-            const statusMap = {
-                'order placed': ['status-placed'],
-                'waiting for courier': ['status-placed', 'status-waiting'],
-                'in transit': ['status-placed', 'status-waiting', 'status-transit'],
-                'order arrived': ['status-placed', 'status-waiting', 'status-transit', 'status-delivered']
-            };
-
-            const activeStatuses = statusMap[status] || ['status-placed'];
-
-            document.querySelectorAll('[id^="status-"]').forEach(icon => {
-                icon.style.background = 'rgba(255, 255, 255, 0.25)';
-                icon.style.color = 'white';
-                icon.style.boxShadow = 'none';
-            });
-
-            activeStatuses.forEach(statusId => {
-                const element = document.getElementById(statusId);
-                if (element) {
-                    element.style.background = 'white';
-                    element.style.color = '#6BBF59';
-                    element.style.boxShadow = '0 4px 12px rgba(255, 255, 255, 0.3)';
-                }
-            });
         }
 
         function cancelOrder() {

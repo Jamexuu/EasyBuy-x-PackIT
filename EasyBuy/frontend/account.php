@@ -41,12 +41,41 @@
     </div>
     <?php include 'components/footer.php'; ?>
 
+    <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="cancelModalLabel">Cancel Order</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to cancel this order? This action cannot be undone.
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep Order</button>
+                    <button type="button" class="btn btn-danger" id="confirmCancelBtn">Yes, Cancel Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
     
     <script>
         var accountContentField = document.getElementById('accountContentField');
+        let cancelModal;
+        let orderToCancel = null;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            cancelModal = new bootstrap.Modal(document.getElementById('cancelModal'));
+            document.getElementById('confirmCancelBtn').addEventListener('click', confirmCancel);
+        });
+
+        function navigateToOrders(tab) {
+            window.location.href = 'userOrders.php?tab=' + tab;
+        }
 
         async function fetchUserData() {
             try {
@@ -96,14 +125,14 @@
                                     <a href="orderHistory.php" class="text-decoration-none" style="color: #6EC064; font-size: 14px;">View order history ›</a>
                                 </div>
                                 <div class="card-text d-flex justify-content-center gap-5">
-                                    <a href="userOrders.php?tab=to-ship" class="btn border-0 bg-transparent d-flex flex-column align-items-center text-decoration-none">
-                                        <span class="material-symbols-rounded" style="font-size: 40px; color: #333;">package_2</span>
-                                        <span style="font-size: 14px; color: #333;">To Ship</span>
-                                    </a>
-                                    <a href="userOrders.php?tab=to-receive" class="btn border-0 bg-transparent d-flex flex-column align-items-center text-decoration-none">
+                                    <button onclick="navigateToOrders('placed-orders')" class="btn border-0 bg-transparent d-flex flex-column align-items-center text-decoration-none" style="cursor: pointer;">
+                                        <span class="material-symbols-rounded" style="font-size: 40px; color: #333;">shopping_cart</span>
+                                        <span style="font-size: 14px; color: #333;">Placed Orders</span>
+                                    </button>
+                                    <button onclick="navigateToOrders('to-receive')" class="btn border-0 bg-transparent d-flex flex-column align-items-center text-decoration-none" style="cursor: pointer;">
                                         <span class="material-symbols-rounded" style="font-size: 40px; color: #333;">local_shipping</span>
                                         <span style="font-size: 14px; color: #333;">To Receive</span>
-                                    </a>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -117,6 +146,38 @@
 
             } catch (error) {
                 console.error('Error fetching user data:', error);
+            }
+        }
+
+        async function cancelOrder(orderId) {
+            orderToCancel = orderId;
+            cancelModal.show();
+        }
+
+        async function confirmCancel() {
+            if (!orderToCancel) return;
+
+            try {
+                const response = await fetch('../api/cancelOrder.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ order_id: orderToCancel })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    cancelModal.hide();
+                    alert('Order cancelled successfully');
+                    window.location.reload();
+                } else {
+                    alert('Failed to cancel order: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error cancelling order:', error);
+                alert('An error occurred while cancelling the order');
             }
         }
 
