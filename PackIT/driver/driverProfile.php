@@ -3,7 +3,7 @@ session_start();
 require_once __DIR__ . '/../api/classes/Database.php';
 
 if (!isset($_SESSION['driver_id'])) {
-    header("Location: login.php");
+    header("Location: index.php");
     exit;
 }
 
@@ -33,7 +33,7 @@ function driver_has_active_booking($db, $driverId) {
 /* Handle logout */
 if ((isset($_GET['action']) && $_GET['action'] === 'logout') || (isset($_POST['action']) && $_POST['action'] === 'logout')) {
     session_destroy();
-    header("Location: login.php");
+    header("Location: index.php");
     exit;
 }
 

@@ -22,7 +22,7 @@ if (empty($email) || empty($password)) {
     exit();
 }
 
-$easybuyIP = '192.168.254.104' ?? 'localhost';
+$easybuyIP = 'localhost';
 $easybuyLoginUrl = "http://$easybuyIP/EasyBuy-x-PackIT/EasyBuy/api/login.php";
 
 $ch = curl_init($easybuyLoginUrl);

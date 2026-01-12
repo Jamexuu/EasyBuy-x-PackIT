@@ -8,7 +8,7 @@ require_once __DIR__ . '/../api/sms/SmsNotificationService.php'; // SMS service
 $action = $_POST['action'] ?? $_GET['action'] ?? null;
 
 if (!isset($_SESSION['driver_id'])) {
-    header("Location: login.php");
+    header("Location: index.php");
     exit;
 }
 

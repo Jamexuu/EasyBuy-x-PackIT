@@ -8,7 +8,7 @@ require_once __DIR__ . '/../api/sms/SmsNotificationService.php'; // Import the S
 $action = $_POST['action'] ?? $_GET['action'] ?? null;
 
 if (!isset($_SESSION['driver_id'])) {
-    header("Location: login.php");
+    header("Location: index.php");
     exit;
 }
 
@@ -160,7 +160,7 @@ $rows = $db->fetch($stmt);
 
 if (empty($rows)) {
     session_destroy();
-    header("Location: login.php");
+    header("Location: index.php");
     exit;
 }
 
