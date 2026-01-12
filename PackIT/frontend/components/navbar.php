@@ -1,7 +1,11 @@
 <?php
 // Frontend navbar for PackIT (notifications: View feedback -> myFeedback.php)
+// This version uses helpers.php (require_once) to avoid redeclaring helpers like u().
 
-$BASE_URL = '/EasyBuy-x-PackIT/PackIT';
+require_once __DIR__ . '/helpers.php'; // ensures u() is declared exactly once
+
+// Keep your original $BASE_URL assignment if you rely on the variable elsewhere
+$BASE_URL = defined('PACKIT_BASE_URL') ? PACKIT_BASE_URL : '/EasyBuy-x-PackIT/PackIT';
 
 if (session_status() === PHP_SESSION_NONE) {
     @session_start();
@@ -13,11 +17,7 @@ if (empty($_SESSION['csrf_token'])) {
 
 $page = basename($_SERVER['PHP_SELF']);
 
-function u($path)
-{
-    global $BASE_URL;
-    return rtrim($BASE_URL, '/') . '/' . ltrim($path, '/');
-}
+// NOTE: u() is provided by helpers.php. Do NOT redeclare it here.
 
 $loggedIn = isset($_SESSION['user']) && !empty($_SESSION['user']['id']);
 $userName = $loggedIn ? trim(($_SESSION['user']['firstName'] ?? '') . ' ' . ($_SESSION['user']['lastName'] ?? '')) : '';
@@ -245,22 +245,20 @@ $csrfToken = $_SESSION['csrf_token'];
       `;
 
       btn.addEventListener('mouseenter', () => {
-        btn.firstElementChild.style.background = '#fff7cc';
+        if (btn.firstElementChild) btn.firstElementChild.style.background = '#fff7cc';
       });
       btn.addEventListener('mouseleave', () => {
-        btn.firstElementChild.style.background = '#ffffff';
+        if (btn.firstElementChild) btn.firstElementChild.style.background = '#ffffff';
       });
 
       btn.addEventListener('click', async () => {
         try {
-          const res = await fetch(notifMarkReadUrl, {
+          await fetch(notifMarkReadUrl, {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Accept': 'application/json' },
             body: new URLSearchParams({ id: it.id, csrf_token: csrfToken })
           });
-          const j = await res.json().catch(() => null);
-          if (!res.ok || !j?.success) console.error('Mark read failed:', j);
         } catch (e) {
           console.error('Mark read request failed:', e);
         }
@@ -322,6 +320,7 @@ $csrfToken = $_SESSION['csrf_token'];
     });
   }
 
+  // initial fetch + poll
   fetchNotifications(false);
   setInterval(() => fetchNotifications(false), 25000);
 })();
