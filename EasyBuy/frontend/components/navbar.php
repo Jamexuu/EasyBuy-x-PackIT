@@ -79,7 +79,7 @@
     </div>
   </div>
 
-  <div class="navbar navbar-dark fixed-bottom d-flex d-lg-none py-0" style="background:#ffffff; box-shadow: 0 -8px 16px rgba(0, 0, 0, 0.11);">
+  <div class="navbar navbar-dark fixed-bottom d-flex d-lg-none py-0 z-1" style="background:#ffffff; box-shadow: 0 -8px 16px rgba(0, 0, 0, 0.11);">
     <div class="container-fluid justify-content-around p-0">
       <a href="/EasyBuy-x-PackIT/EasyBuy/index.php"
         class="nav-link text-center active p-4"
