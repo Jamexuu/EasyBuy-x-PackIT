@@ -251,15 +251,40 @@
 
             if (currentPriceFilter !== "") {
                 if (currentPriceFilter === "below-100") {
-                    filteredProducts = filteredProducts.filter(product => parseFloat(product.price) < 100);
+                    filteredProducts = filteredProducts.filter(product => {
+                        const price = product.is_sale == 1 && product.sale_percentage 
+                            ? parseFloat(product.price) * (1 - product.sale_percentage / 100)
+                            : parseFloat(product.price);
+                        return price < 100;
+                    });
                 } else if (currentPriceFilter === "100-200") {
-                    filteredProducts = filteredProducts.filter(product => parseFloat(product.price) >= 100 && parseFloat(product.price) < 200);
+                    filteredProducts = filteredProducts.filter(product => {
+                        const price = product.is_sale == 1 && product.sale_percentage 
+                            ? parseFloat(product.price) * (1 - product.sale_percentage / 100)
+                            : parseFloat(product.price);
+                        return price >= 100 && price < 200;
+                    });
                 } else if (currentPriceFilter === "200-300") {
-                    filteredProducts = filteredProducts.filter(product => parseFloat(product.price) >= 200 && parseFloat(product.price) < 300);
+                    filteredProducts = filteredProducts.filter(product => {
+                        const price = product.is_sale == 1 && product.sale_percentage 
+                            ? parseFloat(product.price) * (1 - product.sale_percentage / 100)
+                            : parseFloat(product.price);
+                        return price >= 200 && price < 300;
+                    });
                 } else if (currentPriceFilter === "300-400") {
-                    filteredProducts = filteredProducts.filter(product => parseFloat(product.price) >= 300 && parseFloat(product.price) < 400);
+                    filteredProducts = filteredProducts.filter(product => {
+                        const price = product.is_sale == 1 && product.sale_percentage 
+                            ? parseFloat(product.price) * (1 - product.sale_percentage / 100)
+                            : parseFloat(product.price);
+                        return price >= 300 && price < 400;
+                    });
                 } else if (currentPriceFilter === "above-500") {
-                    filteredProducts = filteredProducts.filter(product => parseFloat(product.price) > 500);
+                    filteredProducts = filteredProducts.filter(product => {
+                        const price = product.is_sale == 1 && product.sale_percentage 
+                            ? parseFloat(product.price) * (1 - product.sale_percentage / 100)
+                            : parseFloat(product.price);
+                        return price > 500;
+                    });
                 }
                 console.log('After price filter:', filteredProducts.length);
             }
