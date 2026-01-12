@@ -60,7 +60,7 @@
             <div class="h6 fw-bold">Services</div>
           </li>
           <li>
-            <a href="" class="text-decoration-none text-dark">My Account</a>
+            <a href="/EasyBuy-x-PackIT/EasyBuy/frontend/login.php" class="text-decoration-none text-dark">My Account</a>
           </li>
           <li>
             <a href="" class="text-decoration-none text-dark">Terms & Conditions</a>

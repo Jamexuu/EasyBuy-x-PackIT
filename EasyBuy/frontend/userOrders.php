@@ -1,3 +1,13 @@
+<?php
+    require '../api/classes/Auth.php';
+    Auth::requireAuth();
+
+    if (Auth::isAdmin()) {
+        header("Location: ../admin/adminDashboard.php");
+        exit();
+    }
+?>
+
 <!doctype html>
 <html lang="en">
 
@@ -17,14 +27,7 @@
 </head>
 
 <body>
-    <?php
-    session_start();
-    if (!isset($_SESSION['user_id'])) {
-        header('Location: login.php');
-        exit;
-    }
-    include 'components/navbar.php';
-    ?>
+    <?php include 'components/navbar.php'; ?>
 
     <div class="bg-white">
         <div class="container-fluid">
@@ -49,10 +52,10 @@
                     <ul class="nav nav-tabs px-3 justify-content-center" id="orderTabs" role="tablist"
                         style="border-bottom: none; gap: 40px;">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="to-ship-tab" data-bs-toggle="tab"
-                                data-bs-target="#to-ship" type="button" role="tab"
+                            <button class="nav-link active" id="placed-orders-tab" data-bs-toggle="tab"
+                                data-bs-target="#placed-orders" type="button" role="tab"
                                 style="color: #28a745; border: none; padding: 12px 24px; font-weight: 500; background: transparent; border-bottom: 3px solid #28a745;">
-                                To Ship
+                                Placed Orders
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
@@ -73,17 +76,33 @@
             <div class="col-12 col-sm-11 col-md-10 col-lg-9 col-xl-8 px-0">
 
                 <div class="tab-content p-3" id="orderTabsContent">
-                    <div class="tab-pane fade show active" id="to-ship" role="tabpanel">
-                        <div id="toShipOrders">
-                            <!-- Orders will be loaded here dynamically -->
+                    <div class="tab-pane fade show active" id="placed-orders" role="tabpanel">
+                        <div id="placedOrders">
                         </div>
                     </div>
 
                     <div class="tab-pane fade" id="to-receive" role="tabpanel">
                         <div id="toReceiveOrders">
-                            <!-- Orders will be loaded here dynamically -->
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="cancelModalLabel">Cancel Order</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to cancel this order? This action cannot be undone.
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep Order</button>
+                    <button type="button" class="btn btn-danger" id="confirmCancelBtn">Yes, Cancel Order</button>
                 </div>
             </div>
         </div>
@@ -93,6 +112,42 @@
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
     <script>
+        let cancelModal;
+        let orderToCancel = null;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            cancelModal = new bootstrap.Modal(document.getElementById('cancelModal'));
+            document.getElementById('confirmCancelBtn').addEventListener('click', confirmCancel);
+            loadOrders();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const tab = urlParams.get('tab');
+            
+            if (tab === 'placed-orders') {
+                const placedOrdersTab = document.getElementById('placed-orders-tab');
+                const toReceiveTab = document.getElementById('to-receive-tab');
+                
+                const bsTab = new bootstrap.Tab(placedOrdersTab);
+                bsTab.show();
+                
+                placedOrdersTab.style.color = '#28a745';
+                placedOrdersTab.style.borderBottom = '3px solid #28a745';
+                toReceiveTab.style.color = '#6c757d';
+                toReceiveTab.style.borderBottom = 'none';
+            } else if (tab === 'to-receive') {
+                const toReceiveTab = document.getElementById('to-receive-tab');
+                const placedOrdersTab = document.getElementById('placed-orders-tab');
+                
+                const bsTab = new bootstrap.Tab(toReceiveTab);
+                bsTab.show();
+                
+                toReceiveTab.style.color = '#28a745';
+                toReceiveTab.style.borderBottom = '3px solid #28a745';
+                placedOrdersTab.style.color = '#6c757d';
+                placedOrdersTab.style.borderBottom = 'none';
+            }
+        });
+
         document.querySelectorAll('#orderTabs button').forEach(button => {
             button.addEventListener('click', function () {
                 document.querySelectorAll('#orderTabs button').forEach(btn => {
@@ -110,23 +165,22 @@
                 const data = await response.json();
 
                 if (data.success && data.orders) {
-                    const toShipOrders = data.orders.filter(order => 
+                    const placedOrders = data.orders.filter(order => 
                         order.status === 'order placed' || order.status === 'waiting for courier'
                     );
                     const toReceiveOrders = data.orders.filter(order => 
                         order.status === 'picked up' || order.status === 'in transit'
                     );
 
-                    renderOrders(toShipOrders, 'toShipOrders');
-                    renderOrders(toReceiveOrders, 'toReceiveOrders');
+                    renderOrders(placedOrders, 'placedOrders', true);
+                    renderOrders(toReceiveOrders, 'toReceiveOrders', false);
                 }
             } catch (error) {
-                console.log('API not ready yet, showing example data');
-                showExampleOrders();
+                console.log('Error loading orders:', error);
             }
         }
 
-        function renderOrders(orders, containerId) {
+        function renderOrders(orders, containerId, showCancelButton) {
             const container = document.getElementById(containerId);
             
             if (orders.length === 0) {
@@ -140,6 +194,15 @@
 
             let cardsHtml = '';
             orders.forEach(order => {
+                const canCancel = order.status === 'order placed';
+                const cancelButtonHtml = showCancelButton && canCancel ? `
+                    <button type="button" class="btn btn-outline-danger btn-sm" 
+                        onclick="cancelOrder(${order.id})"
+                        style="padding: 8px 20px; font-weight: 500;">
+                        Cancel Order
+                    </button>
+                ` : '';
+
                 order.items.forEach(item => {
                     const totalPrice = (item.product_price * item.quantity).toFixed(2);
                     const imageHtml = item.image_url 
@@ -166,6 +229,7 @@
                                     </div>
                                 </div>
                             </div>
+                            ${cancelButtonHtml ? `<div class="text-end mt-3">${cancelButtonHtml}</div>` : ''}
                         </div>
                     `;
                 });
@@ -174,26 +238,38 @@
             container.innerHTML = cardsHtml;
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            loadOrders();
+        function cancelOrder(orderId) {
+            orderToCancel = orderId;
+            cancelModal.show();
+        }
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const tab = urlParams.get('tab');
-            
-            if (tab === 'to-receive') {
-                const toReceiveTab = document.getElementById('to-receive-tab');
-                const toShipTab = document.getElementById('to-ship-tab');
-                
-                const bsTab = new bootstrap.Tab(toReceiveTab);
-                bsTab.show();
-                
-                toReceiveTab.style.color = '#28a745';
-                toReceiveTab.style.borderBottom = '3px solid #28a745';
-                toShipTab.style.color = '#6c757d';
-                toShipTab.style.borderBottom = 'none';
+        async function confirmCancel() {
+            if (!orderToCancel) return;
+
+            try {
+                const response = await fetch('../api/cancelOrder.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ order_id: orderToCancel })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    cancelModal.hide();
+                    alert('Order cancelled successfully');
+                    loadOrders();
+                } else {
+                    alert('Failed to cancel order: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error cancelling order:', error);
+                alert('An error occurred while cancelling the order');
             }
-        });
+        }
     </script>
 </body>
 
-</html>
+</html> 
