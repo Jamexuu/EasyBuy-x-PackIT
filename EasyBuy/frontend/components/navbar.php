@@ -80,45 +80,45 @@
   </div>
 
   <div class="navbar navbar-dark fixed-bottom d-flex d-lg-none py-0" style="background:#ffffff; box-shadow: 0 -8px 16px rgba(0, 0, 0, 0.11);">
-    <div class="container-fluid justify-content-around py-0" style="padding-left:0;padding-right:0;">
+    <div class="container-fluid justify-content-around p-0">
       <a href="/EasyBuy-x-PackIT/EasyBuy/index.php"
-        class="nav-link text-center active"
-        style="background:#6EC064; width:64px; height:56px; display:flex; align-items:center;
-         justify-content:center; padding:0;">
-        <span class="material-symbols-rounded"
-          style="color:#ffffff;font-size:26px;line-height:1;">
+        class="nav-link text-center active p-4"
+        style="background:#6EC064; display:flex; align-items:center;
+         justify-content:center;">
+        <span class="material-symbols-rounded fs-1"
+          style="color:#ffffff;">
           home
         </span>
       </a>
       <a href="/EasyBuy-x-PackIT/EasyBuy/index.php#sale"
-        class="nav-link text-center"
-        style="background:#ffffff; flex:1;display:flex;align-items:center;justify-content:center;padding:0;">
-        <span class="material-symbols-rounded"
-          style="color:#00b369;font-size:26px;line-height:1;">
+        class="nav-link text-center p-0"
+        style="background:#ffffff; flex:1;display:flex;align-items:center;justify-content:center;">
+        <span class="material-symbols-rounded fs-1"
+          style="color:#00b369;">
           sell
         </span>
       </a>
       <a href="/EasyBuy-x-PackIT/EasyBuy/index.php#categories"
-        class="nav-link text-center"
-        style="background:#ffffff; flex:1;display:flex;align-items:center;justify-content:center;padding:0;">
-        <span class="material-symbols-rounded"
-          style="color:#00b369;font-size:26px;line-height:1;">
+        class="nav-link text-center p-0"
+        style="background:#ffffff; flex:1;display:flex;align-items:center;justify-content:center;">
+        <span class="material-symbols-rounded fs-1"
+          style="color:#00b369;">
           grid_view
         </span>
       </a>
       <a href="/EasyBuy-x-PackIT/EasyBuy/frontend/cart.php"
-        class="nav-link text-center"
-        style="background:#ffffff; flex:1;display:flex;align-items:center;justify-content:center;padding:0;">
-        <span class="material-symbols-rounded"
-          style="color:#00b369;font-size:26px;line-height:1;">
+        class="nav-link text-center p-0"
+        style="background:#ffffff; flex:1;display:flex;align-items:center;justify-content:center;">
+        <span class="material-symbols-rounded fs-1"
+          style="color:#00b369;">
           shopping_cart
         </span>
       </a>
       <a href="/EasyBuy-x-PackIT/EasyBuy/frontend/login.php"
-        class="nav-link text-center"
-        style="background:#ffffff; flex:1;display:flex;align-items:center;justify-content:center;padding:0;">
-        <span class="material-symbols-rounded"
-          style="color:#00b369;font-size:26px;line-height:1;">
+        class="nav-link text-center p-0"
+        style="background:#ffffff; flex:1;display:flex;align-items:center;justify-content:center;">
+        <span class="material-symbols-rounded fs-1"
+          style="color:#00b369;">
           account_circle
         </span>
       </a>

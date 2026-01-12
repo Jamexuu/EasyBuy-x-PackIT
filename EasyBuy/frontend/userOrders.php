@@ -103,12 +103,10 @@
                 this.style.borderBottom = '3px solid #28a745';
             });
         });
-
-        // TODO: Backend Developer - Create API endpoint ../api/getUserOrders.php
         
         async function loadOrders() {
             try {
-                const response = await fetch('../api/getUserOrders.php');
+                const response = await fetch('../api/getUserOrder.php');
                 const data = await response.json();
 
                 if (data.success && data.orders) {
@@ -116,7 +114,7 @@
                         order.status === 'order placed' || order.status === 'waiting for courier'
                     );
                     const toReceiveOrders = data.orders.filter(order => 
-                        order.status === 'in transit'
+                        order.status === 'picked up' || order.status === 'in transit'
                     );
 
                     renderOrders(toShipOrders, 'toShipOrders');
@@ -126,26 +124,6 @@
                 console.log('API not ready yet, showing example data');
                 showExampleOrders();
             }
-        }
-
-        function showExampleOrders() {
-            const exampleOrders = [
-                {
-                    items: [
-                        { product_name: 'Tender Juicy Hotdog', product_price: 149.50, quantity: 2, image_url: 'tender-juicy.jpg' },
-                        { product_name: 'Chinese Pechay', product_price: 30, quantity: 5, image_url: null },
-                        { product_name: 'White Onion', product_price: 85, quantity: 1, image_url: 'tender-juicy.jpg' }
-                    ]
-                }
-            ];
-            
-            renderOrders(exampleOrders, 'toShipOrders');
-            
-            document.getElementById('toReceiveOrders').innerHTML = `
-                <div class="text-center py-5">
-                    <p style="color: #6c757d;">No orders to receive</p>
-                </div>
-            `;
         }
 
         function renderOrders(orders, containerId) {
@@ -165,7 +143,7 @@
                 order.items.forEach(item => {
                     const totalPrice = (item.product_price * item.quantity).toFixed(2);
                     const imageHtml = item.image_url 
-                        ? `<img src="../Product Images/all/${item.image_url}" alt="${item.product_name}" 
+                        ? `<img src="${item.image_url}" alt="${item.product_name}" 
                               style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px; flex-shrink: 0;"
                               onerror="this.outerHTML='<div style=\\'width: 120px; height: 120px; background: #f8f9fa; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #adb5bd;\\'>No Image</div>'">` 
                         : `<div style="width: 120px; height: 120px; background: #f8f9fa; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #adb5bd;">No Image</div>`;
