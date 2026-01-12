@@ -194,8 +194,9 @@ Auth::requireAdmin();
                             <div class="col">
                                 <div class="h4 p-4">`+ email.subject + `</div>
                                 <div class="d-flex flex-row align-items-start gap-3 p-3">
-                                    <img src="../assets/placeholder.png" alt="Email Icon"
-                                        class="rounded-circle img-fluid" style="max-height: 40px;">
+                                    <span class="material-symbols-outlined" style="font-size: 40px; color: #6c757d;">
+                                        account_circle
+                                    </span>
                                     <div>
                                         <h6 class="mb-0">`+ email.sender + `</h6>
                                         <p class="text-muted mb-0">`+ email.email + `</p>
