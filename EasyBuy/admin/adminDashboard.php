@@ -84,6 +84,13 @@ Auth::requireAdmin();
                 </div>
             </div>
         </div>
+        <div class="row mt-4">
+            <div class="col-12 text-end">
+                <form action="../api/logout.php" method="POST">
+                    <button type="submit" class="btn btn-danger">Logout</button>
+                </form>
+            </div>
+        </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
