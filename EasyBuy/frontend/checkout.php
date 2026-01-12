@@ -1,4 +1,8 @@
-<?php require_once '../api/config.php'; ?>
+<?php 
+require_once '../api/classes/Auth.php';
+
+Auth::requireAuth();
+?>
 <!doctype html>
 <html lang="en">
 

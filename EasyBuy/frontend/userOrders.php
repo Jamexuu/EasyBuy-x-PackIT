@@ -1,13 +1,7 @@
 <?php
-    require '../api/classes/Auth.php';
-    Auth::requireAuth();
-
-    if (Auth::isAdmin()) {
-        header("Location: ../admin/adminDashboard.php");
-        exit();
-    }
+require_once '../api/classes/Auth.php';
+Auth::requireAuth();
 ?>
-
 <!doctype html>
 <html lang="en">
 
