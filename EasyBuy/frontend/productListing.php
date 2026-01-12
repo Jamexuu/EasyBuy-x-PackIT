@@ -50,6 +50,7 @@
                     <div class="mb-2">
                         <select class="form-select" id="priceOptions" aria-label="Filter by price">
                             <option value="" selected>Price</option>
+                            <option value="all">All Sale items</option>
                             <option value="below-100">Below 100</option>
                             <option value="100-200">100 - 200</option>
                             <option value="200-300">200 - 300</option>
@@ -69,12 +70,6 @@
                             <option value="snacks">Snacks</option>
                             <option value="beverages">Beverages</option>
                             <option value="personal">Health and Personal Care</option>
-                        </select>
-                    </div>
-                    <div class="mb-2">
-                        <select class="form-select" id="salesOptions" aria-label="Filter by sales">
-                            <option value="" selected>Sales</option>
-                            <option value="all">All Sale items</option>
                         </select>
                     </div>
                 </div>
@@ -212,10 +207,6 @@
             currentCategoryFilter = this.value;
             applyFilters();
         });
-        document.getElementById('salesOptions').addEventListener('change', function () {
-            currentSalesFilter = this.value;
-            applyFilters();
-        });
 
         function applyFilters() {
             page = 1;
@@ -250,7 +241,9 @@
             }
 
             if (currentPriceFilter !== "") {
-                if (currentPriceFilter === "below-100") {
+                if (currentPriceFilter === "all") {
+                    filteredProducts = filteredProducts.filter(product => product.is_sale == 1);
+                } else if (currentPriceFilter === "below-100") {
                     filteredProducts = filteredProducts.filter(product => {
                         const price = product.is_sale == 1 && product.sale_percentage 
                             ? parseFloat(product.price) * (1 - product.sale_percentage / 100)
@@ -287,11 +280,6 @@
                     });
                 }
                 console.log('After price filter:', filteredProducts.length);
-            }
-
-            if (currentSalesFilter === 'all') {
-                filteredProducts = filteredProducts.filter(product => product.is_sale == 1);
-                console.log('After sales filter:', filteredProducts.length);
             }
 
             console.log('Final filtered products:', filteredProducts.map(p => ({ name: p.product_name, category: p.category, price: p.price })));
