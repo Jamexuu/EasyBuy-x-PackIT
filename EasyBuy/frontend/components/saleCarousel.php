@@ -1,7 +1,7 @@
 <div class="container py-3 pt-4 p-2 p-lg-5">
   <div class="row">
-    <div class="col mb-4 d-flex justify-content-center justify-content-lg-start pt-4">
-      <div class="h1 fw-bold text-md-center ps-3 text-lg-start " style="color:#6EC064">
+    <div class="col mb-4 d-flex justify-content-center justify-content-lg-start mt-4 p-0">
+      <div class="h1 fw-bold ps-lg-3" style="color:#6EC064">
         Sale
       </div>
     </div>
