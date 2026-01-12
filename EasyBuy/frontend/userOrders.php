@@ -1,3 +1,7 @@
+<?php
+require_once '../api/classes/Auth.php';
+Auth::requireAuth();
+?>
 <!doctype html>
 <html lang="en">
 
@@ -17,14 +21,7 @@
 </head>
 
 <body>
-    <?php
-    session_start();
-    if (!isset($_SESSION['user_id'])) {
-        header('Location: login.php');
-        exit;
-    }
-    include 'components/navbar.php';
-    ?>
+    <?php include 'components/navbar.php'; ?>
 
     <div class="bg-white">
         <div class="container-fluid">
