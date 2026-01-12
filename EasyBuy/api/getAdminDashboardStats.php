@@ -17,6 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     $placedOrderCount = $order->getPlacedOrderCount();
     $pickedUpOrderCount = $order->getPickedUpOrderCount();
+    $orderArrivedCount = $order->getOrderArrivedCount();
     $productCount = $product->getProductCount();
 
     $unreadEmailCount = 0;
@@ -30,6 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $response = [
         'placedOrderCount' => $placedOrderCount,
         'pickedUpOrderCount' => $pickedUpOrderCount,
+        'orderArrivedCount' => $orderArrivedCount,
         'allProducts' => $productCount,
         'unreadEmails' => $unreadEmailCount,
         'unreadMessages' => 0 

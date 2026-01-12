@@ -101,6 +101,13 @@ class Order{
         $data = $this->db->fetch($result);
         return $data[0]['count'];
     }
+
+    function getOrderArrivedCount(){
+        $query = "SELECT COUNT(*) as count FROM orders WHERE status = 'order arrived'";
+        $result = $this->db->executeQuery($query);
+        $data = $this->db->fetch($result);
+        return $data[0]['count'];
+    }
     
     function cancelOrder($orderId, $userId){
         $query = "SELECT * FROM orders WHERE id = ? AND user_id = ?";
