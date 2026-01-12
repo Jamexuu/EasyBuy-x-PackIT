@@ -1,5 +1,5 @@
 <?php
-// Frontend navbar for PackIT (updated with notifications bell - uses camelCase endpoints)
+// Frontend navbar for PackIT (notifications: View feedback -> myFeedback.php)
 
 $BASE_URL = '/EasyBuy-x-PackIT/PackIT';
 
@@ -7,7 +7,6 @@ if (session_status() === PHP_SESSION_NONE) {
     @session_start();
 }
 
-// Ensure CSRF token exists (needed by notificationsMarkRead.php)
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
@@ -25,30 +24,10 @@ $userName = $loggedIn ? trim(($_SESSION['user']['firstName'] ?? '') . ' ' . ($_S
 $csrfToken = $_SESSION['csrf_token'];
 ?>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-<style>
-    :root { --brand-yellow: #f8e15b; --brand-dark: #111; }
-    .bg-brand { background-color: var(--brand-yellow) !important; }
-
-    .notif-badge {
-        position: absolute;
-        top: -6px;
-        right: -6px;
-        background: #d63384;
-        color: #fff;
-        font-size: 10px;
-        padding: 2px 5px;
-        border-radius: 999px;
-        line-height: 1;
-        box-shadow: 0 0 0 2px rgba(255,255,255,0.6);
-    }
-    .notif-dropdown { width: 320px; max-width: calc(100vw - 40px); }
-    .notif-item { cursor: pointer; }
-    .notif-item .small-excerpt { font-size: 0.85rem; color: #444; }
-    .notif-empty { padding: 12px; color: #666; }
-</style>
 
 <div class="container">
-    <nav class="navbar navbar-expand-lg my-3 mx-auto rounded-pill shadow px-4 py-2 bg-brand" style="max-width: 95%;">
+    <nav class="navbar navbar-expand-lg my-3 mx-auto rounded-pill shadow px-4 py-2"
+         style="max-width:95%; background:#f8e15b;">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="<?= htmlspecialchars(u('index.php')) ?>">
                 <img src="<?= htmlspecialchars(u('assets/LOGO.svg')) ?>" alt="PackIT" height="40" class="object-fit-contain">
@@ -56,53 +35,89 @@ $csrfToken = $_SESSION['csrf_token'];
 
             <div class="d-flex align-items-center gap-2 gap-lg-3 order-lg-3">
                 <?php if ($loggedIn): ?>
-                    <div class="position-relative" id="notifRoot">
-                        <button id="notifToggleBtn" class="btn btn-sm btn-white text-dark p-0 border-0"
-                                aria-expanded="false" title="Notifications"
-                                data-bs-toggle="dropdown" data-bs-auto-close="outside">
-                            <i class="bi bi-bell" style="font-size:1.4rem;"></i>
+                    <div class="dropdown position-relative" id="notifRoot">
+                        <button id="notifToggleBtn"
+                                class="btn btn-sm rounded-pill d-flex align-items-center justify-content-center position-relative border-0"
+                                style="background:rgba(255,255,255,.55); width:42px; height:42px;"
+                                aria-expanded="false"
+                                title="Notifications"
+                                data-bs-toggle="dropdown"
+                                data-bs-auto-close="outside">
+                            <i class="bi bi-bell-fill text-dark" style="font-size:1.05rem;"></i>
+
+                            <span id="notifBadge"
+                                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill d-none"
+                                  style="background:#dc3545; font-size:.70rem; padding:.28rem .45rem;">
+                                0
+                            </span>
                         </button>
 
-                        <span id="notifBadge" class="notif-badge d-none">0</span>
+                        <div id="notifDropdown"
+                             class="dropdown-menu dropdown-menu-end p-0 border-0 shadow-lg mt-2"
+                             style="width:360px; max-width:calc(100vw - 24px); border-radius:18px;"
+                             aria-labelledby="notifToggleBtn">
 
-                        <div id="notifDropdown" class="dropdown-menu dropdown-menu-end notif-dropdown shadow-lg mt-2" aria-labelledby="notifToggleBtn">
-                            <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
-                                <strong>Notifications</strong>
-                                <button id="notifMarkAllRead" class="btn btn-link btn-sm" type="button">Mark all read</button>
+                            <div class="px-3 py-3"
+                                 style="background:#f8e15b; border-top-left-radius:18px; border-top-right-radius:18px;">
+                                <div class="d-flex align-items-start justify-content-between gap-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="d-flex align-items-center justify-content-center rounded-circle"
+                                             style="width:38px;height:38px;background:rgba(0,0,0,.10);">
+                                            <i class="bi bi-bell-fill text-dark"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark lh-1">Notifications</div>
+                                            <div class="small text-dark" style="opacity:.75;">Feedback replies & updates</div>
+                                        </div>
+                                    </div>
+
+                                    <button id="notifMarkAllRead"
+                                            class="btn btn-sm btn-dark rounded-pill px-3"
+                                            type="button">
+                                        Mark all
+                                    </button>
+                                </div>
                             </div>
 
-                            <div id="notifList" style="max-height: 320px; overflow:auto;"></div>
+                            <div id="notifList" class="p-2" style="max-height:340px; overflow:auto; background:#fff;"></div>
 
-                            <div class="border-top text-center">
-                                <a href="<?= htmlspecialchars(u('frontend/profile.php#feedback')) ?>" class="d-block text-decoration-none py-2">
+                            <div class="p-2 border-top bg-white"
+                                 style="border-bottom-left-radius:18px; border-bottom-right-radius:18px;">
+                                <a href="<?= htmlspecialchars(u('frontend/myFeedback.php')) ?>"
+                                   class="btn btn-light w-100 rounded-pill fw-semibold">
                                     View feedback
                                 </a>
                             </div>
                         </div>
                     </div>
                 <?php else: ?>
-                    <div style="width:34px;height:34px;"></div>
+                    <div style="width:42px;height:42px;"></div>
                 <?php endif; ?>
 
-                <?php if (! $loggedIn): ?>
-                    <a href="<?= htmlspecialchars(u('frontend/login.php')) ?>" class="text-dark text-decoration-none fw-bold text-uppercase lh-1 d-none d-sm-block" style="font-size: 0.8rem;">
+                <?php if (!$loggedIn): ?>
+                    <a href="<?= htmlspecialchars(u('frontend/login.php')) ?>"
+                       class="text-dark text-decoration-none fw-bold text-uppercase lh-1 d-none d-sm-block"
+                       style="font-size:0.8rem;">
                         Login/<br>Signup
                     </a>
                 <?php else: ?>
                     <div class="d-none d-sm-flex align-items-center gap-2">
-                        <a href="<?= htmlspecialchars(u('frontend/profile.php')) ?>" class="text-dark text-decoration-none fw-bold text-uppercase lh-1" style="font-size:0.85rem;">
+                        <a href="<?= htmlspecialchars(u('frontend/profile.php')) ?>"
+                           class="text-dark text-decoration-none fw-bold text-uppercase lh-1"
+                           style="font-size:0.85rem;">
                             <?= htmlspecialchars($userName ?: 'Profile') ?>
                         </a>
                     </div>
                 <?php endif; ?>
 
-                <button class="navbar-toggler border-0 p-0 ms-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar">
+                <button class="navbar-toggler border-0 p-0 ms-2" type="button"
+                        data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar">
                     <span class="navbar-toggler-icon"></span>
                 </button>
             </div>
 
             <div class="offcanvas offcanvas-end rounded-start-5" tabindex="-1" id="offcanvasNavbar">
-                <div class="offcanvas-header bg-brand">
+                <div class="offcanvas-header" style="background:#f8e15b;">
                     <h5 class="offcanvas-title fw-bold">MENU</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
                 </div>
@@ -120,7 +135,8 @@ $csrfToken = $_SESSION['csrf_token'];
                             $href = u($path);
                         ?>
                             <li class="nav-item">
-                                <a class="nav-link text-dark <?= $isActive ? 'fw-bolder text-decoration-underline' : '' ?>" href="<?= htmlspecialchars($href) ?>">
+                                <a class="nav-link text-dark <?= $isActive ? 'fw-bolder text-decoration-underline' : '' ?>"
+                                   href="<?= htmlspecialchars($href) ?>">
                                     <?= htmlspecialchars($label) ?>
                                 </a>
                             </li>
@@ -149,6 +165,7 @@ $csrfToken = $_SESSION['csrf_token'];
 (function(){
   const notifFetchUrl = '<?= htmlspecialchars(u("frontend/notificationsFetch.php")) ?>';
   const notifMarkReadUrl = '<?= htmlspecialchars(u("frontend/notificationsMarkRead.php")) ?>';
+  const goToFeedbackUrl = '<?= htmlspecialchars(u("frontend/myFeedback.php")) ?>';
   const csrfToken = <?= json_encode($csrfToken) ?>;
   const userLoggedIn = <?= $loggedIn ? 'true' : 'false' ?>;
 
@@ -177,28 +194,64 @@ $csrfToken = $_SESSION['csrf_token'];
     list.innerHTML = '';
 
     if (!items || items.length === 0) {
-      const empty = document.createElement('div');
-      empty.className = 'notif-empty';
-      empty.textContent = 'No new notifications';
-      list.appendChild(empty);
+      list.innerHTML = `
+        <div class="p-3">
+          <div class="text-center text-muted small py-4">
+            <div class="mb-2"><i class="bi bi-inbox fs-3"></i></div>
+            No new notifications
+          </div>
+        </div>
+      `;
       return;
     }
 
     items.forEach((it) => {
-      const row = document.createElement('div');
-      row.className = 'dropdown-item notif-item';
-      row.dataset.id = it.id;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'w-100 text-start border-0 bg-white p-0';
 
-      row.innerHTML =
-        '<div class="d-flex justify-content-between align-items-start">' +
-          '<div>' +
-            '<strong>' + escapeHtml(it.subject || 'Feedback update') + '</strong>' +
-            '<div class="small-excerpt">' + escapeHtml(it.excerpt || '') + '</div>' +
-          '</div>' +
-          '<div class="text-muted small ms-2">' + escapeHtml(it.time || '') + '</div>' +
-        '</div>';
+      const status = (it.status || 'open').toString();
 
-      row.addEventListener('click', async () => {
+      btn.innerHTML = `
+        <div class="p-3 rounded-4" style="transition: background .15s;">
+          <div class="d-flex gap-3 align-items-start">
+            <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+                 style="width:38px;height:38px;background:#f8e15b;">
+              <i class="bi bi-chat-square-text text-dark"></i>
+            </div>
+
+            <div class="flex-grow-1">
+              <div class="d-flex justify-content-between align-items-start gap-2">
+                <div class="fw-semibold text-dark">
+                  ${escapeHtml(it.subject || 'Feedback update')}
+                </div>
+                <div class="text-muted small flex-shrink-0">
+                  ${escapeHtml(it.time || '')}
+                </div>
+              </div>
+
+              <div class="text-muted small mt-1">
+                ${escapeHtml(it.excerpt || '')}
+              </div>
+
+              <div class="mt-2">
+                <span class="badge rounded-pill text-bg-light border">
+                  ${escapeHtml(status)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      btn.addEventListener('mouseenter', () => {
+        btn.firstElementChild.style.background = '#fff7cc';
+      });
+      btn.addEventListener('mouseleave', () => {
+        btn.firstElementChild.style.background = '#ffffff';
+      });
+
+      btn.addEventListener('click', async () => {
         try {
           const res = await fetch(notifMarkReadUrl, {
             method: 'POST',
@@ -207,16 +260,14 @@ $csrfToken = $_SESSION['csrf_token'];
             body: new URLSearchParams({ id: it.id, csrf_token: csrfToken })
           });
           const j = await res.json().catch(() => null);
-          if (!res.ok || !j?.success) {
-            console.error('Mark read failed:', j);
-          }
+          if (!res.ok || !j?.success) console.error('Mark read failed:', j);
         } catch (e) {
           console.error('Mark read request failed:', e);
         }
-        window.location.href = '<?= htmlspecialchars(u("frontend/profile.php#feedback")) ?>';
+        window.location.href = goToFeedbackUrl;
       });
 
-      list.appendChild(row);
+      list.appendChild(btn);
     });
   }
 
@@ -224,7 +275,7 @@ $csrfToken = $_SESSION['csrf_token'];
     if (!userLoggedIn) return;
     try {
       const res = await fetch(notifFetchUrl, { credentials: 'same-origin' });
-      const j = await res.json();
+      const j = await res.json().catch(() => null);
       if (!res.ok || !j) return;
 
       setBadge(j.count || 0);
@@ -258,7 +309,6 @@ $csrfToken = $_SESSION['csrf_token'];
     }
   }
 
-  // When dropdown opens, fetch & render
   if (toggleBtn) {
     toggleBtn.addEventListener('click', () => {
       setTimeout(() => fetchNotifications(true), 50);
@@ -272,7 +322,6 @@ $csrfToken = $_SESSION['csrf_token'];
     });
   }
 
-  // Poll
   fetchNotifications(false);
   setInterval(() => fetchNotifications(false), 25000);
 })();
