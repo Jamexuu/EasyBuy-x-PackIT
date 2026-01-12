@@ -1,6 +1,7 @@
 <?php 
-    require '../api/classes/Auth.php';
-    Auth::requireAuth();    
+require_once '../api/classes/Auth.php';
+
+Auth::requireAuth();
 ?>
 
 <!doctype html>
