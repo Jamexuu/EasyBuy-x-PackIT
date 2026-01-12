@@ -1,0 +1,105 @@
+EasyBuy Product Catalog
+
+=== PRODUCE ===
+1. Chinese Pechay - ₱56.50 (200g-250g, 225g weight) - SALE: 20% OFF - Stock: 50
+2. White Onion - ₱44.80 (350g-400g, 375g weight) - SALE: 20% OFF - Stock: 50
+3. Squash - ₱22.00 (400g-500g, 450g weight) - Stock: 50
+4. Tomato Native - ₱56.75 (350g-400g, 375g weight) - Stock: 50
+5. Broccoli - ₱126.08 (400g-500g, 450g weight) - Stock: 50
+6. Gala Apples - ₱230.00 (10pcs, 1500g weight) - Stock: 30
+7. Banana Saba - ₱105.00 (1000g-1500g, 1250g weight) - Stock: 50
+8. Watermelon - ₱186.00 (1000g-3000g, 2000g weight) - Stock: 30
+9. Mango Green Medium - ₱220.00 (900g-1000g, 950g weight) - Stock: 40
+10. Pomelo Premium - ₱347.00 (850g-1000g, 925g weight) - Stock: 30
+
+=== MEAT AND SEAFOOD ===
+11. Ground Beef - ₱100.50 (500g-550g, 525g weight) - SALE: 25% OFF - Stock: 40
+12. Osso Buco - ₱218.35 (500g-550g, 525g weight) - SALE: 25% OFF - Stock: 30
+13. Pork Steak - ₱156.00 (400g-500g, 450g weight) - Stock: 40
+14. Lechon Belly - ₱725.75 (1800g-2500g, 2150g weight) - Stock: 20
+15. Chicken Recado - ₱118.25 (500g, 500g weight) - Stock: 40
+16. Chicken Adobo Cut - ₱130.90 (500g-550g, 525g weight) - Stock: 40
+17. Yellow Fin Tuna Steak Cut - ₱450.00 (800g-1000g, 900g weight) - Stock: 25
+18. Pasayan Putian Large - ₱249.50 (480g-500g, 490g weight) - Stock: 30
+19. Salmon Belly - ₱208.50 (450g-550g, 500g weight) - Stock: 30
+20. Bangus Boneless - ₱190.00 (350g-500g, 425g weight) - Stock: 35
+
+=== DAIRY ===
+21. Selecta Milk - ₱206.00 (1L 2pcs, 2060g weight) - SALE: 20% OFF - Stock: 50
+22. Pizza Topping - ₱263.00 (175g, 175g weight) - SALE: 20% OFF - Stock: 40
+23. Cheddar Burger Slices - ₱189.00 (20pcs, 280g weight) - Stock: 50
+24. Salted Butter - ₱186.00 (200g, 200g weight) - Stock: 50
+25. Havarti Cheese - ₱240.00 (200g, 200g weight) - Stock: 40
+26. Cherry Yogurt - ₱140.00 (100g, 100g weight) - Stock: 60
+27. Cheesy Spread - ₱240.00 (500g, 500g weight) - Stock: 50
+28. Creamy Butter - ₱182.00 (200g, 200g weight) - Stock: 50
+29. Alaska Evaporated Milk - ₱61.00 (500ml, 515g weight) - Stock: 60
+30. Dairy Magic - ₱132.00 (225g, 225g weight) - Stock: 50
+
+=== FROZEN GOODS ===
+31. Purefoods Chicken Katsu - ₱220.00 (500g, 500g weight) - SALE: 20% OFF - Stock: 40
+32. CDO Fantastik Young Pork Tocino - ₱89.00 (225g, 225g weight) - SALE: 20% OFF - Stock: 50
+33. Veega Meat Adobo Flakes - ₱125.00 (160g, 160g weight) - Stock: 40
+34. Purefoods TJ Hotdog Cheese - ₱150.00 (500g, 500g weight) - Stock: 50
+35. Highlands Angus Beef Franks - ₱225.00 (500g, 500g weight) - Stock: 40
+36. CDO Ulam Burger Patties - ₱70.50 (225g, 225g weight) - Stock: 50
+37. Purefoods Crazy Cut Nuggets - ₱108.00 (200g, 200g weight) - Stock: 50
+38. Purefoods Honeycured Bacon Sliced - ₱700.00 (500g, 500g weight) - Stock: 30
+39. Sae Min Mushroom Enoky - ₱55.00 (200g, 200g weight) - Stock: 50
+40. Chopseuy Mix - ₱46.00 (400g-500g, 450g weight) - Stock: 50
+
+=== CONDIMENTS AND SAUCES ===
+41. UFC Banana Catsup - ₱67.00 (1kg, 1000g weight) - SALE: 15% OFF - Stock: 60
+42. Maggi Magic Sarap Seasoning - ₱77.50 (8g 16pcs, 128g weight) - SALE: 15% OFF - Stock: 70
+43. Silver Swan Soy Sauce - ₱56.00 (1L, 1050g weight) - Stock: 60
+44. Knorr Sinigang sa Sampalok Mix - ₱28.50 (44g, 44g weight) - Stock: 80
+45. Mama Sita's Oyster Sauce - ₱80.50 (405g, 405g weight) - Stock: 60
+46. Mang Tomas Lechon Sauce - Regular - ₱50.00 (550g, 550g weight) - Stock: 60
+47. Del Monte Tomato Ketchup - Original - ₱32.50 (320g, 320g weight) - Stock: 70
+48. Coco Mama Fresh Gata - ₱68.50 (400ml, 410g weight) - Stock: 50
+49. Del Monte Spaghetti Sauce Italian - ₱99.50 (1kg, 1000g weight) - Stock: 50
+50. Datu Puti Vinegar Pouch - ₱42.50 (1L, 1020g weight) - Stock: 70
+
+=== SNACKS ===
+51. SkyFlakes Crackers - ₱65.00 (10pcs, 100g weight) - SALE: 15% OFF - Stock: 80
+52. Oreo Strawberry - ₱85.00 (9pcs, 90g weight) - SALE: 15% OFF - Stock: 70
+53. Cheese Ring - ₱19.00 (60g, 60g weight) - Stock: 100
+54. Pillows Chocolate - ₱11.00 (38g, 38g weight) - Stock: 100
+55. Butter Coconut - ₱55.00 (14g, 14g weight) - Stock: 80
+56. Breadstick - ₱70.00 (10pcs, 100g weight) - Stock: 80
+57. Breadfan - ₱8.00 (24g, 24g weight) - Stock: 120
+58. Hello - ₱60.00 (10pcs, 100g weight) - Stock: 80
+59. Breadsticks - ₱69.00 (10pcs, 100g weight) - Stock: 80
+60. Nova - ₱20.00 (25g, 25g weight) - Stock: 100
+
+=== BEVERAGES ===
+61. Coca Cola Coke Zero - ₱68.50 (1.5L, 1575g weight) - SALE: 15% OFF - Stock: 60
+62. Rite N Lite Strawberry + Kiwi - ₱29.50 (250ml, 260g weight) - SALE: 15% OFF - Stock: 80
+63. San Mig Coffee 3-in-1 Sugar Free Original - ₱36.75 (90g, 90g weight) - Stock: 80
+64. Mogu Mogu Strawberry Juice - ₱45.00 (320ml, 335g weight) - Stock: 70
+65. Alfonso 1 Light Brand - ₱275.00 (700ml, 735g weight) - Stock: 40
+66. Red Horse Can - ₱323.50 (6pcs, 2100g weight) - Stock: 50
+67. Coca-Cola Coke - ₱65.95 (1.5L PET, 1575g weight) - Stock: 60
+68. Chuckie Chocolate Milk Drink - ₱31.50 (250ml, 260g weight) - Stock: 80
+69. Dutch Mill Strawberry - ₱81.50 (180ml 4pcs, 760g weight) - Stock: 60
+70. Dutch Mill Delight - ₱46.50 (400mL, 420g weight) - Stock: 70
+
+=== PERSONAL CARE ===
+71. Palmolive Shampoo Silky Straight - ₱40.00 (15ml 6pcs, 90g weight) - SALE: 15% OFF - Stock: 80
+72. Dove Shampoo Keratin Straight & Silky - ₱41.00 (13.5ml 6pcs, 81g weight) - SALE: 15% OFF - Stock: 80
+73. Bioderm Soap Coolness - ₱36.75 (90g, 90g weight) - Stock: 90
+74. Kojiesan Soap Skin Lightening Kojic Acid - ₱99.75 (65g 3pcs, 195g weight) - Stock: 70
+75. Modess Sanitary Napkin with Wings Cottony - ₱155.00 (29+3pcs, 400g weight) - Stock: 60
+76. Sisters Napkin Cotton Day With Wings - ₱22.00 (8pcs, 80g weight) - Stock: 90
+77. Femme Bathroom Tissue 2 ply - ₱109.75 (150pulls 12pcs, 1200g weight) - Stock: 70
+78. Ponds Facial Cream WB Pink Lightening - ₱176.75 (40g, 40g weight) - Stock: 60
+79. Belo Sunscreen Sun Expert Tinted SPF50 - ₱499.75 (50ml, 50g weight) - Stock: 40
+80. Ph Care Feminine Wash Floral Clean - ₱177.75 (250ml, 260g weight) - Stock: 60
+
+=== STORE INFORMATION ===
+- Total Products: 80
+- Categories: Produce, Meat and Seafood, Dairy, Frozen Goods, Condiments and Sauces, Snacks, Beverages, Personal Care
+- Currency: Philippine Peso (₱)
+- Shipping: Calculated based on weight (₱50 base fee shown in orders)
+- Payment Methods: Cash on Delivery (COD), PayPal
+- Location: Brgy. Altura Bata, Tanauan City, Batangas, Philippines
