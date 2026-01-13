@@ -8,6 +8,7 @@ if (!isset($_GET['order_id'])) {
 }
 
 $orderId = $_GET['order_id'];
+$orderNumber = str_pad($orderId, 8, '0', STR_PAD_LEFT);
 ?>
 <!doctype html>
 <html lang="en">
@@ -29,7 +30,7 @@ $orderId = $_GET['order_id'];
             <div class="col-12 text-center">
                 <p
                     style="color: #6c757d; font-size: 0.9rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2rem;">
-                    Order #<span id="orderNumber"><?php echo htmlspecialchars($orderId); ?></span>
+                    Order #<span id="orderNumber"><?php echo htmlspecialchars($orderNumber); ?></span>
                 </p>
             </div>
         </div>
@@ -50,7 +51,8 @@ $orderId = $_GET['order_id'];
         <div class="row justify-content-center mt-4">
             <div class="col-12 text-center">
                 <p style="color: #6c757d; font-size: 0.9rem;">
-                    Redirecting to home page in <span id="countdown">5</span> seconds...
+                    Redirecting to home page in <span id="countdown">5</span> seconds...<br>
+                    Or <a href="userOrders.php?tab=placed-orders" style="color: #6EC064; text-decoration: underline;">view your orders</a>
                 </p>
             </div>
         </div>

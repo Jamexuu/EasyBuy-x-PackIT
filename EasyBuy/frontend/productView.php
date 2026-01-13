@@ -181,22 +181,6 @@
         </div>
     </div>
 
-    <div id="buyingModal" class="modal fade" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content p-4 rounded-5 shadow text-center border-0"
-                style="width: 85%; max-width: 320px; margin: auto;">
-                <div class="h5 fw-bold mb-2">Successfully bought: </div>
-                <p class="mb-4"></p>
-                <div class="d-flex justify-content-center">
-                    <button type="button" class="btn px-4 text-white" style="background-color: #6EC064;"
-                        data-bs-dismiss="modal">
-                        OK
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div id="addToCartModal" class="modal fade" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-4 rounded-5 shadow text-center border-0"
@@ -234,7 +218,7 @@
             <div class="modal-content p-4 rounded-5 shadow text-center border-0"
                 style="width: 85%; max-width: 320px; margin: auto;">
                 <div class="h5 fw-bold mb-2">Login Required</div>
-                <p class="mb-4">Please log in to add items to your cart</p>
+                <p class="mb-4">Please log in to continue with your purchase</p>
                 <div class="d-flex justify-content-center gap-2">
                     <button type="button" class="btn px-4" style="background-color: #e8e8e8; color: #666;"
                         data-bs-dismiss="modal">
@@ -307,13 +291,53 @@
             return parseInt(qtyInput.value);
         }
 
-        function buyNow() {
-            const qty = document.getElementById('quantity').value;
-            const buyingModal = document.getElementById("buyingModal");
-            buyingModal.querySelector('.h5').textContent = 'Successfully bought:';
-            buyingModal.querySelector('p').textContent = `${currentProduct["Product Name"]} (Qty: ${qty})`;
-            const buyModal = new bootstrap.Modal(buyingModal);
-            buyModal.show();
+        async function buyNow() {
+            const qty = getQuantity();
+            const buyNowBtn = document.getElementById('buyNowBtn');
+            
+            buyNowBtn.disabled = true;
+            buyNowBtn.textContent = 'Processing...';
+            
+            try {
+                const response = await fetch('../api/createDirectCheckout.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        productId: productId,
+                        quantity: qty
+                    })
+                });
+
+                if (response.status === 401) {
+                    const loginModal = new bootstrap.Modal(document.getElementById("loginRequiredModal"));
+                    loginModal.show();
+                    buyNowBtn.disabled = false;
+                    buyNowBtn.textContent = 'Buy Now';
+                    return;
+                }
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    window.location.href = 'checkout.php';
+                } else {
+                    document.getElementById("addToCartErrorMessage").textContent = result.error || 'Failed to process request';
+                    const errorModal = new bootstrap.Modal(document.getElementById("addToCartErrorModal"));
+                    errorModal.show();
+                    buyNowBtn.disabled = false;
+                    buyNowBtn.textContent = 'Buy Now';
+                }
+                
+            } catch (error) {
+                console.error('Error in buyNow:', error);
+                document.getElementById("addToCartErrorMessage").textContent = "Failed to process your request. Please try again.";
+                const errorModal = new bootstrap.Modal(document.getElementById("addToCartErrorModal"));
+                errorModal.show();
+                buyNowBtn.disabled = false;
+                buyNowBtn.textContent = 'Buy Now';
+            }
         }
 
         function displaySimilarProducts() {
