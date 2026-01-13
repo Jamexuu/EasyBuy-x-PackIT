@@ -415,7 +415,21 @@ Auth::requireAuth();
             return checkedIds;
         }
 
-        function calculateSelectedTotal() {
+        async function getShippingFee(){
+
+            const packitIP = '';
+            const response = await fetch('../../PackIt/api/getFareRules.php', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+            return data.rules.same_region_amount;
+        }
+
+        async function calculateSelectedTotal() {
             const checkboxes = document.querySelectorAll('.cart-checkbox:checked');
             let subtotal = 0;
             
@@ -425,7 +439,7 @@ Auth::requireAuth();
                 subtotal += (price * quantity);
             });
             
-            const shipping = checkboxes.length > 0 ? 50 : 0; // based sa calculation nila cj
+            const shipping = checkboxes.length > 0 ? await getShippingFee() : 0;
             const total = subtotal + shipping;
             
             return {
@@ -436,9 +450,9 @@ Auth::requireAuth();
             };
         }
 
-        function updateTotals() {
+        async function updateTotals() {
             // Recalculate totals based on current quantities and selections
-            const totals = calculateSelectedTotal();
+            const totals = await calculateSelectedTotal();
             
             // Update display
             const subtotalEl = document.getElementById('selectedSubtotal');

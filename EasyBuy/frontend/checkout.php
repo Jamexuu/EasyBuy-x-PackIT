@@ -150,7 +150,7 @@ Auth::requireAuth();
                 }
                 
                 var totalAmount = 0;
-                var shippingFee = 50;
+                var shippingFee = await getShippingFee();
                 var totalWeight = 0;
                 var subTotal = 0;
 
@@ -236,6 +236,23 @@ Auth::requireAuth();
                 checkoutItems.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-danger">Error loading checkout items</td></tr>';
             }
 
+        }
+
+        async function getShippingFee() {
+            try {
+                const response = await fetch('../../PackIt/api/getFareRules.php', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                return data.rules.same_region_amount;
+            } catch (error) {
+                console.error('Error fetching shipping fee:', error);
+                return 50; // fallback to default
+            }
         }
 
         getUserCartItems();
