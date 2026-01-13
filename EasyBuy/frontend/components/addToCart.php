@@ -2,7 +2,7 @@
 <script>
     async function addToCart(productId, quantity = 1) {
         try {
-            const response = await fetch('../api/addToCart.php', {
+            const response = await fetch('/EasyBuy-x-PackIT/EasyBuy/api/addToCart.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -13,7 +13,8 @@
             })
         });
 
-       if (response.status === 401) {
+            if (response.status === 401) {
+                showMessage('info', 'Unauthorized', 'Please log in to add items to your cart.', 'OK');
                 return { requiresLogin: true };
             }
 

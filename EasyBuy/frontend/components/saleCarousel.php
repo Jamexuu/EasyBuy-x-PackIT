@@ -1,4 +1,9 @@
 <div class="container py-3 pt-4 p-2 p-lg-5">
+  <style>
+    .card-img-overlay {
+      pointer-events: none;
+    }
+  </style>
   <div class="row">
     <div class="col mb-4 d-flex justify-content-center justify-content-lg-start mt-4 p-0">
       <div class="h1 fw-bold ps-lg-3" style="color:#6EC064">
@@ -45,44 +50,62 @@
             product.image.split("/").pop();
 
             col.innerHTML = `
-                <div class="card h-100 rounded-4 shadow-sm" style="cursor:pointer;" onclick="window.location.href='frontend/productView.php?id=${product.id}'">
+              <div class="card h-100 rounded-4 shadow-sm" style="cursor:pointer;">
                 <div class="card-img-overlay"><span class="badge position-absolute me-3 end-0 fw-normal" style="background-color:#28a745;">${product.sale_percentage}% Off</span></div>
                 <img src="/EasyBuy-x-PackIT/EasyBuy/Product%20Images/all/${product.image.split('/').pop()}"
-                    class="card-img-top p-3" style="height:160px;object-fit:contain;"
-                    alt="${product.product_name}">
+                  class="card-img-top p-3" style="height:160px;object-fit:contain;"
+                  alt="${product.product_name}">
                 <div class="card-body text-center d-flex flex-column p-2 p-sm-3">
-                    <h6 class="card-title fw-bold"
-                    style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.4em;">
-                    ${product.product_name}
-                    </h6>
-                    <p class="card-title text-secondary"
-                    style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2em;">
-                    ${product.size}
+                  <h6 class="card-title fw-bold"
+                  style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.4em;">
+                  ${product.product_name}
+                  </h6>
+                  <p class="card-title text-secondary"
+                  style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2em;">
+                  ${product.size}
+                  </p>
+                  <div class="d-flex flex-row justify-content-center align-items-center gap-2 mb-2">
+                    <p class="card-text fw-bold text-success mb-0" style="font-size:1.1em;">
+                      ₱${product.sale_price}
                     </p>
-                    <div class="d-flex flex-row justify-content-center align-items-center gap-2 mb-2">
-                        <p class="card-text fw-bold text-success mb-0" style="font-size:1.1em;">
-                            ₱${product.sale_price}
-                        </p>
-                        <p class="card-text text-muted text-decoration-line-through mb-0" style="font-size:0.9em;">
-                            ₱${product.price}
-                        </p>
-                    </div>
-                    <div style="display:flex;gap:8px;width:100%;">
-                    <button type="button" class="btn rounded-3" id="addToCart"
-                        style="border:1px solid #6EC064;color:#6EC064;" onclick="event.stopPropagation(); addToCart(${product.id});">
-                        <span class="material-symbols-rounded">shopping_cart</span>
-                    </button>
-                    <button class="btn btn-sm rounded-3"
-                        style="flex:1;background-color:#6EC064;color:white;">
-                        BUY NOW
-                    </button>
-                    </div>
+                    <p class="card-text text-muted text-decoration-line-through mb-0" style="font-size:0.9em;">
+                      ₱${product.price}
+                    </p>
+                  </div>
+                  <div style="display:flex;gap:8px;width:100%;">
+                  <button type="button" class="btn rounded-3 add-to-cart-btn"
+                    style="border:1px solid #6EC064;color:#6EC064;">
+                    <span class="material-symbols-rounded">shopping_cart</span>
+                  </button>
+                  <button class="btn btn-sm rounded-3 buy-now-btn"
+                    style="flex:1;background-color:#6EC064;color:white;">
+                    BUY NOW
+                  </button>
+                  </div>
                 </div>
-                </div>
-
-                `;
-          row.appendChild(col);
-        });
+              </div>
+              `;
+            // Add event listeners after DOM creation
+            const card = col.querySelector('.card');
+            const addToCartBtn = col.querySelector('.add-to-cart-btn');
+            const buyNowBtn = col.querySelector('.buy-now-btn');
+            card.addEventListener('click', function(e) {
+              if (
+                !e.target.closest('.add-to-cart-btn') &&
+                !e.target.closest('.buy-now-btn')
+              ) {
+                window.location.href = 'frontend/productView.php?id=' + product.id;
+              }
+            });
+            addToCartBtn.addEventListener('click', function(e) {
+              e.stopPropagation();
+              addToCart(product.id);
+            });
+            buyNowBtn.addEventListener('click', function(e) {
+              e.stopPropagation();
+            });
+            row.appendChild(col);
+          });
         carouselItem.appendChild(row);
         carouselInner.appendChild(carouselItem);
         slideIndex++;
