@@ -238,6 +238,9 @@ Auth::requireAuth();
                 };
 
                 submitOrder(data, subTotal, shippingFee, totalWeight, totalAmount);
+                submitDataForInvoice(orderData);
+
+
                 // Wait for PayPal SDK to be available before initializing buttons
                 if (typeof paypal !== 'undefined' && paypal.Buttons) {
                     initPaypalButtons(totalAmount);
@@ -351,6 +354,33 @@ Auth::requireAuth();
             }
         });
 
+        async function submitDataForInvoice(orderData){
+            try{
+                const userRes = await fetch('../api/getUserDetails.php');
+                const userData = await userRes.json();
+                const email = userData.email;
+
+                const response = await fetch('../api/sendEmailInvoice.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: email,
+                        name: userData.first_name + ' ' + userData.last_name,
+                        checkout_items: orderData.items,
+                        subtotal: orderData.subtotal,
+                        shipping_fee: orderData.shippingFee,
+                        total_weight: orderData.totalWeight,
+                        total_amount: orderData.totalAmount
+                    })
+                });
+
+                const result = await response.json();
+                return result;
+            } catch(error){
+                console.error('Error submitting data for invoice:', error);
+            }
+        }
+
         function togglePaymentUI() {
             var paymentMethod = getPaymentMethod();
             var placeOrderBtn = document.getElementById('placeOrder');
@@ -421,7 +451,7 @@ Auth::requireAuth();
                     })
                     .then(result => {
                         if (result.success) {
-                            window.location.href = 'orderConfirmation.php?orderId=' + result.order_id;
+                            window.location.href = 'orderConfirmation.php?order_id=' + result.order_id;
                         } else {
                             alert('Error saving order: ' + result.error);
                         }

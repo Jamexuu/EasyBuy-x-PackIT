@@ -8,6 +8,7 @@ class Mailer{
     private $mail;
     public function __construct(){
         $this->mail = new PHPMailer(true);
+        $this->mail->CharSet = 'UTF-8';
         $this->mail->SMTPDebug = SMTP::DEBUG_SERVER;
         $this->mail->isSMTP();
         $this->mail->SMTPAuth = true;
@@ -57,5 +58,10 @@ class Mailer{
     public function setInReplyTo($messageId) {
         $this->mail->addCustomHeader('In-Reply-To', $messageId);
         $this->mail->addCustomHeader('References', $messageId);
+    }
+
+    public function isHTML($isHtml = true) {
+        $this->mail->isHTML($isHtml);
+        return $this;
     }
 }
