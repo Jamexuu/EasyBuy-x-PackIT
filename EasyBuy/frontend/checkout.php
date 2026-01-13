@@ -25,21 +25,7 @@ Auth::requireAuth();
     <?php include 'components/navbar.php'; ?>
 
     <div class="container-fluid mb-5">
-        <div class="row mb-3 mb-md-0">
-            <div class="col p-3 px-md-5 py-md-4 bg-secondary-subtle border-2"
-                style="border-bottom-style: dashed; border-color: #6EC064;">
-                <div v class="d-flex align-items-center gap-2">
-                    <span class="material-symbols-outlined">
-                        distance
-                    </span>
-                    <div class="h6 fw-bold mb-0">Denmar Redondo</div>
-                    <div class="h6 mb-0">+639098765432</div>
-                </div>
-                <p class="fw-normal mt-3 p-0">
-                    1234 Sample St., Barangay Example, City Test, Country Demo
-                </p>
-            </div>
-        </div>
+        <div class="row mb-3 mb-md-0" id="userAddress"></div>
 
         <div class="container mt-5">
             <div class="row mb-3 mb-md-0">
@@ -129,6 +115,56 @@ Auth::requireAuth();
         var placeOrderSection = document.getElementById('placeOrderSection');
         var orderData = null;
         var paypalButtonsRendered = false;
+        var userAddress = document.getElementById('userAddress');
+
+        async function getUserAddress(){
+
+            try{
+
+                const response = await fetch('../api/getuserDetails.php', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                });
+
+                const data = await response.json();
+
+                const addressFields = [
+                    data.house_number,
+                    data.street,
+                    data.lot ? `Lot ${data.lot}` : '',
+                    data.block ? `Block ${data.block}` : '',
+                    data.barangay,
+                    data.city,
+                    data.province
+                ];
+
+                const address = addressFields.filter(Boolean).join(', ');
+
+                userAddress.innerHTML = `
+                    <div class="col p-3 px-md-5 py-md-4 bg-secondary-subtle border-2"
+                        style="border-bottom-style: dashed; border-color: #6EC064;">
+                        <div v class="d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined">
+                                distance
+                            </span>
+                            <div class="h6 fw-bold mb-0">${data.first_name} ${data.last_name}</div>
+                            <div class="h6 mb-0">${data.contact_number}</div>
+                        </div>
+                        <p class="fw-normal mt-3 p-0">
+                            ${address}
+                        </p>
+                    </div>
+                `;
+
+            } catch(error){
+                console.error('Error fetching user address:', error);
+            }       
+        }
+
+        getUserAddress();
 
         async function getUserCartItems(){
 
