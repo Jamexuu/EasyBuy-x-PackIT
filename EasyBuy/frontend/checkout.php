@@ -262,7 +262,8 @@ Auth::requireAuth();
         async function getShippingFee() {
             try {
                 const packitIP = "<?php echo $packitIP; ?>";
-                const response = await fetch(`http://${packitIP}/EasyBuy-x-PackIT/PackIT/api/getFareRules.php`, {
+                packiURL = packitIP.trim() !== '' ? `http://${packitIP}/EasyBuy-x-PackIT/PackIT/api/getFareRules.php` : '../../PackIt/api/getFareRules.php';
+                const response = await fetch(packiURL, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json'
