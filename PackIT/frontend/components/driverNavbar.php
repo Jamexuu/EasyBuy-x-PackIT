@@ -22,9 +22,26 @@ $profileUrl = "driverProfile.php";
     .bg-brand { background-color: var(--brand-yellow) !important; }
     .navbar-pill { border-radius: 50px; max-width: 95%; }
     .nav-link { color: var(--brand-dark) !important; font-weight: 800; text-transform: uppercase; font-size: 0.85rem; }
-    .driver-name-link { font-weight: 800; text-transform: uppercase; font-size: 0.85rem; color: var(--brand-dark) !important; text-decoration: none; }
-    /* keep the name readable on small screens */
-    .driver-name-container { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+    
+    .driver-name-link { 
+        font-weight: 800; 
+        text-transform: uppercase; 
+        font-size: 0.85rem; 
+        color: var(--brand-dark) !important; 
+        text-decoration: none;
+    }
+
+    /* Prevents the name from breaking the layout on very small screens */
+    .driver-name-wrapper {
+        max-width: 120px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    @media (min-width: 992px) {
+        .driver-name-wrapper { max-width: 200px; }
+    }
 </style>
 
 <div class="container">
@@ -34,28 +51,28 @@ $profileUrl = "driverProfile.php";
                 <img src="/EasyBuy-x-PackIT/PackIT/assets/LOGO.svg" alt="PackIT" height="40" class="object-fit-contain">
             </a>
 
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#driverNavbar">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+            <div class="d-flex align-items-center order-lg-3 ms-auto">
+                <div class="driver-name-wrapper me-2 me-lg-0">
+                    <?php if ($driverName): ?>
+                        <a class="driver-name-link" href="<?php echo htmlspecialchars($profileUrl); ?>">
+                            <?php echo htmlspecialchars($driverName); ?>
+                        </a>
+                    <?php else: ?>
+                        <a class="driver-name-link" href="<?php echo htmlspecialchars($profileUrl); ?>">Profile</a>
+                    <?php endif; ?>
+                </div>
 
-            <div class="collapse navbar-collapse justify-content-center" id="driverNavbar">
-                <ul class="navbar-nav gap-lg-4">
+                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#driverNavbar">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            </div>
+
+            <div class="collapse navbar-collapse justify-content-center order-lg-2" id="driverNavbar">
+                <ul class="navbar-nav gap-lg-4 text-center mt-3 mt-lg-0">
                     <li class="nav-item"><a class="nav-link" href="<?php echo htmlspecialchars($homeUrl); ?>">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="<?php echo htmlspecialchars($bookingsUrl); ?>">Bookings</a></li>
                     <li class="nav-item"><a class="nav-link" href="<?php echo htmlspecialchars($transactionsUrl); ?>">Transactions</a></li>
-                    <!-- Keep 'Profile' out of the center menu since the name will be placed at the end side -->
                 </ul>
-            </div>
-
-            <!-- Driver name at the right end. If logged in show name (links to profile). Otherwise show 'Profile' link. -->
-            <div class="d-flex align-items-center driver-name-container ms-3">
-                <?php if ($driverName): ?>
-                    <a class="driver-name-link" href="<?php echo htmlspecialchars($profileUrl); ?>">
-                        <?php echo htmlspecialchars($driverName); ?>
-                    </a>
-                <?php else: ?>
-                    <a class="nav-link driver-name-link" href="<?php echo htmlspecialchars($profileUrl); ?>">Profile</a>
-                <?php endif; ?>
             </div>
         </div>
     </nav>
