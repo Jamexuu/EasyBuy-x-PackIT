@@ -217,7 +217,19 @@ Auth::requireAuth();
                 };
 
                 submitOrder(data, subTotal, shippingFee, totalWeight, totalAmount);
-                initPaypalButtons(totalAmount);
+                // Wait for PayPal SDK to be available before initializing buttons
+                if (typeof paypal !== 'undefined' && paypal.Buttons) {
+                    initPaypalButtons(totalAmount);
+                } else {
+                    var checkPaypal = setInterval(function() {
+                        if (typeof paypal !== 'undefined' && paypal.Buttons) {
+                            clearInterval(checkPaypal);
+                            initPaypalButtons(totalAmount);
+                        }
+                    }, 100);
+                    // Stop checking after 10 seconds to avoid infinite polling
+                    setTimeout(function() { clearInterval(checkPaypal); }, 10000);
+                }
 
             }catch(error){
                 console.error('Error fetching cart items:', error);
@@ -323,6 +335,11 @@ Auth::requireAuth();
         function initPaypalButtons(amount) {
             if (paypalButtonsRendered) return;
 
+            if (typeof paypal === 'undefined' || !paypal.Buttons) {
+                console.error('PayPal SDK not loaded yet');
+                return;
+            }
+
             var amountUSD = (amount / 58).toFixed(2);
 
             paypal.Buttons({
@@ -361,7 +378,6 @@ Auth::requireAuth();
                     .then(captureData => {
                         if (!captureData.success) throw new Error('Payment capture failed');
                         
-                        // Now save the order to database with transaction ID
                         return saveOrderWithPaypal(captureData.transactionId);
                     })
                     .then(result => {
