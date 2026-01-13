@@ -109,12 +109,10 @@
                                     <div class="h3 mb-3" style="color: #6EC064;">Address</div>
                                 </div>
                                 <div class="card-text">
-                                    <p>House No : `+ data.house_number +`</p>
-                                    <p>Barangay: `+ data.barangay +`</p>
-                                    <p>Province: `+ data.province +`</p>
-                                    <p>Street: `+ data.street +`</p>
-                                    <p>City: `+ data.city +`</p>
-                                    <p>Postal Code: `+ data.postal_code +`</p>
+                                    <p>
+                                        `+ data.house_number +` `+ data.street +`, `+ data.barangay +`,
+                                        `+ data.city +`, `+ data.province +` `+ data.postal_code +`
+                                    </p>
                                 </div>
                             </div>
                         </div>
