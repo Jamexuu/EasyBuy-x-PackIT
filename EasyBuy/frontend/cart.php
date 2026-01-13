@@ -1,5 +1,8 @@
 <?php 
 require_once '../api/classes/Auth.php';
+require_once '../api/config.php';
+
+$packitIP = $_ENV['PACKIT_IP'] ?? '';
 
 Auth::requireAuth();
 ?>
@@ -417,8 +420,8 @@ Auth::requireAuth();
 
         async function getShippingFee(){
 
-            const packitIP = '';
-            const response = await fetch('../../PackIt/api/getFareRules.php', {
+            const packitIP = "<?php echo $packitIP; ?>";
+            const response = await fetch(`http://${packitIP}/EasyBuy-x-PackIT/PackIT/api/getFareRules.php`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
