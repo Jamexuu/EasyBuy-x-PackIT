@@ -71,7 +71,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['flash_success'] = 'Vehicle added to your profile.';
             }
         }
-
         header('Location: driverProfile.php');
         exit;
     }
@@ -107,7 +106,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
             $_SESSION['flash_success'] = 'Current vehicle updated.';
         }
-
         header('Location: driverProfile.php');
         exit;
     }
@@ -172,8 +170,6 @@ $email = $driver['email'] ?? '';
 $contact = $driver['contact_number'] ?? '';
 
 $activeVehicleId = isset($driver['active_vehicle_id']) ? (int)$driver['active_vehicle_id'] : 0;
-$driverVehicleTypeLegacy = trim((string)($driver['vehicle_type'] ?? ''));
-$driverLicensePlateLegacy = trim((string)($driver['license_plate'] ?? ''));
 
 /* Catalog */
 $stmt = $db->executeQuery("SELECT id, name FROM vehicles ORDER BY name ASC");
@@ -189,47 +185,6 @@ $stmt = $db->executeQuery(
     [$driverId]
 );
 $ownedVehicles = $db->fetch($stmt);
-
-/* AUTO-SYNC legacy */
-if ($activeVehicleId <= 0 && $driverVehicleTypeLegacy !== '') {
-    $stmtV = $db->executeQuery("SELECT id FROM vehicles WHERE name = ? LIMIT 1", [$driverVehicleTypeLegacy]);
-    $vRows = $db->fetch($stmtV);
-
-    if (!empty($vRows)) {
-        $vehicleId = (int)$vRows[0]['id'];
-
-        $stmtChk = $db->executeQuery(
-            "SELECT id FROM driver_vehicles WHERE driver_id = ? AND vehicle_id = ? LIMIT 1",
-            [$driverId, $vehicleId]
-        );
-        $chk = $db->fetch($stmtChk);
-
-        if (empty($chk)) {
-            $db->executeQuery(
-                "INSERT INTO driver_vehicles (driver_id, vehicle_id, license_plate)
-                 VALUES (?, ?, ?)",
-                [$driverId, $vehicleId, ($driverLicensePlateLegacy !== '' ? $driverLicensePlateLegacy : null)]
-            );
-        }
-
-        $db->executeQuery(
-            "UPDATE drivers SET active_vehicle_id = ?, vehicle_type = ? WHERE id = ?",
-            [$vehicleId, $driverVehicleTypeLegacy, $driverId]
-        );
-
-        $activeVehicleId = $vehicleId;
-
-        $stmt = $db->executeQuery(
-            "SELECT dv.id AS dv_id, dv.vehicle_id, v.name AS vehicle_name, dv.license_plate
-             FROM driver_vehicles dv
-             JOIN vehicles v ON dv.vehicle_id = v.id
-             WHERE dv.driver_id = ?
-             ORDER BY v.name",
-            [$driverId]
-        );
-        $ownedVehicles = $db->fetch($stmt);
-    }
-}
 
 $hasActiveAssignment = driver_has_active_booking($db, $driverId);
 
@@ -255,7 +210,7 @@ if ($activeVehicleId > 0 && !empty($ownedVehicles)) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
     <style>
-        :root { --brand-yellow:#fce354; }
+        :root { --brand-yellow: #fce354; --brand-dark: #212529; }
 
         body {
             background:#fff;
@@ -312,6 +267,22 @@ if ($activeVehicleId > 0 && !empty($ownedVehicles)) {
             border-bottom:1px solid #f1f1f1;
         }
         .vehicle-row:last-child { border-bottom:none; }
+
+        /* Custom Logout Button Style */
+        .btn-brand-logout {
+            background-color: var(--brand-yellow);
+            color: var(--brand-dark);
+            font-weight: 700;
+            border: none;
+            padding: 12px;
+            border-radius: 15px;
+            transition: all 0.2s ease;
+        }
+        .btn-brand-logout:hover {
+            background-color: #f0d52d; /* Slightly darker shade for hover */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 
@@ -328,7 +299,6 @@ if ($activeVehicleId > 0 && !empty($ownedVehicles)) {
 
     <div class="row g-5 align-items-center">
 
-        <!-- LEFT -->
         <div class="col-lg-4">
             <div class="profile-card shadow-sm">
                 <div class="profile-img-container shadow-sm">
@@ -356,18 +326,15 @@ if ($activeVehicleId > 0 && !empty($ownedVehicles)) {
             </div>
         </div>
 
-        <!-- RIGHT -->
         <div class="col-lg-8">
             <div class="menu-outline">
 
-                <!-- 1) Vehicles -->
                 <a class="menu-link" data-bs-toggle="collapse" href="#vehiclesSection" role="button" aria-expanded="false">
                     Vehicles <span class="icon">▾</span>
                 </a>
                 <div class="collapse" id="vehiclesSection">
                     <div class="pt-2">
 
-                        <!-- Change current vehicle -->
                         <div class="mb-4">
                             <div class="small fw-bold mb-2">Change current vehicle</div>
 
@@ -400,7 +367,6 @@ if ($activeVehicleId > 0 && !empty($ownedVehicles)) {
 
                         <hr>
 
-                        <!-- Your vehicles -->
                         <div class="mt-2">
                             <div class="small fw-bold mb-2">Your Vehicles</div>
 
@@ -442,7 +408,6 @@ if ($activeVehicleId > 0 && !empty($ownedVehicles)) {
                     </div>
                 </div>
 
-                <!-- 2) Register another vehicle (direct form on open) -->
                 <a class="menu-link mt-3" data-bs-toggle="collapse" href="#registerVehicleSection" role="button" aria-expanded="false">
                     Register another vehicle <span class="icon">▾</span>
                 </a>
@@ -471,19 +436,24 @@ if ($activeVehicleId > 0 && !empty($ownedVehicles)) {
                     </div>
                 </div>
 
-                <!-- 3) Account & Security -->
                 <a class="menu-link mt-3" data-bs-toggle="collapse" href="#account" role="button" aria-expanded="false">
                     Account & Security <span class="icon">▾</span>
                 </a>
                 <div class="collapse" id="account">
                     <div class="pt-2">
-                        <form method="post" class="m-0">
-                            <input type="hidden" name="csrf_token" value="<?php echo h($_SESSION['csrf_token']); ?>">
-                            <input type="hidden" name="action" value="logout">
-                            <button type="submit" class="btn btn-warning w-100 mt-2">Logout</button>
-                        </form>
+                       <p class="small text-muted mb-0">
+                           Manage your password and security settings via the main settings panel (Coming Soon).
+                       </p>
                     </div>
                 </div>
+
+                <form method="post" class="mt-5">
+                    <input type="hidden" name="csrf_token" value="<?php echo h($_SESSION['csrf_token']); ?>">
+                    <input type="hidden" name="action" value="logout">
+                    <button type="submit" class="btn btn-brand-logout w-100 d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </button>
+                </form>
 
             </div>
         </div>
