@@ -505,8 +505,46 @@ function fmtDims($l, $w, $h): string {
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
-
+                    <div class="mt-5">
+                        <h4 class="fw-bold mb-4" style="color: var(--secondary-teal);">
+                            <span class="material-symbols-outlined align-middle me-2">shopping_bag</span>
+                            EasyBuy Orders
+                        </h4>
+                        <div class="list-scroll" id="easybuyOrdersContainer">
+                            <div class="empty-state-container">
+                                <div class="spinner-border text-warning" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-3 mb-0">Loading EasyBuy orders...</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Accept Order Confirmation Modal -->
+<div class="modal fade" id="acceptOrderModal" tabindex="-1" aria-labelledby="acceptOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="acceptOrderModalLabel">Accept EasyBuy Order</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center py-3">
+                    <div class="mb-3">
+                        <i class="bi bi-bag-check" style="font-size: 3rem; color: var(--secondary-teal);"></i>
+                    </div>
+                    <h6 class="fw-bold mb-2">Accept Order #<span id="modalOrderId"></span>?</h6>
+                    <p class="text-muted mb-0">You're about to accept this EasyBuy order. The order will be moved to your active bookings.</p>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning fw-bold" id="confirmAcceptBtn">Accept Order</button>
             </div>
         </div>
     </div>
@@ -515,7 +553,271 @@ function fmtDims($l, $w, $h): string {
 <?php include __DIR__ . "/../frontend/components/driverFooter.php"; ?>
 
 <script>
+async function fetchEasyBuyOrders() {
+    const container = document.getElementById('easybuyOrdersContainer');
+
+    const easybuyIP = '';
+    
+    try {
+        const responseOrders = await fetch('../../EasyBuy/api/getAllOrders.php', {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: { 'Accept': 'application/json' }
+        });
+
+        if (!responseOrders.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const orders = await responseOrders.json();
+
+        // Filter out accepted orders and cancelled orders
+        const excludedStatuses = ['picked up', 'in transit', 'order arrived', 'cancelled', 'canceled'];
+        const pendingOrders = orders.filter(order => {
+            const status = (order.status || '').toLowerCase();
+            return !excludedStatuses.includes(status);
+        });
+
+        if (!pendingOrders || pendingOrders.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state-container">
+                    <img src="../assets/box.png" alt="No orders" class="empty-state-img">
+                    <h5 class="fw-bold text-dark">No EasyBuy Orders</h5>
+                    <p class="mb-0">There are no orders available at the moment.</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = '';
+
+        pendingOrders.forEach((order, index) => {
+            const orderId = order.orderID || 'N/A';
+            const collapseId = 'easybuy_' + orderId;
+            const customerName = (order.firstName || '') + ' ' + (order.lastName || '');
+            const totalAmount = parseFloat(order.totalAmount || 0).toFixed(2);
+            const status = order.status || 'pending';
+            const paymentMethod = order.paymentMethod || 'N/A';
+            const createdAt = order.orderDate || 'N/A';
+            
+            // Get shipping address from address object
+            const addr = order.address || {};
+            const shippingAddress = [
+                addr.houseNumber,
+                addr.street,
+                addr.lot,
+                addr.block,
+                addr.barangay,
+                addr.city,
+                addr.province
+            ].filter(Boolean).join(', ') || 'N/A';
+
+            // Count items
+            const itemCount = order.items ? order.items.length : 0;
+            
+            // Build items HTML
+            let itemsHTML = '';
+            if (order.items && order.items.length > 0) {
+                itemsHTML = order.items.map(item => `
+                    <div class="kv">
+                        <div class="k">${item.quantity}x ${item.product_name || 'Product'}</div>
+                        <div class="v">₱${parseFloat(item.product_price || 0).toFixed(2)}</div>
+                    </div>
+                `).join('');
+            } else {
+                itemsHTML = '<div class="text-muted small">No items</div>';
+            }
+
+            const orderCard = `
+                <div class="order-card-item p-4 mb-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-2 text-center mb-3 mb-md-0">
+                            <div class="bg-white rounded p-3 d-inline-block shadow-sm">
+                                <img src="../assets/box.png" alt="Package" style="width: 40px; height: 40px;">
+                            </div>
+                        </div>
+
+                        <div class="col-md-7 mb-3 mb-md-0">
+                            <div class="mb-2 d-flex flex-wrap gap-2">
+                                <span class="status-badge-gray">${status.toUpperCase()} • ID ${orderId}</span>
+                                <span class="status-badge-gray">ITEMS: ${itemCount}</span>
+                                <span class="status-badge-gray">EASYBUY</span>
+                            </div>
+
+                            <h6 class="fw-bold mb-1 text-dark">
+                                ${customerName || 'Customer'}
+                            </h6>
+
+                            <div class="small text-muted">
+                                <strong>Delivery to:</strong> ${shippingAddress}
+                            </div>
+
+                            <div class="mt-2 small">
+                                <button class="btn-link-lite" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#${collapseId}" aria-expanded="false" 
+                                        aria-controls="${collapseId}">
+                                    Show details
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3 text-md-end text-start">
+                            <div class="fw-bold text-warning small text-uppercase" style="letter-spacing: 1px;">
+                                ₱ ${totalAmount}
+                            </div>
+                            <div class="small text-muted mt-1">
+                                Payment: ${paymentMethod}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Collapsible details -->
+                    <div class="collapse mt-3" id="${collapseId}">
+                        <div class="bg-white rounded-3 p-3 border">
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6">
+                                    <div class="fw-bold small mb-2">Order Items</div>
+                                    ${itemsHTML}
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <div class="fw-bold small mb-2">Contact & Delivery</div>
+                                    <div class="kv">
+                                        <div class="k">Email</div>
+                                        <div class="v">${order.userEmail || 'N/A'}</div>
+                                    </div>
+                                    <div class="kv">
+                                        <div class="k">Phone</div>
+                                        <div class="v">${order.contactNumber || 'N/A'}</div>
+                                    </div>
+                                    <div class="kv">
+                                        <div class="k">Address</div>
+                                        <div class="v">${shippingAddress}</div>
+                                    </div>
+
+                                    <div class="fw-bold small mt-3 mb-2">Order Info</div>
+                                    <div class="kv">
+                                        <div class="k">Payment</div>
+                                        <div class="v">${paymentMethod}</div>
+                                    </div>
+                                    <div class="kv">
+                                        <div class="k">Created</div>
+                                        <div class="v">${createdAt}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-3 text-muted opacity-25">
+
+                    <div class="row align-items-center">
+                        <div class="col-md-6 text-muted small">
+                            Tip: Review details before accepting.
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <button class="btn btn-warning fw-bold px-4 shadow-sm text-uppercase" 
+                                    onclick="acceptEasyBuyOrder(${orderId})">
+                                ACCEPT ORDER
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML += orderCard;
+        });
+
+    } catch (err) {
+        console.error('Error fetching EasyBuy orders:', err);
+        container.innerHTML = `
+            <div class="empty-state-container">
+                <img src="../assets/box.png" alt="Error" class="empty-state-img">
+                <h5 class="fw-bold text-dark">Failed to load EasyBuy orders</h5>
+                <p class="mb-0">Please try again later.</p>
+            </div>
+        `;
+    }
+}
+
+let currentOrderId = null;
+let currentAcceptButton = null;
+
+function acceptEasyBuyOrder(orderId) {
+    currentOrderId = orderId;
+    currentAcceptButton = event.target;
+    
+    // Update modal with order ID
+    document.getElementById('modalOrderId').textContent = orderId;
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('acceptOrderModal'));
+    modal.show();
+}
+
+async function confirmAcceptOrder() {
+    if (!currentOrderId || !currentAcceptButton) return;
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('acceptOrderModal'));
+    const confirmBtn = document.getElementById('confirmAcceptBtn');
+    
+    // Disable button and show loading
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Accepting...';
+    currentAcceptButton.disabled = true;
+    currentAcceptButton.textContent = 'ACCEPTING...';
+
+    try {
+        const response = await fetch('../../EasyBuy/api/updateOrderStatusByDriver.php', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                orderId: currentOrderId,
+                driverId: <?= $driverId ?>,
+                newStatus: 'picked up'
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            // Close modal and redirect
+            modal.hide();
+            window.location.href = 'driverBookings.php';
+        } else {
+            console.error('Failed to accept order:', result.error);
+            modal.hide();
+            alert('Failed to accept order: ' + (result.error || 'Unknown error'));
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = 'Accept Order';
+            currentAcceptButton.disabled = false;
+            currentAcceptButton.textContent = 'ACCEPT ORDER';
+        }
+    } catch (err) {
+        console.error('Error accepting order:', err);
+        modal.hide();
+        alert('Error accepting order. Please try again.');
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Accept Order';
+        currentAcceptButton.disabled = false;
+        currentAcceptButton.textContent = 'ACCEPT ORDER';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
+    // Fetch EasyBuy orders on page load
+    fetchEasyBuyOrders();
+    
+    // Setup modal confirm button
+    const confirmBtn = document.getElementById('confirmAcceptBtn');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', confirmAcceptOrder);
+    }
+    
     const onlineSwitch = document.getElementById('onlineSwitch');
     if (!onlineSwitch) return;
 
@@ -545,7 +847,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (err) {
             alert('Network error. Please try again.');
             this.checked = !this.checked;
-        } finally {
+        } finally { 
             this.disabled = false;
         }
     });
