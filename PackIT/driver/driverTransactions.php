@@ -83,6 +83,57 @@ foreach ($transactions as $t) {
 foreach ($easybuyTransactions as $t) {
   $totalRevenue += (float)($t['totalAmount'] ?? 0);
 }
+
+/* ----------------------------
+   Combine & paginate transactions
+   ---------------------------- */
+// Normalize both lists into a single list with unified keys for sorting & paging
+$allTransactions = [];
+
+// Bookings
+foreach ($transactions as $b) {
+    $dt = $b['updated_at'] ?? $b['created_at'] ?? null;
+    $timestamp = $dt ? strtotime($dt) : 0;
+    $allTransactions[] = [
+        'type' => 'booking',
+        'id' => (int)($b['id'] ?? 0),
+        'ts' => $timestamp,
+        'created_at' => $dt,
+        'data' => $b,
+    ];
+}
+
+// EasyBuy orders
+foreach ($easybuyTransactions as $order) {
+    // orderDate or orderDateTime fields may differ; try multiple
+    $dt = $order['orderDate'] ?? $order['order_date'] ?? null;
+    $timestamp = $dt ? strtotime($dt) : 0;
+    $allTransactions[] = [
+        'type' => 'easybuy',
+        'id' => $order['orderID'] ?? ($order['id'] ?? 0),
+        'ts' => $timestamp,
+        'created_at' => $dt,
+        'data' => $order,
+    ];
+}
+
+// Sort by timestamp desc (most recent first)
+usort($allTransactions, function($a, $b) {
+    return $b['ts'] <=> $a['ts'];
+});
+
+// Pagination settings
+$perPage = 5;
+$totalItems = count($allTransactions);
+$totalPages = max(1, (int)ceil($totalItems / $perPage));
+$page = max(1, (int)($_GET['page'] ?? 1));
+if ($page > $totalPages) $page = $totalPages;
+$offset = ($page - 1) * $perPage;
+$pagedTransactions = array_slice($allTransactions, $offset, $perPage);
+
+// For display counts
+$showingFrom = $totalItems === 0 ? 0 : ($offset + 1);
+$showingTo = min($totalItems, $offset + count($pagedTransactions));
 ?>
 <!doctype html>
 <html lang="en">
@@ -169,6 +220,15 @@ foreach ($easybuyTransactions as $t) {
       text-decoration: none;
     }
     .btn-link-lite:hover { text-decoration: underline; }
+
+    /* Pagination controls */
+    .txn-pagination {
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:8px;
+      padding: 12px 0 18px;
+    }
   </style>
 </head>
 <body>
@@ -215,118 +275,119 @@ foreach ($easybuyTransactions as $t) {
             </div>
           </div>
 
-          <?php if (empty($transactions) && empty($easybuyTransactions)): ?>
+          <?php if ($totalItems === 0): ?>
             <div class="text-center py-5 text-muted">
               <img src="../assets/box.png" alt="No transactions" style="width: 140px; opacity: .85" class="mb-3">
               <h5 class="fw-bold text-dark mb-1">No Transactions Yet</h5>
               <div>You don’t have any delivered bookings yet.</div>
             </div>
           <?php else: ?>
-            <div class="list-scroll">
-              <?php foreach ($transactions as $b): ?>
-                <?php
-                  $id = (int)($b['id'] ?? 0);
-                  $collapseId = "txn_details_" . $id;
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div class="small text-muted">
+                Showing <?= $showingFrom ?>–<?= $showingTo ?> of <?= $totalItems ?>
+              </div>
+              <div>
+                <small class="text-muted">Page <?= $page ?> / <?= $totalPages ?></small>
+              </div>
+            </div>
 
+            <div class="list-scroll">
+              <?php foreach ($pagedTransactions as $entry): ?>
+                <?php if ($entry['type'] === 'booking'): 
+                  $b = $entry['data'];
+                  $id = (int)($b['id'] ?? 0);
+                  $collapseId = "txn_booking_" . $id;
                   $pickupFull = fmtAddrRow($b, 'pickup');
                   $dropFull = fmtAddrRow($b, 'drop');
-
                   $customerName = trim(($b['user_first_name'] ?? '') . ' ' . ($b['user_last_name'] ?? ''));
                   $qty = (int)($b['package_quantity'] ?? 1);
                   $deliveredAt = (string)($b['updated_at'] ?? $b['created_at'] ?? '');
-
                   $pkgDesc = (string)($b['package_desc'] ?? '');
                   $pkgType = (string)($b['package_type'] ?? '');
                 ?>
-
-                <!-- Compact row -->
-                <div class="txn-card mb-3">
-                  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
-                    <div>
-                      <div class="d-flex flex-wrap gap-2 align-items-center mb-1">
-                        <span class="status-badge-gray">DELIVERED</span>
-                        <span class="status-badge-gray">BOOKING #<?= $id ?></span>
-                        <span class="status-badge-gray">VEHICLE: <?= h($b['vehicle_type'] ?? '—') ?></span>
-                      </div>
-
-                      <div class="fw-bold text-dark">
-                        <?= h($customerName ?: '—') ?>
-                        <?php if (!empty($b['user_contact_number'])): ?>
-                          <span class="text-muted fw-normal">• <?= h($b['user_contact_number']) ?></span>
-                        <?php endif; ?>
-                      </div>
-
-                      <div class="text-muted small">
-                        <?= h($pickupFull ?: '—') ?> → <?= h($dropFull ?: '—') ?>
-                      </div>
-                    </div>
-
-                    <div class="text-md-end">
-                      <div class="fw-bold text-warning">₱ <?= h(money($b['total_amount'] ?? 0)) ?></div>
-                      <div class="text-muted small">Delivered: <?= h($deliveredAt ?: '—') ?></div>
-                      <button class="btn-link-lite mt-1" type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#<?= h($collapseId) ?>"
-                        aria-expanded="false"
-                        aria-controls="<?= h($collapseId) ?>">
-                        View details
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- Collapsible details -->
-                  <div class="collapse mt-3" id="<?= h($collapseId) ?>">
-                    <div class="bg-white border rounded-3 p-3">
-                      <div class="row g-3">
-
-                        <div class="col-12 col-md-6">
-                          <div class="fw-bold mb-2"><i class="bi bi-geo-alt me-1"></i> Pickup</div>
-                          <div class="text-muted small mb-2"><?= h($pickupFull ?: '—') ?></div>
-                          <div class="kv"><div class="k">Pickup Contact</div><div class="v"><?= h(($b['pickup_contact_name'] ?? '—') . ' • ' . ($b['pickup_contact_number'] ?? '—')) ?></div></div>
+                  <div class="txn-card mb-3">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+                      <div>
+                        <div class="d-flex flex-wrap gap-2 align-items-center mb-1">
+                          <span class="status-badge-gray">DELIVERED</span>
+                          <span class="status-badge-gray">BOOKING #<?= $id ?></span>
+                          <span class="status-badge-gray">VEHICLE: <?= h($b['vehicle_type'] ?? '—') ?></span>
                         </div>
 
-                        <div class="col-12 col-md-6">
-                          <div class="fw-bold mb-2"><i class="bi bi-flag me-1"></i> Drop-off</div>
-                          <div class="text-muted small mb-2"><?= h($dropFull ?: '—') ?></div>
-                          <div class="kv"><div class="k">Recipient</div><div class="v"><?= h(($b['drop_contact_name'] ?? '—') . ' • ' . ($b['drop_contact_number'] ?? '—')) ?></div></div>
+                        <div class="fw-bold text-dark">
+                          <?= h($customerName ?: '—') ?>
+                          <?php if (!empty($b['user_contact_number'])): ?>
+                            <span class="text-muted fw-normal">• <?= h($b['user_contact_number']) ?></span>
+                          <?php endif; ?>
                         </div>
 
-                        <div class="col-12">
-                          <div class="fw-bold mb-2"><i class="bi bi-box-seam me-1"></i> Package</div>
-                          <div class="kv"><div class="k">Quantity</div><div class="v"><?= (int)$qty ?></div></div>
-                          <div class="kv"><div class="k">Description</div><div class="v"><?= h($pkgDesc !== '' ? $pkgDesc : '—') ?></div></div>
-                          <div class="kv"><div class="k">Type</div><div class="v"><?= h($pkgType !== '' ? $pkgType : '—') ?></div></div>
+                        <div class="text-muted small">
+                          <?= h($pickupFull ?: '—') ?> → <?= h($dropFull ?: '—') ?>
                         </div>
-
-                        <div class="col-12">
-                          <div class="fw-bold mb-2"><i class="bi bi-receipt me-1"></i> Fare & Payment</div>
-                          <div class="kv"><div class="k">Base</div><div class="v">₱ <?= h(money($b['base_amount'] ?? 0)) ?></div></div>
-                          <div class="kv"><div class="k">Distance</div><div class="v">₱ <?= h(money($b['distance_amount'] ?? 0)) ?></div></div>
-                          <div class="kv"><div class="k">Total</div><div class="v text-warning">₱ <?= h(money($b['total_amount'] ?? 0)) ?></div></div>
-                          <div class="kv"><div class="k">Payment</div><div class="v"><?= h(($b['payment_status'] ?? '—') . ' / ' . ($b['payment_method'] ?? '—')) ?></div></div>
-                          <div class="kv"><div class="k">Created</div><div class="v"><?= h($b['created_at'] ?? '—') ?></div></div>
-                        </div>
-
                       </div>
 
-                      <div class="mt-3 text-end">
-                        <button class="btn btn-sm btn-outline-secondary" type="button"
+                      <div class="text-md-end">
+                        <div class="fw-bold text-warning">₱ <?= h(money($b['total_amount'] ?? 0)) ?></div>
+                        <div class="text-muted small">Delivered: <?= h($deliveredAt ?: '—') ?></div>
+                        <button class="btn-link-lite mt-1" type="button"
                           data-bs-toggle="collapse"
                           data-bs-target="#<?= h($collapseId) ?>"
-                          aria-expanded="true"
+                          aria-expanded="false"
                           aria-controls="<?= h($collapseId) ?>">
-                          Hide details
+                          View details
                         </button>
                       </div>
                     </div>
+
+                    <div class="collapse mt-3" id="<?= h($collapseId) ?>">
+                      <div class="bg-white border rounded-3 p-3">
+                        <div class="row g-3">
+
+                          <div class="col-12 col-md-6">
+                            <div class="fw-bold mb-2"><i class="bi bi-geo-alt me-1"></i> Pickup</div>
+                            <div class="text-muted small mb-2"><?= h($pickupFull ?: '—') ?></div>
+                            <div class="kv"><div class="k">Pickup Contact</div><div class="v"><?= h(($b['pickup_contact_name'] ?? '—') . ' • ' . ($b['pickup_contact_number'] ?? '—')) ?></div></div>
+                          </div>
+
+                          <div class="col-12 col-md-6">
+                            <div class="fw-bold mb-2"><i class="bi bi-flag me-1"></i> Drop-off</div>
+                            <div class="text-muted small mb-2"><?= h($dropFull ?: '—') ?></div>
+                            <div class="kv"><div class="k">Recipient</div><div class="v"><?= h(($b['drop_contact_name'] ?? '—') . ' • ' . ($b['drop_contact_number'] ?? '—')) ?></div></div>
+                          </div>
+
+                          <div class="col-12">
+                            <div class="fw-bold mb-2"><i class="bi bi-box-seam me-1"></i> Package</div>
+                            <div class="kv"><div class="k">Quantity</div><div class="v"><?= (int)$qty ?></div></div>
+                            <div class="kv"><div class="k">Description</div><div class="v"><?= h($pkgDesc !== '' ? $pkgDesc : '—') ?></div></div>
+                            <div class="kv"><div class="k">Type</div><div class="v"><?= h($pkgType !== '' ? $pkgType : '—') ?></div></div>
+                          </div>
+
+                          <div class="col-12">
+                            <div class="fw-bold mb-2"><i class="bi bi-receipt me-1"></i> Fare & Payment</div>
+                            <div class="kv"><div class="k">Base</div><div class="v">₱ <?= h(money($b['base_amount'] ?? 0)) ?></div></div>
+                            <div class="kv"><div class="k">Distance</div><div class="v">₱ <?= h(money($b['distance_amount'] ?? 0)) ?></div></div>
+                            <div class="kv"><div class="k">Total</div><div class="v text-warning">₱ <?= h(money($b['total_amount'] ?? 0)) ?></div></div>
+                            <div class="kv"><div class="k">Payment</div><div class="v"><?= h(($b['payment_status'] ?? '—') . ' / ' . ($b['payment_method'] ?? '—')) ?></div></div>
+                            <div class="kv"><div class="k">Created</div><div class="v"><?= h($b['created_at'] ?? '—') ?></div></div>
+                          </div>
+
+                        </div>
+
+                        <div class="mt-3 text-end">
+                          <button class="btn btn-sm btn-outline-secondary" type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#<?= h($collapseId) ?>"
+                            aria-expanded="true"
+                            aria-controls="<?= h($collapseId) ?>">
+                            Hide details
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
                   </div>
-
-                </div>
-              <?php endforeach; ?>
-
-              <!-- EasyBuy Transactions -->
-              <?php foreach ($easybuyTransactions as $order): ?>
-                <?php
+                <?php elseif ($entry['type'] === 'easybuy'):
+                  $order = $entry['data'];
                   $orderId = $order['orderID'] ?? 0;
                   $collapseId = "easybuy_txn_" . $orderId;
                   $customerName = ($order['firstName'] ?? '') . ' ' . ($order['lastName'] ?? '');
@@ -345,92 +406,112 @@ foreach ($easybuyTransactions as $t) {
                   
                   $itemCount = is_array($order['items'] ?? null) ? count($order['items']) : 0;
                 ?>
+                  <div class="txn-card mb-3">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+                      <div>
+                        <div class="d-flex flex-wrap gap-2 align-items-center mb-1">
+                          <span class="status-badge-gray">DELIVERED</span>
+                          <span class="status-badge-gray">EASYBUY #<?= h($orderId) ?></span>
+                          <span class="status-badge-gray">ITEMS: <?= h($itemCount) ?></span>
+                        </div>
 
-                <!-- Compact row -->
-                <div class="txn-card mb-3">
-                  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
-                    <div>
-                      <div class="d-flex flex-wrap gap-2 align-items-center mb-1">
-                        <span class="status-badge-gray">DELIVERED</span>
-                        <span class="status-badge-gray">EASYBUY #<?= $orderId ?></span>
-                        <span class="status-badge-gray">ITEMS: <?= $itemCount ?></span>
-                      </div>
-
-                      <div class="fw-bold text-dark">
-                        <?= h($customerName ?: '—') ?>
-                        <?php if (!empty($order['contactNumber'])): ?>
-                          <span class="text-muted fw-normal">• <?= h($order['contactNumber']) ?></span>
-                        <?php endif; ?>
-                      </div>
-
-                      <div class="text-muted small">
-                        Delivered to: <?= h($deliveryAddress ?: '—') ?>
-                      </div>
-                    </div>
-
-                    <div class="text-md-end">
-                      <div class="fw-bold text-warning">₱ <?= h(money($totalAmount)) ?></div>
-                      <div class="text-muted small">Delivered: <?= h($deliveredAt ?: '—') ?></div>
-                      <button class="btn-link-lite mt-1" type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#<?= h($collapseId) ?>"
-                        aria-expanded="false"
-                        aria-controls="<?= h($collapseId) ?>">
-                        View details
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- Collapsible details -->
-                  <div class="collapse mt-3" id="<?= h($collapseId) ?>">
-                    <div class="bg-white border rounded-3 p-3">
-                      <div class="row g-3">
-
-                        <div class="col-12">
-                          <div class="fw-bold mb-2"><i class="bi bi-bag-check me-1"></i> Order Items</div>
-                          <?php if (!empty($order['items'])): ?>
-                            <?php foreach ($order['items'] as $item): ?>
-                              <div class="kv">
-                                <div class="k"><?= (int)($item['quantity'] ?? 1) ?>x <?= h($item['product_name'] ?? 'Product') ?></div>
-                                <div class="v">₱ <?= h(money($item['product_price'] ?? 0)) ?></div>
-                              </div>
-                            <?php endforeach; ?>
-                          <?php else: ?>
-                            <div class="text-muted small">No items</div>
+                        <div class="fw-bold text-dark">
+                          <?= h($customerName ?: '—') ?>
+                          <?php if (!empty($order['contactNumber'])): ?>
+                            <span class="text-muted fw-normal">• <?= h($order['contactNumber']) ?></span>
                           <?php endif; ?>
                         </div>
 
-                        <div class="col-12">
-                          <div class="fw-bold mb-2"><i class="bi bi-geo-alt me-1"></i> Delivery Address</div>
-                          <div class="kv"><div class="k">Address</div><div class="v"><?= h($deliveryAddress ?: '—') ?></div></div>
-                          <div class="kv"><div class="k">Contact</div><div class="v"><?= h($order['contactNumber'] ?? '—') ?></div></div>
-                          <div class="kv"><div class="k">Email</div><div class="v"><?= h($order['userEmail'] ?? '—') ?></div></div>
+                        <div class="text-muted small">
+                          Delivered to: <?= h($deliveryAddress ?: '—') ?>
                         </div>
-
-                        <div class="col-12">
-                          <div class="fw-bold mb-2"><i class="bi bi-receipt me-1"></i> Payment</div>
-                          <div class="kv"><div class="k">Total</div><div class="v text-warning">₱ <?= h(money($totalAmount)) ?></div></div>
-                          <div class="kv"><div class="k">Method</div><div class="v"><?= h($order['paymentMethod'] ?? '—') ?></div></div>
-                          <div class="kv"><div class="k">Order Date</div><div class="v"><?= h($deliveredAt ?: '—') ?></div></div>
-                        </div>
-
                       </div>
 
-                      <div class="mt-3 text-end">
-                        <button class="btn btn-sm btn-outline-secondary" type="button"
+                      <div class="text-md-end">
+                        <div class="fw-bold text-warning">₱ <?= h(money($totalAmount)) ?></div>
+                        <div class="text-muted small">Delivered: <?= h($deliveredAt ?: '—') ?></div>
+                        <button class="btn-link-lite mt-1" type="button"
                           data-bs-toggle="collapse"
                           data-bs-target="#<?= h($collapseId) ?>"
-                          aria-expanded="true"
+                          aria-expanded="false"
                           aria-controls="<?= h($collapseId) ?>">
-                          Hide details
+                          View details
                         </button>
                       </div>
                     </div>
-                  </div>
 
-                </div>
+                    <div class="collapse mt-3" id="<?= h($collapseId) ?>">
+                      <div class="bg-white border rounded-3 p-3">
+                        <div class="row g-3">
+
+                          <div class="col-12">
+                            <div class="fw-bold mb-2"><i class="bi bi-bag-check me-1"></i> Order Items</div>
+                            <?php if (!empty($order['items'])): ?>
+                              <?php foreach ($order['items'] as $item): ?>
+                                <div class="kv">
+                                  <div class="k"><?= (int)($item['quantity'] ?? 1) ?>x <?= h($item['product_name'] ?? 'Product') ?></div>
+                                  <div class="v">₱ <?= h(money($item['product_price'] ?? 0)) ?></div>
+                                </div>
+                              <?php endforeach; ?>
+                            <?php else: ?>
+                              <div class="text-muted small">No items</div>
+                            <?php endif; ?>
+                          </div>
+
+                          <div class="col-12">
+                            <div class="fw-bold mb-2"><i class="bi bi-geo-alt me-1"></i> Delivery Address</div>
+                            <div class="kv"><div class="k">Address</div><div class="v"><?= h($deliveryAddress ?: '—') ?></div></div>
+                            <div class="kv"><div class="k">Contact</div><div class="v"><?= h($order['contactNumber'] ?? '—') ?></div></div>
+                            <div class="kv"><div class="k">Email</div><div class="v"><?= h($order['userEmail'] ?? '—') ?></div></div>
+                          </div>
+
+                          <div class="col-12">
+                            <div class="fw-bold mb-2"><i class="bi bi-receipt me-1"></i> Payment</div>
+                            <div class="kv"><div class="k">Total</div><div class="v text-warning">₱ <?= h(money($totalAmount)) ?></div></div>
+                            <div class="kv"><div class="k">Method</div><div class="v"><?= h($order['paymentMethod'] ?? '—') ?></div></div>
+                            <div class="kv"><div class="k">Order Date</div><div class="v"><?= h($deliveredAt ?: '—') ?></div></div>
+                          </div>
+
+                        </div>
+
+                        <div class="mt-3 text-end">
+                          <button class="btn btn-sm btn-outline-secondary" type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#<?= h($collapseId) ?>"
+                            aria-expanded="true"
+                            aria-controls="<?= h($collapseId) ?>">
+                            Hide details
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                <?php endif; ?>
               <?php endforeach; ?>
             </div>
+
+            <!-- Pagination controls -->
+            <?php if ($totalPages > 1): ?>
+              <div class="txn-pagination">
+                <form method="get" style="display:inline;">
+                  <input type="hidden" name="page" value="<?= max(1, $page - 1) ?>">
+                  <button class="btn btn-outline-secondary btn-sm" type="submit" <?= $page <= 1 ? 'disabled' : '' ?>>
+                    &larr; Back
+                  </button>
+                </form>
+
+                <div class="small text-muted">Page <?= $page ?> of <?= $totalPages ?></div>
+
+                <form method="get" style="display:inline;">
+                  <input type="hidden" name="page" value="<?= min($totalPages, $page + 1) ?>">
+                  <button class="btn btn-outline-secondary btn-sm" type="submit" <?= $page >= $totalPages ? 'disabled' : '' ?>>
+                    Next &rarr;
+                  </button>
+                </form>
+              </div>
+            <?php endif; ?>
+
           <?php endif; ?>
 
         </div>
