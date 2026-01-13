@@ -201,7 +201,7 @@
             <form id="pocChatForm" onsubmit="return false;">
               <div class="d-flex gap-2 align-items-center">
                 <textarea id="pocChatInput" class="form-control form-control-sm" placeholder="Type a message..." aria-label="Message" style="resize: none; height: 42px; font-size: 0.95rem;"></textarea>
-                <button id="pocSendBtn" class="btn btn-primary btn-sm rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" type="button">
+                <button id="pocSendBtn" class="btn btn-warning btn-sm rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" type="button">
                   <i class="bi bi-send-fill"></i>
                 </button>
               </div>
