@@ -134,18 +134,36 @@ Auth::requireAuth();
 
             try{    
 
-                const response = await fetch('../api/getCheckoutItems.php', {
+                const directCheckoutResponse = await fetch('../api/getDirectCheckoutItems.php', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json'
                     }
                 });
 
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                let data = [];
+                
+                if (directCheckoutResponse.ok) {
+                    const directData = await directCheckoutResponse.json();
+                    if (directData && directData.length > 0) {
+                        data = directData;
+                    }
                 }
 
-                const data = await response.json();
+                if (data.length === 0) {
+                    const response = await fetch('../api/getCheckoutItems.php', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+
+                    data = await response.json();
+                }
                 
                 if (!data || data.length === 0) {
                     checkoutItems.innerHTML = '<tr><td colspan="3" class="text-center py-4">No items to checkout</td></tr>';
@@ -314,7 +332,6 @@ Auth::requireAuth();
             return paymentMethod;
         }
 
-        // Handle payment method change
         document.addEventListener('DOMContentLoaded', function() {
             var codRadio = document.getElementById('cashOnDelivery');
             var paypalRadio = document.getElementById('paypal');

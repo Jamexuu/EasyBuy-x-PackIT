@@ -30,12 +30,17 @@ class Order{
                 VALUES (?, ?, ?, ?, ?)";
         
         foreach ($cartItems as $item) {
-            $params = [$orderId, $item['product_id'], $item['product_name'], $item['price'], $item['quantity']];
+            $productId = $item['product_id'];
+            $productName = $item['product_name'];
+            $productPrice = isset($item['final_price']) ? $item['final_price'] : $item['price'];
+            $itemQuantity = $item['quantity'];
+            
+            $params = [$orderId, $productId, $productName, $productPrice, $itemQuantity];
             $this->db->executeQuery($query, $params);
             
             // bawas stock for each product
             $updateStockQuery = "UPDATE products SET stocks = stocks - ? WHERE id = ?";
-            $stockParams = [$item['quantity'], $item['product_id']];
+            $stockParams = [$itemQuantity, $productId];
             $this->db->executeQuery($updateStockQuery, $stockParams);
         }
     
@@ -132,7 +137,7 @@ class Order{
             $this->db->executeQuery($restoreStockQuery, [$item['quantity'], $item['product_id']]);
         }
         
-        $query = "UPDATE orders SET status = 'cancelled', payment_status = 'cancelled' WHERE id = ? AND user_id = ?";        $this->db->executeQuery($query, [$orderId, $userId]);
+        $query = "UPDATE orders SET status = 'cancelled', payment_status = 'cancelled' WHERE id = ? AND user_id = ?";
         $this->db->executeQuery($query, [$orderId, $userId]);
         
         return true;
