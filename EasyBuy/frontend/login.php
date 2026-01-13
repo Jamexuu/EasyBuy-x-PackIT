@@ -36,7 +36,7 @@
         </div>
     </div>
 
-    <div class="container">
+    <div class="container mb-3">
         <div class="row justify-content-center">
             <div class="col-12 col-md-8 col-xl-6">
                 <!--Modal error message-->
@@ -66,9 +66,8 @@
                         <input type="password" id="Password" placeholder="Password" name="Password"
                             class="form-control p-2">
                     </div>
-                    <div class="form-check mb-3 ms-1">
-                        <input class="form-check-input" type="checkbox" id="rememberMe" name="rememberMe">
-                        <label class="form-check-label small text-muted" for="rememberMe">Remember me</label>
+                    <div class="small mb-3">
+                        <a href="enterEmailForgotPassword.php" style="color: #6EC064" class="text-decoration-none">Forgot Password?</a>
                     </div>
 
                     <div class="d-flex justify-content-center">
