@@ -242,7 +242,7 @@ if ($trackId > 0) {
                                             <div class="d-block d-md-none mb-1">
                                                 <span class="small fw-bold text-secondary text-uppercase"><?= h((string)$log['date']) ?></span>
                                             </div>
-                                            <h6 class="fw-bold mb-1" style="color: #0f2027;"><?= h((string)$log['title']) ?></h6>
+                                               <h6 class="fw-bold mb-1" style="color: #0f2027;"><?= h((string)$log['title']) ?></h6>
                                             <?php if (!empty($log['desc'])): ?>
                                                 <small class="text-muted"><?= h((string)$log['desc']) ?></small>
                                             <?php endif; ?>
