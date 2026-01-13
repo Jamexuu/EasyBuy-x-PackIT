@@ -347,7 +347,7 @@ $activePageTitle = prettyTitle($activePage);
                 </div>
                 <div class="modal-footer border-top-0 pt-0">
                     <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4">Send Reply</button>
+                    <button type="submit" class="btn btn-warning rounded-pill px-4">Send Reply</button>
                 </div>
             </form>
         </div>
