@@ -42,11 +42,46 @@ $stmt = $db->executeQuery(
 );
 $transactions = $db->fetch($stmt);
 
+/* Fetch completed EasyBuy orders */
+$easybuyTransactions = [];
+try {
+    $easybuyApiUrl = 'http://localhost/EasyBuy-x-PackIT/EasyBuy/api/getAllOrders.php';
+    
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'timeout' => 5,
+            'ignore_errors' => true
+        ]
+    ]);
+    
+    $response = @file_get_contents($easybuyApiUrl, false, $context);
+    
+    if ($response !== false) {
+        $allEasybuyOrders = json_decode($response, true);
+        
+        if (is_array($allEasybuyOrders)) {
+            // Filter only completed orders with status "order arrived"
+            foreach ($allEasybuyOrders as $order) {
+                $status = strtolower($order['status'] ?? '');
+                if ($status === 'order arrived') {
+                    $easybuyTransactions[] = $order;
+                }
+            }
+        }
+    }
+} catch (Exception $e) {
+    error_log('Failed to fetch EasyBuy transactions: ' . $e->getMessage());
+}
+
 /* Summary totals */
-$totalTrips = count($transactions);
+$totalTrips = count($transactions) + count($easybuyTransactions);
 $totalRevenue = 0.0;
 foreach ($transactions as $t) {
   $totalRevenue += (float)($t['total_amount'] ?? 0);
+}
+foreach ($easybuyTransactions as $t) {
+  $totalRevenue += (float)($t['totalAmount'] ?? 0);
 }
 ?>
 <!doctype html>
@@ -180,7 +215,7 @@ foreach ($transactions as $t) {
             </div>
           </div>
 
-          <?php if (empty($transactions)): ?>
+          <?php if (empty($transactions) && empty($easybuyTransactions)): ?>
             <div class="text-center py-5 text-muted">
               <img src="../assets/box.png" alt="No transactions" style="width: 140px; opacity: .85" class="mb-3">
               <h5 class="fw-bold text-dark mb-1">No Transactions Yet</h5>
@@ -270,6 +305,113 @@ foreach ($transactions as $t) {
                           <div class="kv"><div class="k">Total</div><div class="v text-warning">₱ <?= h(money($b['total_amount'] ?? 0)) ?></div></div>
                           <div class="kv"><div class="k">Payment</div><div class="v"><?= h(($b['payment_status'] ?? '—') . ' / ' . ($b['payment_method'] ?? '—')) ?></div></div>
                           <div class="kv"><div class="k">Created</div><div class="v"><?= h($b['created_at'] ?? '—') ?></div></div>
+                        </div>
+
+                      </div>
+
+                      <div class="mt-3 text-end">
+                        <button class="btn btn-sm btn-outline-secondary" type="button"
+                          data-bs-toggle="collapse"
+                          data-bs-target="#<?= h($collapseId) ?>"
+                          aria-expanded="true"
+                          aria-controls="<?= h($collapseId) ?>">
+                          Hide details
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              <?php endforeach; ?>
+
+              <!-- EasyBuy Transactions -->
+              <?php foreach ($easybuyTransactions as $order): ?>
+                <?php
+                  $orderId = $order['orderID'] ?? 0;
+                  $collapseId = "easybuy_txn_" . $orderId;
+                  $customerName = ($order['firstName'] ?? '') . ' ' . ($order['lastName'] ?? '');
+                  $status = $order['status'] ?? 'order arrived';
+                  $totalAmount = $order['totalAmount'] ?? 0;
+                  $deliveredAt = $order['orderDate'] ?? '';
+                  
+                  $addr = $order['address'] ?? [];
+                  $deliveryAddress = implode(', ', array_filter([
+                      $addr['houseNumber'] ?? null,
+                      $addr['street'] ?? null,
+                      $addr['barangay'] ?? null,
+                      $addr['city'] ?? null,
+                      $addr['province'] ?? null,
+                  ]));
+                  
+                  $itemCount = is_array($order['items'] ?? null) ? count($order['items']) : 0;
+                ?>
+
+                <!-- Compact row -->
+                <div class="txn-card mb-3">
+                  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+                    <div>
+                      <div class="d-flex flex-wrap gap-2 align-items-center mb-1">
+                        <span class="status-badge-gray">DELIVERED</span>
+                        <span class="status-badge-gray">EASYBUY #<?= $orderId ?></span>
+                        <span class="status-badge-gray">ITEMS: <?= $itemCount ?></span>
+                      </div>
+
+                      <div class="fw-bold text-dark">
+                        <?= h($customerName ?: '—') ?>
+                        <?php if (!empty($order['contactNumber'])): ?>
+                          <span class="text-muted fw-normal">• <?= h($order['contactNumber']) ?></span>
+                        <?php endif; ?>
+                      </div>
+
+                      <div class="text-muted small">
+                        Delivered to: <?= h($deliveryAddress ?: '—') ?>
+                      </div>
+                    </div>
+
+                    <div class="text-md-end">
+                      <div class="fw-bold text-warning">₱ <?= h(money($totalAmount)) ?></div>
+                      <div class="text-muted small">Delivered: <?= h($deliveredAt ?: '—') ?></div>
+                      <button class="btn-link-lite mt-1" type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#<?= h($collapseId) ?>"
+                        aria-expanded="false"
+                        aria-controls="<?= h($collapseId) ?>">
+                        View details
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Collapsible details -->
+                  <div class="collapse mt-3" id="<?= h($collapseId) ?>">
+                    <div class="bg-white border rounded-3 p-3">
+                      <div class="row g-3">
+
+                        <div class="col-12">
+                          <div class="fw-bold mb-2"><i class="bi bi-bag-check me-1"></i> Order Items</div>
+                          <?php if (!empty($order['items'])): ?>
+                            <?php foreach ($order['items'] as $item): ?>
+                              <div class="kv">
+                                <div class="k"><?= (int)($item['quantity'] ?? 1) ?>x <?= h($item['product_name'] ?? 'Product') ?></div>
+                                <div class="v">₱ <?= h(money($item['product_price'] ?? 0)) ?></div>
+                              </div>
+                            <?php endforeach; ?>
+                          <?php else: ?>
+                            <div class="text-muted small">No items</div>
+                          <?php endif; ?>
+                        </div>
+
+                        <div class="col-12">
+                          <div class="fw-bold mb-2"><i class="bi bi-geo-alt me-1"></i> Delivery Address</div>
+                          <div class="kv"><div class="k">Address</div><div class="v"><?= h($deliveryAddress ?: '—') ?></div></div>
+                          <div class="kv"><div class="k">Contact</div><div class="v"><?= h($order['contactNumber'] ?? '—') ?></div></div>
+                          <div class="kv"><div class="k">Email</div><div class="v"><?= h($order['userEmail'] ?? '—') ?></div></div>
+                        </div>
+
+                        <div class="col-12">
+                          <div class="fw-bold mb-2"><i class="bi bi-receipt me-1"></i> Payment</div>
+                          <div class="kv"><div class="k">Total</div><div class="v text-warning">₱ <?= h(money($totalAmount)) ?></div></div>
+                          <div class="kv"><div class="k">Method</div><div class="v"><?= h($order['paymentMethod'] ?? '—') ?></div></div>
+                          <div class="kv"><div class="k">Order Date</div><div class="v"><?= h($deliveredAt ?: '—') ?></div></div>
                         </div>
 
                       </div>

@@ -30,6 +30,15 @@ function next_button_label($status) {
     };
 }
 
+function next_easybuy_button_label($status) {
+    $statusLower = strtolower($status);
+    return match ($statusLower) {
+        'picked up' => 'Mark In Transit',
+        'in transit' => 'Mark Delivered',
+        default => null,
+    };
+}
+
 function h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 function money($n): string { return number_format((float)$n, 2); }
 function status_label(string $status): string { return strtoupper(str_replace('_', ' ', $status)); }
@@ -220,6 +229,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    /* Advance EasyBuy order status */
+    if ($action === 'advance_easybuy') {
+        $orderId = (int)($_POST['order_id'] ?? 0);
+        $currentStatus = $_POST['current_status'] ?? '';
+
+        if ($orderId > 0) {
+            $nextMap = [
+                'picked up'     => 'in transit',
+                'in transit'    => 'order arrived',
+            ];
+
+            $next = $nextMap[strtolower($currentStatus)] ?? null;
+
+            if ($next) {
+                // Call driver-specific EasyBuy API to update status
+                $updateUrl = 'http://localhost/EasyBuy-x-PackIT/EasyBuy/api/updateOrderStatusByDriver.php';
+                
+                $postData = json_encode([
+                    'orderId' => $orderId,
+                    'driverId' => $driverId,
+                    'newStatus' => $next
+                ]);
+
+                $context = stream_context_create([
+                    'http' => [
+                        'method' => 'POST',
+                        'header' => 'Content-Type: application/json',
+                        'content' => $postData,
+                        'timeout' => 5,
+                        'ignore_errors' => true
+                    ]
+                ]);
+
+                $response = @file_get_contents($updateUrl, false, $context);
+                $result = json_decode($response, true);
+
+                if ($response !== false && isset($result['success']) && $result['success']) {
+                    $_SESSION['flash_success'] = 'EasyBuy order status updated to ' . $next . '.';
+                    
+                    if ($next === 'order arrived') {
+                        header('Location: driver.php');
+                        exit;
+                    }
+                } else {
+                    $errorMsg = $result['error'] ?? 'Failed to update EasyBuy order status.';
+                    $_SESSION['flash_error'] = $errorMsg;
+                }
+            } else {
+                $_SESSION['flash_error'] = 'Cannot advance status from "' . h($currentStatus) . '".';
+            }
+        }
+    }
+
     header('Location: driverBookings.php');
     exit;
 }
@@ -243,6 +305,40 @@ $stmtMine = $db->executeQuery(
     [$driverId]
 );
 $myBookings = $db->fetch($stmtMine);
+
+$easybuyOrders = [];
+try {
+
+    $easybuyIP = '';
+    $easybuyApiUrl = 'http://localhost/EasyBuy-x-PackIT/EasyBuy/api/getAllOrders.php';
+    
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'timeout' => 5,
+            'ignore_errors' => true
+        ]
+    ]);
+    
+    $response = @file_get_contents($easybuyApiUrl, false, $context);
+    
+    if ($response !== false) {
+        $allEasybuyOrders = json_decode($response, true);
+        
+        if (is_array($allEasybuyOrders)) {
+            // Filter only active orders (exclude completed "order arrived")
+            foreach ($allEasybuyOrders as $order) {
+                $status = strtolower($order['status'] ?? '');
+                if (in_array($status, ['picked up', 'in transit'])) {
+                    $easybuyOrders[] = $order;
+                }
+            }
+        }
+    }
+} catch (Exception $e) {
+    // Silently fail if EasyBuy API is not available
+    error_log('Failed to fetch EasyBuy orders: ' . $e->getMessage());
+}
 ?>
 <!doctype html>
 <html lang="en">
@@ -359,7 +455,7 @@ $myBookings = $db->fetch($stmtMine);
                         <?php unset($_SESSION['flash_error']); ?>
                     <?php endif; ?>
 
-                    <?php if (empty($myBookings)): ?>
+                    <?php if (empty($myBookings) && empty($easybuyOrders)): ?>
                         <div class="empty-state-container">
                             <img src="../assets/box.png" alt="No bookings" class="empty-state-img">
                             <h4 class="fw-bold text-dark">No Active Booking</h4>
@@ -367,6 +463,7 @@ $myBookings = $db->fetch($stmtMine);
                         </div>
                     <?php else: ?>
                         <div class="list-scroll">
+                            <!-- PackIT Bookings -->
                             <?php foreach ($myBookings as $b):
                                 $status = (string)($b['tracking_status'] ?? '');
                                 $btnLabel = next_button_label($status);
@@ -535,6 +632,94 @@ $myBookings = $db->fetch($stmtMine);
                                             </div>
                                         </div>
 
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+
+                            <!-- EasyBuy Orders -->
+                            <?php foreach ($easybuyOrders as $order): 
+                                $orderId = $order['orderID'] ?? 0;
+                                $customerName = ($order['firstName'] ?? '') . ' ' . ($order['lastName'] ?? '');
+                                $status = $order['status'] ?? 'pending';
+                                $btnLabel = next_easybuy_button_label($status);
+                                
+                                $addr = $order['address'] ?? [];
+                                $deliveryAddress = implode(', ', array_filter([
+                                    $addr['houseNumber'] ?? null,
+                                    $addr['street'] ?? null,
+                                    $addr['barangay'] ?? null,
+                                    $addr['city'] ?? null,
+                                    $addr['province'] ?? null,
+                                ]));
+                            ?>
+                                <div class="detail-card mb-4">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div>
+                                            <h5 class="fw-bold mb-1" style="color: var(--secondary-teal);">
+                                                <i class="bi bi-bag-check me-2"></i>
+                                                EasyBuy Order #<?= h($orderId) ?>
+                                            </h5>
+                                            <span class="status-badge-gray"><?= h(strtoupper($status)) ?></span>
+                                            <span class="status-badge-gray">EASYBUY</span>
+                                        </div>
+                                        <div class="fw-bold text-warning" style="font-size: 1.1rem;">
+                                            ₱<?= h(number_format((float)($order['totalAmount'] ?? 0), 2)) ?>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <div class="fw-bold small mb-2">Customer</div>
+                                            <div class="kv">
+                                                <div class="k">Name</div>
+                                                <div class="v"><?= h($customerName) ?></div>
+                                            </div>
+                                            <div class="kv">
+                                                <div class="k">Contact</div>
+                                                <div class="v"><?= h($order['contactNumber'] ?? 'N/A') ?></div>
+                                            </div>
+                                            <div class="kv">
+                                                <div class="k">Email</div>
+                                                <div class="v"><?= h($order['userEmail'] ?? 'N/A') ?></div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="fw-bold small mb-2">Delivery Address</div>
+                                            <div class="kv">
+                                                <div class="k">Address</div>
+                                                <div class="v"><?= h($deliveryAddress ?: 'N/A') ?></div>
+                                            </div>
+                                            <div class="fw-bold small mt-3 mb-2">Order Info</div>
+                                            <div class="kv">
+                                                <div class="k">Items</div>
+                                                <div class="v"><?= (int)($order['itemCount'] ?? 0) ?> items</div>
+                                            </div>
+                                            <div class="kv">
+                                                <div class="k">Payment</div>
+                                                <div class="v"><?= h($order['paymentMethod'] ?? 'N/A') ?></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <hr class="my-3">
+
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="badge bg-info text-dark">EasyBuy delivery in progress</span>
+                                        
+                                        <?php if ($btnLabel !== null): ?>
+                                            <form method="post" class="d-inline">
+                                                <input type="hidden" name="csrf_token" value="<?= h($_SESSION['csrf_token']) ?>">
+                                                <input type="hidden" name="order_id" value="<?= $orderId ?>">
+                                                <input type="hidden" name="current_status" value="<?= h($status) ?>">
+                                                <input type="hidden" name="action" value="advance_easybuy">
+                                                <button type="submit" class="btn btn-warning fw-bold px-4 py-2 shadow-sm text-uppercase">
+                                                    <?= h($btnLabel) ?>
+                                                </button>
+                                            </form>
+                                        <?php else: ?>
+                                            <span class="status-badge-gray">NO ACTIONS</span>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             <?php endforeach; ?>

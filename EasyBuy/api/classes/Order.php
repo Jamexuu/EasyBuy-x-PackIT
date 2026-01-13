@@ -139,9 +139,13 @@ class Order{
     }
 
     function getAllOrdersWithItems(){
-        $ordersQuery = "SELECT o.id, o.user_id, o.total_amount, o.order_date, o.status, u.email
+        $ordersQuery = "SELECT o.id, o.user_id, o.total_amount, o.order_date, o.status, o.payment_method, 
+                        u.email, u.first_name, u.last_name, u.contact_number,
+                        a.house_number, a.street, a.lot, a.block, 
+                        a.barangay, a.city, a.province, a.postal_code
                         FROM orders o
                         INNER JOIN users u ON o.user_id = u.id
+                        LEFT JOIN addresses a ON u.id = a.user_id
                         ORDER BY o.order_date DESC";
         $ordersResult = $this->db->executeQuery($ordersQuery);
         $orders = $this->db->fetch($ordersResult);
@@ -158,11 +162,25 @@ class Order{
                 'orderID' => $order['id'],
                 'userID' => $order['user_id'],
                 'userEmail' => $order['email'],
+                'firstName' => $order['first_name'],
+                'lastName' => $order['last_name'],
+                'contactNumber' => $order['contact_number'],
                 'totalAmount' => $order['total_amount'],
                 'orderDate' => $order['order_date'],
                 'status' => $order['status'],
+                'paymentMethod' => $order['payment_method'],
                 'itemCount' => count($items),
-                'items' => $items
+                'items' => $items,
+                'address' => [
+                    'houseNumber' => $order['house_number'],
+                    'street' => $order['street'],
+                    'lot' => $order['lot'],
+                    'block' => $order['block'],
+                    'barangay' => $order['barangay'],
+                    'city' => $order['city'],
+                    'province' => $order['province'],
+                    'postalCode' => $order['postal_code']
+                ]
             ];
         }
         
