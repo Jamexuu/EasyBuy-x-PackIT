@@ -61,7 +61,7 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Profile Dashboard</title>
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 
@@ -380,9 +380,39 @@ $defaultAvatar = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode(
   <?php include("components/footer.php"); ?>
   <?php include("../frontend/components/chat.php"); ?>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
+    // ✅ Rotate Chevron Icons on Collapse (JavaScript Implementation)
+    document.addEventListener('DOMContentLoaded', function() {
+      // Select all collapsible content divs
+      const collapses = document.querySelectorAll('.collapse');
+
+      collapses.forEach(function(collapseEl) {
+        // Find the specific trigger link that controls this collapse
+        // (This matches the link with href="#idOfCollapse")
+        const trigger = document.querySelector('a[href="#' + collapseEl.id + '"]');
+        
+        if (!trigger) return; // specific trigger not found
+
+        const icon = trigger.querySelector('.bi-chevron-down');
+        
+        if (icon) {
+          // Set an initial smooth transition via JS
+          icon.style.transition = 'transform 0.3s ease';
+
+          // When the section starts opening
+          collapseEl.addEventListener('show.bs.collapse', function() {
+            icon.style.transform = 'rotate(180deg)';
+          });
+
+          // When the section starts closing
+          collapseEl.addEventListener('hide.bs.collapse', function() {
+            icon.style.transform = 'rotate(0deg)';
+          });
+        }
+      });
+    });
     // Avatar upload (kept)
     (function() {
       const fileInput = document.getElementById('fileInput');
