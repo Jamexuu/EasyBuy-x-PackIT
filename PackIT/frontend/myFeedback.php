@@ -62,6 +62,14 @@ if (empty($_SESSION['csrf_token'])) {
   </div>
 
   <div id="list" class="vstack gap-3 d-none"></div>
+  
+  <div id="paginationContainer" class="d-none">
+      <div id="pageInfo" class="text-center text-muted small mt-4 mb-2"></div>
+      <nav aria-label="Feedback pages">
+        <ul class="pagination justify-content-center" id="paginationControls">
+          </ul>
+      </nav>
+  </div>
 </main>
 
 <?php include(__DIR__ . '/components/footer.php'); ?>
@@ -70,10 +78,23 @@ if (empty($_SESSION['csrf_token'])) {
 <script>
 (function(){
   const fetchUrl = 'myFeedbackFetch.php';
+  
+  // Elements
   const loadingEl = document.getElementById('loading');
   const emptyEl = document.getElementById('empty');
   const listEl = document.getElementById('list');
   const refreshBtn = document.getElementById('refreshBtn');
+  const paginationContainer = document.getElementById('paginationContainer');
+  const paginationControls = document.getElementById('paginationControls');
+  const pageInfo = document.getElementById('pageInfo');
+
+  // Pagination State
+  let rawData = [];
+  const itemsPerPage = 5; 
+  
+  // Get initial page from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  let currentPage = parseInt(urlParams.get('page')) || 1;
 
   function esc(s){
     if (!s) return '';
@@ -91,17 +112,39 @@ if (empty($_SESSION['csrf_token'])) {
   function show(el){ el.classList.remove('d-none'); }
   function hide(el){ el.classList.add('d-none'); }
 
-  function render(items){
-    listEl.innerHTML = '';
+  // Update URL without reloading
+  function updateUrlState() {
+      const url = new URL(window.location);
+      url.searchParams.set('page', currentPage);
+      window.history.replaceState({}, '', url);
+  }
 
-    if (!items || items.length === 0) {
+  function renderPage() {
+    listEl.innerHTML = '';
+    
+    if (!rawData || rawData.length === 0) {
       hide(loadingEl);
-      hide(listEl);
+      hide(paginationContainer);
       show(emptyEl);
       return;
     }
 
-    items.forEach(row => {
+    hide(emptyEl);
+    hide(loadingEl);
+    show(listEl);
+    show(paginationContainer);
+
+    // Calculate Pagination Slices
+    const totalPages = Math.ceil(rawData.length / itemsPerPage);
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageItems = rawData.slice(start, end);
+
+    // Render Cards
+    pageItems.forEach(row => {
       const hasReply = row.admin_reply && String(row.admin_reply).trim() !== '';
       const updatedAt = row.replied_at || row.acknowledged_at || row.created_at || '';
       const unread = Number(row.user_unread || 0) === 1 && hasReply;
@@ -144,27 +187,82 @@ if (empty($_SESSION['csrf_token'])) {
       listEl.appendChild(card);
     });
 
-    hide(loadingEl);
-    hide(emptyEl);
-    show(listEl);
+    renderPaginationButtons(totalPages);
+  }
+
+  function renderPaginationButtons(totalPages) {
+      paginationControls.innerHTML = '';
+      
+      pageInfo.innerText = `Showing page ${currentPage} of ${totalPages} (${rawData.length} total entries)`;
+
+      if (totalPages <= 1) return;
+
+      // Helper for creating LI
+      const createLi = (content, disabled, active, onClick) => {
+          const li = document.createElement('li');
+          li.className = `page-item ${disabled ? 'disabled' : ''}`;
+          
+          const a = document.createElement('a');
+          a.className = 'page-link border-0';
+          a.href = '#';
+          
+          if (active) {
+              // Yellow Theme
+              a.style.cssText = 'background-color: #f8e14b; color: black; font-weight: bold; border-color: #f8e14b;';
+          } else {
+              a.className += ' text-dark';
+          }
+          
+          a.innerHTML = content;
+          if (!disabled) {
+              a.onclick = (e) => {
+                  e.preventDefault();
+                  onClick();
+              };
+          }
+          
+          li.appendChild(a);
+          return li;
+      };
+
+      // Previous
+      paginationControls.appendChild(createLi('Previous', currentPage === 1, false, () => changePage(currentPage - 1)));
+
+      // Numbers
+      for (let i = 1; i <= totalPages; i++) {
+          paginationControls.appendChild(createLi(i, false, currentPage === i, () => changePage(i)));
+      }
+
+      // Next
+      paginationControls.appendChild(createLi('Next', currentPage === totalPages, false, () => changePage(currentPage + 1)));
+  }
+
+  function changePage(page) {
+      currentPage = page;
+      updateUrlState();
+      renderPage();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   async function load(){
     show(loadingEl);
     hide(emptyEl);
     hide(listEl);
+    hide(paginationContainer);
 
     try {
       const res = await fetch(fetchUrl, { credentials: 'same-origin' });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data || !data.success) {
-        render([]);
-        return;
+        rawData = [];
+      } else {
+        rawData = data.items || [];
       }
-      render(data.items || []);
+      renderPage();
     } catch (e) {
       console.error('Load my feedback failed:', e);
-      render([]);
+      rawData = [];
+      renderPage();
     }
   }
 
