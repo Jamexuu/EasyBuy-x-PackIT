@@ -25,8 +25,9 @@ $user = new User();
 $result = $user->login($email, $password);
 
 if ($result) {
-    Auth::login($result['id'], $result['email'], $result['first_name']);
-    echo json_encode(['success' => true, 'message' => 'Login successful']);
+    $role = $result['role'] ?? 'user';
+    Auth::login($result['id'], $result['email'], $result['first_name'], $role);
+    echo json_encode(['success' => true, 'message' => 'Login successful', 'role' => $role]);
 } else {
     http_response_code(401);
     echo json_encode(['error' => 'Invalid credentials']);
