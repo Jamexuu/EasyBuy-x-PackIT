@@ -244,7 +244,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($next) {
                 // Call driver-specific EasyBuy API to update status
-                $updateUrl = 'http://localhost/EasyBuy-x-PackIT/EasyBuy/api/updateOrderStatusByDriver.php';
+                $easybuyIP = '192.168.1.26';
+                $updateUrl = "http://$easybuyIP/EasyBuy-x-PackIT/EasyBuy/api/updateOrderStatusByDriver.php";
                 
                 $postData = json_encode([
                     'orderId' => $orderId,
@@ -309,8 +310,8 @@ $myBookings = $db->fetch($stmtMine);
 $easybuyOrders = [];
 try {
 
-    $easybuyIP = '';
-    $easybuyApiUrl = 'http://localhost/EasyBuy-x-PackIT/EasyBuy/api/getAllOrders.php';
+    $easybuyIP = '192.168.1.26';
+    $easybuyApiUrl = "http://$easybuyIP/EasyBuy-x-PackIT/EasyBuy/api/getAllOrders.php";
     
     $context = stream_context_create([
         'http' => [

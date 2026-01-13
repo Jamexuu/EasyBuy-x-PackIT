@@ -553,13 +553,12 @@ function fmtDims($l, $w, $h): string {
 <?php include __DIR__ . "/../frontend/components/driverFooter.php"; ?>
 
 <script>
+    var easybuyIP = '192.168.1.26';
 async function fetchEasyBuyOrders() {
     const container = document.getElementById('easybuyOrdersContainer');
-
-    const easybuyIP = '';
     
     try {
-        const responseOrders = await fetch('../../EasyBuy/api/getAllOrders.php', {
+        const responseOrders = await fetch(`http://${easybuyIP}/EasyBuy-x-PackIT/EasyBuy/api/getAllOrders.php`, {
             method: 'GET',
             credentials: 'same-origin',
             headers: { 'Accept': 'application/json' }
@@ -768,7 +767,7 @@ async function confirmAcceptOrder() {
     currentAcceptButton.textContent = 'ACCEPTING...';
 
     try {
-        const response = await fetch('../../EasyBuy/api/updateOrderStatusByDriver.php', {
+        const response = await fetch(`http://${easybuyIP}/EasyBuy-x-PackIT/EasyBuy/api/updateOrderStatusByDriver.php`, {
             method: 'POST',
             credentials: 'same-origin',
             headers: {

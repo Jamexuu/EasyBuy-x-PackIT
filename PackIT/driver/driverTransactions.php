@@ -44,8 +44,10 @@ $transactions = $db->fetch($stmt);
 
 /* Fetch completed EasyBuy orders */
 $easybuyTransactions = [];
+$easybuyIP = "192.168.1.26";
+
 try {
-    $easybuyApiUrl = 'http://localhost/EasyBuy-x-PackIT/EasyBuy/api/getAllOrders.php';
+    $easybuyApiUrl = "http://$easybuyIP/EasyBuy-x-PackIT/EasyBuy/api/getAllOrders.php";
     
     $context = stream_context_create([
         'http' => [
