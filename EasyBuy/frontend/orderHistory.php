@@ -133,8 +133,8 @@
                 
                 if (result.success) {
                     allOrders = result.orders.map(order => transformOrder(order));
-                    completedOrders = allOrders.filter(order => order.status === 'Delivered');
-                    cancelledOrders = allOrders.filter(order => order.status === 'Cancelled');
+                    completedOrders = allOrders.filter(order => order.status === 'order arrived');
+                    cancelledOrders = allOrders.filter(order => order.status === 'cancelled');
                     
                     renderOrders(allOrders, 'allOrders');
                     renderOrders(completedOrders, 'completedOrders');
