@@ -24,7 +24,7 @@
 
   <main class="container-fluid my-1 py-lg-2 flex-grow-1">
     <div class="row align-items-center gy-5">
-      <div class="col-12 col-lg-6 d-flex justify-content-center justify-content-lg-start position-relative z-1">
+      <div class="col-12 col-lg-6 d-flex justify-content-center justify-content-lg-center position-relative z-1">
         <img src="assets/duck.png" class="img-fluid" alt="Duck Mascot" style="max-width:520px; transition: transform .25s ease;">
       </div>
       <div class="col-12 col-lg-6 d-flex align-items-center text-center text-lg-start ms-lg-n5 z-2">
