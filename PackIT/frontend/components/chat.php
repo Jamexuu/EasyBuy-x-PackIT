@@ -186,7 +186,7 @@
         <div class="d-flex align-items-center gap-2">
           <img src="/EasyBuy-x-PackIT/PackIT/assets/chatbot.png" alt="Bot" width="32" height="32" class="object-fit-contain">
           <div class="lh-1">
-            <div class="fw-bold fs-6">gemma2:2b</div>
+            <div class="fw-bold fs-6">PackIT Assistant</div>
             <small class="text-muted" style="font-size: 0.75rem;">Online</small>
           </div>
         </div>
@@ -298,10 +298,10 @@
             appendMessage(item.response, 'bot');
           });
         } else {
-          appendMessage('Hi! I am gemma2:2b. How can I help you today?', 'bot');
+          appendMessage('Hi! I am PackIT Assistant. How can I help you today?', 'bot');
         }
       } catch (e) {
-        appendMessage('Hi! I am gemma2:2b. How can I help you today?', 'bot');
+        appendMessage('Hi! I am PackIT Assistant. How can I help you today?', 'bot');
       }
     }
   });
