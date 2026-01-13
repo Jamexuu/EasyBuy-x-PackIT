@@ -275,7 +275,7 @@ $activePageTitle = prettyTitle($activePage);
 
                                             <?php if ($activePage === 'userFeedback'): ?>
                                                 <td class="text-end pe-4">
-                                                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-medium"
+                                                    <button class="btn btn-sm btn-outline-warning rounded-pill px-3 fw-medium"
                                                             data-bs-toggle="modal" 
                                                             data-bs-target="#replyModal"
                                                             data-id="<?= $r['id'] ?>"
