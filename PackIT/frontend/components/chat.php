@@ -1,3 +1,10 @@
+<?php
+// Chat widget (frontend/components/chat.php)
+// Updated to use model "gemma2:2b" by default from the frontend (backend must honour it).
+// Kept same UI structure; small JS changes: send 'model' in the POST, update text references from "POC" to "gemma2:2b",
+// and expose both window.gemmaSendMessage and window.pocSendMessage for backward compatibility.
+?>
+
 <style>
   /* --- CONSOLIDATED CHAT STYLES --- */
 
@@ -179,7 +186,7 @@
         <div class="d-flex align-items-center gap-2">
           <img src="/EasyBuy-x-PackIT/PackIT/assets/chatbot.png" alt="Bot" width="32" height="32" class="object-fit-contain">
           <div class="lh-1">
-            <div class="fw-bold fs-6">PackIT Assistant</div>
+            <div class="fw-bold fs-6">gemma2:2b</div>
             <small class="text-muted" style="font-size: 0.75rem;">Online</small>
           </div>
         </div>
@@ -225,6 +232,9 @@
   // Paths
   const chatEndpoint = "/EasyBuy-x-PackIT/PackIT/frontend/chatai.php";
   const historyEndpoint = "/EasyBuy-x-PackIT/PackIT/frontend/chat_history.php";
+
+  // Default model to request (frontend will include this; backend must honor it)
+  const DEFAULT_MODEL = 'gemma2:2b';
 
   let bsModal;
 
@@ -288,10 +298,10 @@
             appendMessage(item.response, 'bot');
           });
         } else {
-          appendMessage('Hi! I am PackIT Assistant. How can I help you today?', 'bot');
+          appendMessage('Hi! I am gemma2:2b. How can I help you today?', 'bot');
         }
       } catch (e) {
-        appendMessage('Hi! I am PackIT Assistant. How can I help you today?', 'bot');
+        appendMessage('Hi! I am gemma2:2b. How can I help you today?', 'bot');
       }
     }
   });
@@ -302,7 +312,7 @@
     if(btn) btn.classList.remove('hidden');
   });
 
-  async function sendMessage(text) {
+  async function sendMessage(text, model = DEFAULT_MODEL) {
     if (!text || !text.trim()) return;
     const msg = text.trim();
     appendMessage(msg, 'user');
@@ -315,12 +325,21 @@
     try {
       const fd = new FormData();
       fd.append('prompt', msg);
+      // include model preference so backend can route to the correct model if it supports it
+      fd.append('model', model);
+
       const res = await fetch(chatEndpoint, { method: 'POST', body: fd, credentials: 'same-origin' });
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
       typing.remove();
-      if (!res.ok || !data) appendMessage('System error. Please try again.', 'bot');
-      else if (!data.success) appendMessage(data.reply ?? data.error ?? 'POC unavailable.', 'bot');
-      else appendMessage(data.reply, 'bot');
+
+      if (!res.ok || !data) {
+        appendMessage('System error. Please try again.', 'bot');
+      } else if (!data.success) {
+        // Friendly message referencing new assistant name
+        appendMessage(data.reply ?? data.error ?? 'gemma2:2b unavailable.', 'bot');
+      } else {
+        appendMessage(data.reply, 'bot');
+      }
     } catch (err) {
       typing.remove();
       appendMessage('Network error.', 'bot');
@@ -331,7 +350,10 @@
     }
   }
 
+  // expose both new and legacy names
+  window.gemmaSendMessage = sendMessage;
   window.pocSendMessage = sendMessage;
+
   sendBtn.addEventListener('click', () => sendMessage(inputEl.value));
   inputEl.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(inputEl.value); }
@@ -339,10 +361,11 @@
 
   // Quick Buttons handler
   document.addEventListener('click', function(e){
-    if (e.target.classList.contains('packit-quick-btn')) {
-      const prompt = e.target.getAttribute('data-prompt');
+    const target = e.target.closest('.packit-quick-btn');
+    if (target) {
+      const prompt = target.getAttribute('data-prompt');
       showChat();
-      if (typeof window.pocSendMessage === 'function') window.pocSendMessage(prompt);
+      if (typeof window.gemmaSendMessage === 'function') window.gemmaSendMessage(prompt);
     }
   });
 
