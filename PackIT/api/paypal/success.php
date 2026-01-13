@@ -160,7 +160,7 @@ $chatPath = __DIR__ . '/../../frontend/components/chat.php';
               <?php endif; ?>
 
               <div class="d-flex justify-content-center gap-2 flex-wrap">
-                <a href="../../frontend/booking/package.php" class="btn btn-primary">
+                <a href="../../frontend/booking/package.php" class="btn btn-warning">
                   Book Another
                 </a>
                 <a href="../../frontend/tracking.php<?= $bookingId > 0 ? ('?booking_id=' . $bookingId) : '' ?>" class="btn btn-outline-secondary">
