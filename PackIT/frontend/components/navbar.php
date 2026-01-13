@@ -1,10 +1,8 @@
 <?php
-// Frontend navbar for PackIT (notifications: View feedback -> myFeedback.php)
-// This version uses helpers.php (require_once) to avoid redeclaring helpers like u().
+// Frontend navbar for PackIT
+require_once __DIR__ . '/helpers.php'; 
 
-require_once __DIR__ . '/helpers.php'; // ensures u() is declared exactly once
-
-// Keep your original $BASE_URL assignment if you rely on the variable elsewhere
+// Keep your original $BASE_URL assignment
 $BASE_URL = defined('PACKIT_BASE_URL') ? PACKIT_BASE_URL : '/EasyBuy-x-PackIT/PackIT';
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -17,16 +15,44 @@ if (empty($_SESSION['csrf_token'])) {
 
 $page = basename($_SERVER['PHP_SELF']);
 
-// NOTE: u() is provided by helpers.php. Do NOT redeclare it here.
-
 $loggedIn = isset($_SESSION['user']) && !empty($_SESSION['user']['id']);
 $userName = $loggedIn ? trim(($_SESSION['user']['firstName'] ?? '') . ' ' . ($_SESSION['user']['lastName'] ?? '')) : '';
 $csrfToken = $_SESSION['csrf_token'];
 ?>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
+<style>
+/* Responsive Notification Dropdown 
+   - Mobile: Spans the full width of the navbar (position: static parent).
+   - Desktop: Fixed 360px width aligned to the bell (position: relative parent).
+*/
+.nav-notif-dropdown {
+    position: static !important; /* Mobile default: allows menu to be full width of navbar */
+}
+.nav-notif-menu {
+    width: 100% !important;     /* Full width on mobile */
+    margin-top: 10px;           /* Spacing */
+    border-radius: 18px;
+    left: 0 !important;
+    right: 0 !important;
+}
+
+/* Desktop Override (LG breakpoint and up) */
+@media (min-width: 992px) {
+    .nav-notif-dropdown {
+        position: relative !important; /* Revert to standard positioning */
+    }
+    .nav-notif-menu {
+        width: 360px !important;       /* Fixed width for desktop */
+        position: absolute !important;
+        left: auto !important;         /* Align to right */
+        right: 0 !important;
+    }
+}
+</style>
+
 <div class="container">
-    <nav class="navbar navbar-expand-lg my-3 mx-auto rounded-pill shadow px-4 py-2"
+    <nav class="navbar navbar-expand-lg my-3 mx-auto rounded-pill shadow px-4 py-2 position-relative"
          style="max-width:95%; background:#f8e15b;">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="<?= htmlspecialchars(u('index.php')) ?>">
@@ -35,14 +61,15 @@ $csrfToken = $_SESSION['csrf_token'];
 
             <div class="d-flex align-items-center gap-2 gap-lg-3 order-lg-3">
                 <?php if ($loggedIn): ?>
-                    <div class="dropdown position-relative" id="notifRoot">
+                    <div class="dropdown nav-notif-dropdown" id="notifRoot">
                         <button id="notifToggleBtn"
                                 class="btn btn-sm rounded-pill d-flex align-items-center justify-content-center position-relative border-0"
                                 style="background:rgba(255,255,255,.55); width:42px; height:42px;"
                                 aria-expanded="false"
                                 title="Notifications"
                                 data-bs-toggle="dropdown"
-                                data-bs-auto-close="outside">
+                                data-bs-auto-close="outside"
+                                data-bs-display="static">
                             <i class="bi bi-bell-fill text-dark" style="font-size:1.05rem;"></i>
 
                             <span id="notifBadge"
@@ -53,8 +80,7 @@ $csrfToken = $_SESSION['csrf_token'];
                         </button>
 
                         <div id="notifDropdown"
-                             class="dropdown-menu dropdown-menu-end p-0 border-0 shadow-lg mt-2"
-                             style="width:360px; max-width:calc(100vw - 24px); border-radius:18px;"
+                             class="dropdown-menu nav-notif-menu p-0 border-0 shadow-lg"
                              aria-labelledby="notifToggleBtn">
 
                             <div class="px-3 py-3"
