@@ -20,7 +20,7 @@ Auth::redirectIfLoggedIn();
     <div class="container-fluid p-0">
         <div class="row g-0">
             <div class="col">
-                <div class="p-5 gradient-banner" style="background: var(--gradient-color);"></div>
+                <div class="p-5" style="background-color: #6EC064;"></div>
             </div>
         </div>
     </div>

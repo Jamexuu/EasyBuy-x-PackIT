@@ -206,7 +206,7 @@ $activePageTitle = prettyTitle($activePage);
 
 <?php include __DIR__ . '/../frontend/components/adminNavbar.php'; ?>
 
-        <div class="col-lg-10 col-md-9"> 
+        <div class="col-lg-10 col-md-9" id="main-table-view" style="scroll-margin-top: 20px;"> 
             <div class="content-area p-0 overflow-hidden">
                 
                 <div class="p-4 border-bottom border-light">
@@ -296,12 +296,12 @@ $activePageTitle = prettyTitle($activePage);
 
                     <div class="d-flex justify-content-between align-items-center p-4 border-top border-light bg-light bg-opacity-10">
                         <a class="btn btn-page rounded-3 <?= $page <= 1 ? 'disabled' : '' ?>"
-                           href="<?= $page > 1 ? "?view=".urlencode($activePage)."&page=".($page - 1) : '#' ?>">
+                           href="<?= $page > 1 ? "?view=".urlencode($activePage)."&page=".($page - 1)."#main-table-view" : '#' ?>">
                            &larr; Previous
                         </a>
                         
                         <a class="btn btn-page rounded-3 <?= !$hasNextPage ? 'disabled' : '' ?>"
-                           href="<?= $hasNextPage ? "?view=".urlencode($activePage)."&page=".($page + 1) : '#' ?>">
+                           href="<?= $hasNextPage ? "?view=".urlencode($activePage)."&page=".($page + 1)."#main-table-view" : '#' ?>">
                            Next &rarr;
                         </a>
                     </div>

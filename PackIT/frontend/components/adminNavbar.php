@@ -92,44 +92,44 @@ $basePath   = $basePath ?? '../';
                     Dashboard
                 </a>
 
-                <a href="dbTables.php?view=users" class="admin-nav-card shadow-sm <?= $activePage === 'users' ? 'active' : '' ?>">
+                <a href="dbTables.php?view=users#main-table-view" class="admin-nav-card shadow-sm <?= $activePage === 'users' ? 'active' : '' ?>">
                     Users
                 </a>
-                <a href="dbTables.php?view=addresses" class="admin-nav-card shadow-sm <?= $activePage === 'addresses' ? 'active' : '' ?>">
+                <a href="dbTables.php?view=addresses#main-table-view" class="admin-nav-card shadow-sm <?= $activePage === 'addresses' ? 'active' : '' ?>">
                     Addresses
                 </a>
-                <a href="dbTables.php?view=drivers" class="admin-nav-card shadow-sm <?= $activePage === 'drivers' ? 'active' : '' ?>">
+                <a href="dbTables.php?view=drivers#main-table-view" class="admin-nav-card shadow-sm <?= $activePage === 'drivers' ? 'active' : '' ?>">
                     Drivers
                 </a>
 
-                <a href="vehicles.php" class="admin-nav-card shadow-sm <?= $activePage === 'vehicles' ? 'active' : '' ?>">
+                <a href="vehicles.php#main-table-view" class="admin-nav-card shadow-sm <?= $activePage === 'vehicles' ? 'active' : '' ?>">
                     Vehicles
                 </a>
 
-                <a href="dbTables.php?view=driver_vehicles" class="admin-nav-card shadow-sm <?= $activePage === 'driver_vehicles' ? 'active' : '' ?>">
+                <a href="dbTables.php?view=driver_vehicles#main-table-view" class="admin-nav-card shadow-sm <?= $activePage === 'driver_vehicles' ? 'active' : '' ?>">
                     Driver Vehicles
                 </a>
 
-                <a href="dbTables.php?view=payments" class="admin-nav-card shadow-sm <?= $activePage === 'payments' ? 'active' : '' ?>">
+                <a href="dbTables.php?view=payments#main-table-view" class="admin-nav-card shadow-sm <?= $activePage === 'payments' ? 'active' : '' ?>">
                     Payments
                 </a>
-                <a href="dbTables.php?view=bookings" class="admin-nav-card shadow-sm <?= $activePage === 'bookings' ? 'active' : '' ?>">
+                <a href="dbTables.php?view=bookings#main-table-view" class="admin-nav-card shadow-sm <?= $activePage === 'bookings' ? 'active' : '' ?>">
                     Bookings
                 </a>
 
-                <a href="dbTables.php?view=smslogs" class="admin-nav-card shadow-sm <?= $activePage === 'smslogs' ? 'active' : '' ?>">
+                <a href="dbTables.php?view=smslogs#main-table-view" class="admin-nav-card shadow-sm <?= $activePage === 'smslogs' ? 'active' : '' ?>">
                     SMS Logs
                 </a>
 
-                <a href="dbTables.php?view=password_resets" class="admin-nav-card shadow-sm <?= $activePage === 'password_resets' ? 'active' : '' ?>">
+                <a href="dbTables.php?view=password_resets#main-table-view" class="admin-nav-card shadow-sm <?= $activePage === 'password_resets' ? 'active' : '' ?>">
                     Reset Logs
                 </a>
 
-                <a href="dbTables.php?view=chat_history" class="admin-nav-card shadow-sm <?= $activePage === 'chat_history' ? 'active' : '' ?>">
+                <a href="dbTables.php?view=chat_history#main-table-view" class="admin-nav-card shadow-sm <?= $activePage === 'chat_history' ? 'active' : '' ?>">
                     Chat History
                 </a>
 
-                <a href="dbTables.php?view=userFeedback" class="admin-nav-card shadow-sm <?= $activePage === 'userFeedback' ? 'active' : '' ?>">
+                <a href="dbTables.php?view=userFeedback#main-table-view" class="admin-nav-card shadow-sm <?= $activePage === 'userFeedback' ? 'active' : '' ?>">
                     User Feedback
                 </a>
             </div>
