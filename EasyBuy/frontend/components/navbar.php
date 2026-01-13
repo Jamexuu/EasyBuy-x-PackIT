@@ -61,11 +61,13 @@
               </span><br>
               <span class="text-white"></span>
             </a>
-            <a href="/EasyBuy-x-PackIT/EasyBuy/frontend/cart.php" class="btn">
+            <a href="/EasyBuy-x-PackIT/EasyBuy/frontend/cart.php" class="btn position-relative">
               <span class="material-symbols-rounded text-white fs-1 fs-lg-2">
                 shopping_cart
-              </span><br>
-              <span class="text-white"></span>
+              </span>
+              <span id="cartBadge" class="position-absolute badge rounded-pill bg-danger" style="display: none; top: 5px; right: 5px; font-size: 0.75rem; padding: 0.35em 0.5em;">
+                0
+              </span>
             </a>
             <div class="btn">
               <span class="material-symbols-rounded text-white fs-1 fs-lg-2">
@@ -107,11 +109,14 @@
         </span>
       </a>
       <a href="/EasyBuy-x-PackIT/EasyBuy/frontend/cart.php"
-        class="nav-link text-center p-0"
+        class="nav-link text-center p-0 position-relative"
         style="background:#ffffff; flex:1;display:flex;align-items:center;justify-content:center;">
         <span class="material-symbols-rounded fs-1"
           style="color:#00b369;">
           shopping_cart
+        </span>
+        <span id="cartBadgeMobile" class="position-absolute badge rounded-pill bg-danger" style="display: none; top: -3px; right: 30%; font-size: 0.65rem; padding: 0.3em 0.45em;">
+          0
         </span>
       </a>
       <a href="/EasyBuy-x-PackIT/EasyBuy/frontend/login.php"
@@ -140,6 +145,36 @@
                 searchProduct();
             }
         });
+
+        function updateCartCount() {
+            fetch('/EasyBuy-x-PackIT/EasyBuy/api/getCartCount.php')
+                .then(response => response.json())
+                .then(data => {
+                    const count = data.count || 0;
+                    const cartBadge = document.getElementById('cartBadge');
+                    const cartBadgeMobile = document.getElementById('cartBadgeMobile');
+                    
+                    if (count > 0) {
+                        cartBadge.textContent = count;
+                        cartBadge.style.display = 'inline-block';
+                        cartBadgeMobile.textContent = count;
+                        cartBadgeMobile.style.display = 'inline-block';
+                    } else {
+                        cartBadge.style.display = 'none';
+                        cartBadgeMobile.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching cart count:', error);
+                });
+        }
+
+        updateCartCount();
+
+        setInterval(updateCartCount, 1000);
+
+        window.updateCartCount = updateCartCount;
+        window.updateCartCount();
     </script>
 </body>
 
