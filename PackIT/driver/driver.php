@@ -3,6 +3,7 @@ session_start();
 require_once __DIR__ . '/../api/classes/Database.php';
 require_once __DIR__ . '/../frontend/components/autorefresh.php';
 require_once __DIR__ . '/../api/sms/SmsNotificationService.php'; // Import the SMS service
+
 require_once __DIR__ . '/../vendor/autoload.php'; // adjust path if vendor is elsewhere
 Dotenv\Dotenv::createImmutable(__DIR__ . '/..')->safeLoad(); // loads PackIT/.env
 
@@ -49,6 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    // ------------------------------
+    // PackIT booking accept (existing)
+    // ------------------------------
     $bookingId = (int)($_POST['booking_id'] ?? 0);
 
     /* ACCEPT booking */
@@ -143,6 +147,97 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $_SESSION['flash_error'] = 'Booking was already taken, no longer pending, or does not match your active vehicle.';
         }
+    }
+
+    // ------------------------------
+    // NEW: EasyBuy accept (claim in PackIT DB first)
+    // ------------------------------
+    if ($action === 'accept_easybuy') {
+        $orderId = (int)($_POST['order_id'] ?? 0);
+        if ($orderId <= 0) {
+            $_SESSION['flash_error'] = 'Invalid EasyBuy order.';
+            header('Location: driver.php');
+            exit;
+        }
+
+        // OPTIONAL: disallow if driver has any active PackIT booking (keep your rule consistent)
+        $stmt = $db->executeQuery(
+            "SELECT COUNT(*) AS c
+             FROM bookings
+             WHERE driver_id = ? AND tracking_status IN ('accepted','picked_up','in_transit')",
+            [$driverId]
+        );
+        $cntRow = $db->fetch($stmt);
+        $existingCount = !empty($cntRow) ? (int)$cntRow[0]['c'] : 0;
+
+        if ($existingCount > 0) {
+            $_SESSION['flash_error'] = 'You already have an active PackIT booking. Finish it before accepting an EasyBuy order.';
+            header('Location: driverBookings.php');
+            exit;
+        }
+
+        // 1) Claim in PackIT DB using UNIQUE(order_id)
+        $claimed = false;
+        try {
+            $stmtClaim = $db->executeQuery(
+                "INSERT INTO easybuy_order_assignments (order_id, driver_id, status)
+                 VALUES (?, ?, 'picked up')",
+                [(string)$orderId, (string)$driverId]
+            );
+            $claimed = (mysqli_stmt_affected_rows($stmtClaim) > 0);
+        } catch (Throwable $e) {
+            // Duplicate key -> already claimed
+            $claimed = false;
+        }
+
+        if (!$claimed) {
+            $_SESSION['flash_error'] = 'This EasyBuy order was already accepted by another driver.';
+            header('Location: driver.php');
+            exit;
+        }
+
+        // 2) Call EasyBuy API to update status to "picked up"
+        $easybuyIP = $_ENV['EASYBUY_IP'] ?? 'localhost';
+        $updateUrl = "http://$easybuyIP/EasyBuy-x-PackIT/EasyBuy/api/updateOrderStatusByDriver.php";
+
+        $postData = json_encode([
+            'orderId' => $orderId,
+            'driverId' => $driverId,
+            'newStatus' => 'picked up'
+        ]);
+
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'POST',
+                'header' => "Content-Type: application/json\r\nAccept: application/json\r\n",
+                'content' => $postData,
+                'timeout' => 8,
+                'ignore_errors' => true
+            ]
+        ]);
+
+        $response = @file_get_contents($updateUrl, false, $context);
+        $result = json_decode((string)$response, true);
+
+        if ($response === false || !is_array($result) || empty($result['success'])) {
+            // rollback claim if EasyBuy failed
+            try {
+                $db->executeQuery(
+                    "DELETE FROM easybuy_order_assignments WHERE order_id = ? AND driver_id = ?",
+                    [(string)$orderId, (string)$driverId]
+                );
+            } catch (Throwable $e) {
+                // ignore
+            }
+
+            $_SESSION['flash_error'] = 'Failed to accept EasyBuy order. Please try again.';
+            header('Location: driver.php');
+            exit;
+        }
+
+        $_SESSION['flash_success'] = 'EasyBuy order accepted.';
+        header('Location: driverBookings.php');
+        exit;
     }
 
     header('Location: driver.php');
@@ -507,6 +602,7 @@ function fmtDims($l, $w, $h): string {
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
+
                     <div class="mt-5">
                         <h4 class="fw-bold mb-4" style="color: var(--secondary-teal);">
                             <span class="material-symbols-outlined align-middle me-2">shopping_bag</span>
@@ -521,6 +617,7 @@ function fmtDims($l, $w, $h): string {
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -555,31 +652,38 @@ function fmtDims($l, $w, $h): string {
 <?php include __DIR__ . "/../frontend/components/driverFooter.php"; ?>
 
 <script>
-    const easybuyIP = <?= json_encode($_ENV['EASYBUY_IP'] ?? 'localhost') ?>;
+const easybuyIP = <?= json_encode($_ENV['EASYBUY_IP'] ?? 'localhost') ?>;
+
 async function fetchEasyBuyOrders() {
     const container = document.getElementById('easybuyOrdersContainer');
-    
+
     try {
-        const responseOrders = await fetch(`http://${easybuyIP}/EasyBuy-x-PackIT/EasyBuy/api/getAllOrders.php`, {
+        // Call helper endpoint in THIS FILE? We'll use existing EasyBuy API, and filter out claimed ones on server via AJAX.
+        // For simplicity: fetch all orders, then hide those already claimed by ANY driver using a PackIT endpoint.
+        const resOrders = await fetch(`http://${easybuyIP}/EasyBuy-x-PackIT/EasyBuy/api/getAllOrders.php`, {
             method: 'GET',
-            credentials: 'same-origin',
             headers: { 'Accept': 'application/json' }
         });
 
-        if (!responseOrders.ok) {
-            throw new Error('Network response was not ok');
-        }
+        if (!resOrders.ok) throw new Error('Failed to fetch EasyBuy orders');
 
-        const orders = await responseOrders.json();
+        const orders = await resOrders.json();
 
-        // Filter out accepted orders and cancelled orders
+        // Also fetch claimed IDs from PackIT so we can hide claimed ones in UI
+        const claimedRes = await fetch('driver.php?claimed_easybuy=1', { headers: { 'Accept': 'application/json' } });
+        const claimedJson = await claimedRes.json().catch(() => ({ success:false, claimed: [] }));
+        const claimedSet = new Set((claimedJson.claimed || []).map(x => Number(x)));
+
         const excludedStatuses = ['picked up', 'in transit', 'order arrived', 'cancelled', 'canceled'];
-        const pendingOrders = orders.filter(order => {
+        const pendingOrders = (orders || []).filter(order => {
             const status = (order.status || '').toLowerCase();
-            return !excludedStatuses.includes(status);
+            const orderId = Number(order.orderID || order.id || 0);
+
+            // show only unclaimed orders + pending statuses
+            return !excludedStatuses.includes(status) && orderId > 0 && !claimedSet.has(orderId);
         });
 
-        if (!pendingOrders || pendingOrders.length === 0) {
+        if (!pendingOrders.length) {
             container.innerHTML = `
                 <div class="empty-state-container">
                     <img src="../assets/box.png" alt="No orders" class="empty-state-img">
@@ -592,16 +696,15 @@ async function fetchEasyBuyOrders() {
 
         container.innerHTML = '';
 
-        pendingOrders.forEach((order, index) => {
-            const orderId = order.orderID || 'N/A';
+        pendingOrders.forEach((order) => {
+            const orderId = order.orderID || order.id || 'N/A';
             const collapseId = 'easybuy_' + orderId;
             const customerName = (order.firstName || '') + ' ' + (order.lastName || '');
-            const totalAmount = parseFloat(order.totalAmount || 0).toFixed(2);
+            const totalAmount = parseFloat(order.totalAmount || order.total_amount || 0).toFixed(2);
             const status = order.status || 'pending';
-            const paymentMethod = order.paymentMethod || 'N/A';
-            const createdAt = order.orderDate || 'N/A';
-            
-            // Get shipping address from address object
+            const paymentMethod = order.paymentMethod || order.payment_method || 'N/A';
+            const createdAt = order.orderDate || order.order_date || 'N/A';
+
             const addr = order.address || {};
             const shippingAddress = [
                 addr.houseNumber,
@@ -613,12 +716,10 @@ async function fetchEasyBuyOrders() {
                 addr.province
             ].filter(Boolean).join(', ') || 'N/A';
 
-            // Count items
-            const itemCount = order.items ? order.items.length : 0;
-            
-            // Build items HTML
+            const itemCount = Array.isArray(order.items) ? order.items.length : (order.itemCount || 0);
+
             let itemsHTML = '';
-            if (order.items && order.items.length > 0) {
+            if (Array.isArray(order.items) && order.items.length > 0) {
                 itemsHTML = order.items.map(item => `
                     <div class="kv">
                         <div class="k">${item.quantity}x ${item.product_name || 'Product'}</div>
@@ -629,7 +730,7 @@ async function fetchEasyBuyOrders() {
                 itemsHTML = '<div class="text-muted small">No items</div>';
             }
 
-            const orderCard = `
+            container.innerHTML += `
                 <div class="order-card-item p-4 mb-4">
                     <div class="row align-items-center">
                         <div class="col-md-2 text-center mb-3 mb-md-0">
@@ -640,22 +741,20 @@ async function fetchEasyBuyOrders() {
 
                         <div class="col-md-7 mb-3 mb-md-0">
                             <div class="mb-2 d-flex flex-wrap gap-2">
-                                <span class="status-badge-gray">${status.toUpperCase()} • ID ${orderId}</span>
+                                <span class="status-badge-gray">${String(status).toUpperCase()} • ID ${orderId}</span>
                                 <span class="status-badge-gray">ITEMS: ${itemCount}</span>
                                 <span class="status-badge-gray">EASYBUY</span>
                             </div>
 
-                            <h6 class="fw-bold mb-1 text-dark">
-                                ${customerName || 'Customer'}
-                            </h6>
+                            <h6 class="fw-bold mb-1 text-dark">${customerName || 'Customer'}</h6>
 
                             <div class="small text-muted">
                                 <strong>Delivery to:</strong> ${shippingAddress}
                             </div>
 
                             <div class="mt-2 small">
-                                <button class="btn-link-lite" type="button" data-bs-toggle="collapse" 
-                                        data-bs-target="#${collapseId}" aria-expanded="false" 
+                                <button class="btn-link-lite" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#${collapseId}" aria-expanded="false"
                                         aria-controls="${collapseId}">
                                     Show details
                                 </button>
@@ -672,7 +771,6 @@ async function fetchEasyBuyOrders() {
                         </div>
                     </div>
 
-                    <!-- Collapsible details -->
                     <div class="collapse mt-3" id="${collapseId}">
                         <div class="bg-white rounded-3 p-3 border">
                             <div class="row g-3">
@@ -713,20 +811,16 @@ async function fetchEasyBuyOrders() {
                     <hr class="my-3 text-muted opacity-25">
 
                     <div class="row align-items-center">
-                        <div class="col-md-6 text-muted small">
-                            Tip: Review details before accepting.
-                        </div>
+                        <div class="col-md-6 text-muted small">Tip: Review details before accepting.</div>
                         <div class="col-md-6 text-md-end">
-                            <button class="btn btn-warning fw-bold px-4 shadow-sm text-uppercase" 
-                                    onclick="acceptEasyBuyOrder(${orderId})">
+                            <button class="btn btn-warning fw-bold px-4 shadow-sm text-uppercase"
+                                    onclick="acceptEasyBuyOrder(${Number(orderId)})">
                                 ACCEPT ORDER
                             </button>
                         </div>
                     </div>
                 </div>
             `;
-
-            container.innerHTML += orderCard;
         });
 
     } catch (err) {
@@ -742,83 +836,61 @@ async function fetchEasyBuyOrders() {
 }
 
 let currentOrderId = null;
-let currentAcceptButton = null;
 
 function acceptEasyBuyOrder(orderId) {
     currentOrderId = orderId;
-    currentAcceptButton = event.target;
-    
-    // Update modal with order ID
     document.getElementById('modalOrderId').textContent = orderId;
-    
-    // Show modal
     const modal = new bootstrap.Modal(document.getElementById('acceptOrderModal'));
     modal.show();
 }
 
 async function confirmAcceptOrder() {
-    if (!currentOrderId || !currentAcceptButton) return;
-    
+    if (!currentOrderId) return;
+
     const modal = bootstrap.Modal.getInstance(document.getElementById('acceptOrderModal'));
     const confirmBtn = document.getElementById('confirmAcceptBtn');
-    
-    // Disable button and show loading
+
     confirmBtn.disabled = true;
     confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Accepting...';
-    currentAcceptButton.disabled = true;
-    currentAcceptButton.textContent = 'ACCEPTING...';
 
     try {
-        const response = await fetch(`http://${easybuyIP}/EasyBuy-x-PackIT/EasyBuy/api/updateOrderStatusByDriver.php`, {
+        // Claim via PackIT (POST driver.php accept_easybuy) -> this also calls EasyBuy API server-side
+        const params = new URLSearchParams();
+        params.append('csrf_token', <?= json_encode($_SESSION['csrf_token']) ?>);
+        params.append('action', 'accept_easybuy');
+        params.append('order_id', String(currentOrderId));
+
+        const res = await fetch('driver.php', {
             method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                orderId: currentOrderId,
-                driverId: <?= $driverId ?>,
-                newStatus: 'picked up'
-            })
+            body: params,
+            headers: { 'Accept': 'text/html' }
         });
 
-        const result = await response.json();
-
-        if (response.ok && result.success) {
-            // Close modal and redirect
-            modal.hide();
-            window.location.href = 'driverBookings.php';
-        } else {
-            console.error('Failed to accept order:', result.error);
-            modal.hide();
-            alert('Failed to accept order: ' + (result.error || 'Unknown error'));
-            confirmBtn.disabled = false;
-            confirmBtn.textContent = 'Accept Order';
-            currentAcceptButton.disabled = false;
-            currentAcceptButton.textContent = 'ACCEPT ORDER';
-        }
+        // After POST, driver.php redirects; just go to bookings page
+        modal.hide();
+        window.location.href = 'driverBookings.php';
     } catch (err) {
         console.error('Error accepting order:', err);
         modal.hide();
         alert('Error accepting order. Please try again.');
         confirmBtn.disabled = false;
         confirmBtn.textContent = 'Accept Order';
-        currentAcceptButton.disabled = false;
-        currentAcceptButton.textContent = 'ACCEPT ORDER';
     }
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    // Fetch EasyBuy orders on page load
-    fetchEasyBuyOrders();
-    
-    // Setup modal confirm button
-    const confirmBtn = document.getElementById('confirmAcceptBtn');
-    if (confirmBtn) {
-        confirmBtn.addEventListener('click', confirmAcceptOrder);
+    // Expose claimed order IDs JSON endpoint via query param
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('claimed_easybuy') === '1') {
+        // This will be handled by PHP below (we'll stop rendering HTML)
+        return;
     }
-    
+
+    fetchEasyBuyOrders();
+
+    const confirmBtn = document.getElementById('confirmAcceptBtn');
+    if (confirmBtn) confirmBtn.addEventListener('click', confirmAcceptOrder);
+
     const onlineSwitch = document.getElementById('onlineSwitch');
     if (!onlineSwitch) return;
 
@@ -827,7 +899,7 @@ document.addEventListener('DOMContentLoaded', function () {
         this.disabled = true;
 
         const params = new URLSearchParams();
-        params.append('csrf_token', '<?= h($_SESSION['csrf_token']); ?>');
+        params.append('csrf_token', <?= json_encode($_SESSION['csrf_token']) ?>);
         params.append('action', 'toggle_availability');
         params.append('value', checked);
 
@@ -848,12 +920,30 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (err) {
             alert('Network error. Please try again.');
             this.checked = !this.checked;
-        } finally { 
+        } finally {
             this.disabled = false;
         }
     });
 });
 </script>
+
+<?php
+// Provide JSON of ALL claimed EasyBuy order IDs for client-side filtering
+// URL: driver.php?claimed_easybuy=1
+if (isset($_GET['claimed_easybuy']) && $_GET['claimed_easybuy'] === '1') {
+    header('Content-Type: application/json; charset=utf-8');
+    try {
+        $stmt = $db->executeQuery("SELECT order_id FROM easybuy_order_assignments", []);
+        $rows = $db->fetch($stmt);
+        $ids = [];
+        foreach ($rows as $r) $ids[] = (int)$r['order_id'];
+        echo json_encode(['success' => true, 'claimed' => $ids]);
+    } catch (Throwable $e) {
+        echo json_encode(['success' => false, 'claimed' => []]);
+    }
+    exit;
+}
+?>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>

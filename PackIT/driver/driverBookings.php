@@ -332,13 +332,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 $driverEmail = trim((string)($receipt['driver_email'] ?? ''));
 
                                 if ($userEmail !== '') {
-                                    $subjectUser = "PackIT Receipt — Booking #{$bookingNum} (Delivered)";
+                                    $subjectUser = "PackIT Receipt - Booking #{$bookingNum} (Delivered)";
                                     $htmlUser = buildDeliveredEmailHtml($receipt, 'user');
                                     sendMail($userEmail, $subjectUser, $htmlUser);
                                 }
 
                                 if ($driverEmail !== '') {
-                                    $subjectDriver = "PackIT Delivery Completed — Booking #{$bookingNum}";
+                                    $subjectDriver = "PackIT Delivery Completed - Booking #{$bookingNum}";
                                     $htmlDriver = buildDeliveredEmailHtml($receipt, 'driver');
                                     sendMail($driverEmail, $subjectDriver, $htmlDriver);
                                 }
@@ -366,6 +366,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $currentStatus = $_POST['current_status'] ?? '';
 
         if ($orderId > 0) {
+            // ✅ SECURITY: Only allow advancing if this order is assigned to this driver in PackIT DB
+            $chk = $db->executeQuery(
+                "SELECT 1 FROM easybuy_order_assignments WHERE order_id = ? AND driver_id = ? LIMIT 1",
+                [(string)$orderId, (string)$driverId]
+            );
+            $chkRow = $db->fetch($chk);
+            if (empty($chkRow)) {
+                $_SESSION['flash_error'] = 'This EasyBuy order is not assigned to you.';
+                header('Location: driverBookings.php');
+                exit;
+            }
+
             $nextMap = [
                 'picked up'     => 'in transit',
                 'in transit'    => 'order arrived',
@@ -387,20 +399,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $context = stream_context_create([
                     'http' => [
                         'method' => 'POST',
-                        'header' => 'Content-Type: application/json',
+                        'header' => "Content-Type: application/json\r\nAccept: application/json\r\n",
                         'content' => $postData,
-                        'timeout' => 5,
+                        'timeout' => 8,
                         'ignore_errors' => true
                     ]
                 ]);
 
                 $response = @file_get_contents($updateUrl, false, $context);
-                $result = json_decode($response, true);
+                $result = json_decode((string)$response, true);
 
                 if ($response !== false && isset($result['success']) && $result['success']) {
                     $_SESSION['flash_success'] = 'EasyBuy order status updated to ' . $next . '.';
 
+                    // ✅ Keep PackIT assignment status updated
+                    try {
+                        $db->executeQuery(
+                            "UPDATE easybuy_order_assignments
+                             SET status = ?, updated_at = NOW()
+                             WHERE order_id = ? AND driver_id = ?",
+                            [(string)$next, (string)$orderId, (string)$driverId]
+                        );
+                    } catch (Throwable $e) {
+                        // ignore
+                    }
+
+                    // ✅ If completed, delete assignment so it won't show anymore
                     if ($next === 'order arrived') {
+                        try {
+                            $db->executeQuery(
+                                "DELETE FROM easybuy_order_assignments WHERE order_id = ? AND driver_id = ?",
+                                [(string)$orderId, (string)$driverId]
+                            );
+                        } catch (Throwable $e) {
+                            // ignore
+                        }
                         header('Location: driver.php');
                         exit;
                     }
@@ -438,36 +471,58 @@ $stmtMine = $db->executeQuery(
 );
 $myBookings = $db->fetch($stmtMine);
 
+/**
+ * ✅ FIX: Only show EasyBuy orders assigned to this driver
+ * We read order_id list from easybuy_order_assignments, then filter fetched orders.
+ */
+$assignedIds = [];
+try {
+    $stmtAssigned = $db->executeQuery(
+        "SELECT order_id FROM easybuy_order_assignments WHERE driver_id = ?",
+        [(string)$driverId]
+    );
+    $assignedRows = $db->fetch($stmtAssigned);
+    foreach ($assignedRows as $r) {
+        $assignedIds[(int)$r['order_id']] = true;
+    }
+} catch (Throwable $e) {
+    $assignedIds = [];
+}
+
 $easybuyOrders = [];
 try {
-    $easybuyIP = $_ENV['EASYBUY_IP'] ?? 'localhost';
-    $easybuyApiUrl = "http://$easybuyIP/EasyBuy-x-PackIT/EasyBuy/api/getAllOrders.php";
+    // Only call EasyBuy if this driver has assigned orders (optional optimization)
+    if (!empty($assignedIds)) {
+        $easybuyIP = $_ENV['EASYBUY_IP'] ?? 'localhost';
+        $easybuyApiUrl = "http://$easybuyIP/EasyBuy-x-PackIT/EasyBuy/api/getAllOrders.php";
 
-    $context = stream_context_create([
-        'http' => [
-            'method' => 'GET',
-            'timeout' => 5,
-            'ignore_errors' => true
-        ]
-    ]);
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'timeout' => 8,
+                'ignore_errors' => true
+            ]
+        ]);
 
-    $response = @file_get_contents($easybuyApiUrl, false, $context);
+        $response = @file_get_contents($easybuyApiUrl, false, $context);
 
-    if ($response !== false) {
-        $allEasybuyOrders = json_decode($response, true);
+        if ($response !== false) {
+            $allEasybuyOrders = json_decode((string)$response, true);
 
-        if (is_array($allEasybuyOrders)) {
-            // Filter only active orders (exclude completed "order arrived")
-            foreach ($allEasybuyOrders as $order) {
-                $status = strtolower($order['status'] ?? '');
-                if (in_array($status, ['picked up', 'in transit'])) {
-                    $easybuyOrders[] = $order;
+            if (is_array($allEasybuyOrders)) {
+                foreach ($allEasybuyOrders as $order) {
+                    $orderId = (int)($order['orderID'] ?? $order['id'] ?? 0);
+                    $status = strtolower($order['status'] ?? '');
+
+                    // Only active statuses + only assigned to this driver
+                    if (isset($assignedIds[$orderId]) && in_array($status, ['picked up', 'in transit'], true)) {
+                        $easybuyOrders[] = $order;
+                    }
                 }
             }
         }
     }
 } catch (Exception $e) {
-    // Silently fail if EasyBuy API is not available
     error_log('Failed to fetch EasyBuy orders: ' . $e->getMessage());
 }
 ?>
@@ -868,9 +923,9 @@ try {
                                     </div>
                                 <?php endforeach; ?>
 
-                                <!-- EasyBuy Orders -->
+                                <!-- EasyBuy Orders (ONLY assigned to this driver) -->
                                 <?php foreach ($easybuyOrders as $order):
-                                    $orderId = $order['orderID'] ?? 0;
+                                    $orderId = $order['orderID'] ?? $order['id'] ?? 0;
                                     $customerName = ($order['firstName'] ?? '') . ' ' . ($order['lastName'] ?? '');
                                     $status = $order['status'] ?? 'pending';
                                     $btnLabel = next_easybuy_button_label($status);
@@ -889,13 +944,13 @@ try {
                                             <div>
                                                 <h5 class="fw-bold mb-1" style="color: var(--secondary-teal);">
                                                     <i class="bi bi-bag-check me-2"></i>
-                                                    EasyBuy Order #<?= h($orderId) ?>
+                                                    EasyBuy Order #<?= h((string)$orderId) ?>
                                                 </h5>
                                                 <span class="status-badge-gray"><?= h(strtoupper($status)) ?></span>
                                                 <span class="status-badge-gray">EASYBUY</span>
                                             </div>
                                             <div class="fw-bold text-warning" style="font-size: 1.1rem;">
-                                                ₱<?= h(number_format((float)($order['totalAmount'] ?? 0), 2)) ?>
+                                                ₱<?= h(number_format((float)($order['totalAmount'] ?? $order['totalAmount'] ?? 0), 2)) ?>
                                             </div>
                                         </div>
 
