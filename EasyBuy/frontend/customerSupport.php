@@ -13,14 +13,18 @@
 <body>
     
     <?php include 'components/navbar.php'; ?>
-
+    
+    <button class="back-btn mx-3 my-3" onclick="window.history.back()"
+        style="background: none; border: none; color: #6EC064; font-size: 2rem; cursor: pointer;">
+        <span class="material-symbols-rounded">arrow_back</span>
+    </button>
     <div class="container">
         <div class="row m-3">
-            <div class="col">
-                <div class="h1 my-3">
+            <div class="col-md-8 col-lg-6 mx-md-auto px-1">
+                <div class="h1" style="color: #28a745">
                     Customer Support
                 </div>
-                <p class="text-secondary">Send us your concerns or questions, and our customer support team will get back to you as soon as possible.</p>
+                <p class="text-secondary fw-normal">Send us your concerns or questions, and our customer support team will get back to you as soon as possible.</p>
             </div>
         </div>
         <div class="row">

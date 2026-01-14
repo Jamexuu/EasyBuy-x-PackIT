@@ -57,7 +57,8 @@
                     </div>
                 </div>
                 <p class="text-danger small fw-normal" id="errorMessage"></p>
-                <form method="POST" action="" onsubmit="postUserData(event); return false;">
+                <div class="px-3">
+                    <form method="POST" action="" onsubmit="postUserData(event); return false;">
                     <div class="mb-3">
                         <label class="form-label" for="Email">Email</label>
                         <input type="email" id="Email" placeholder="Email" name="Email"
@@ -80,7 +81,7 @@
                     
                     <a href="enterEmailForgotPassword.php" class="text-decoration-none" style="color: #6EC064">Forgot Password?</a>
 
-                    <div class="d-flex justify-content-center mt-3">
+                    <div class="d-flex justify-content-center mt-4">
                         <button type="submit" class="btn text-white px-4 py-2 fw-bold w-100 rounded-3"
                             style="background-color: #6EC064">Log in</button>
                     </div>
@@ -90,18 +91,19 @@
                     <div class="d-flex justify-content-center">
                         <!--This is where the endpoint of PACKIT-->
                         <a href="packitLogin.php" class="btn w-100 d-flex align-items-center justify-content-center gap-2 rounded-3"
-                            style="background-color: #F8E15B;">
+                            style="border: 2px solid #F8E15B;">
                             <!--This is where the logo of PACKIT-->
                             <img src="../../PackIT/assets/LOGO.svg" width="30" height="30" alt="logo of packit">
                             Sign in with PackIT
                         </a>
                     </div>
-                    <p class="text-center mb-1 mt-2">
+                    <p class="text-center mb-1 mt-2 mb-5">
                         Don't have an account?
                         <a href="signUp.php" class="text-black text-decoration-underline ">Sign Up with
                             EasyBuy</a>
                     </p>
                 </form>
+                </div>
             </div>
         </div>
     </div>
