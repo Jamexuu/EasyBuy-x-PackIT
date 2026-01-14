@@ -3,6 +3,8 @@ session_start();
 require_once __DIR__ . '/../api/classes/Database.php';
 require_once __DIR__ . '/../frontend/components/autorefresh.php';
 require_once __DIR__ . '/../api/sms/SmsNotificationService.php'; // SMS service
+require_once __DIR__ . '/../vendor/autoload.php'; // adjust path if vendor is elsewhere
+Dotenv\Dotenv::createImmutable(__DIR__ . '/..')->safeLoad(); // loads PackIT/.env
 
 // Define $action to avoid undefined variable issues
 $action = $_POST['action'] ?? $_GET['action'] ?? null;
@@ -244,7 +246,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($next) {
                 // Call driver-specific EasyBuy API to update status
-                $easybuyIP = '192.168.1.26';
+                $easybuyIP = $_ENV['EASYBUY_IP'] ?? 'localhost';
                 $updateUrl = "http://$easybuyIP/EasyBuy-x-PackIT/EasyBuy/api/updateOrderStatusByDriver.php";
                 
                 $postData = json_encode([
@@ -310,7 +312,7 @@ $myBookings = $db->fetch($stmtMine);
 $easybuyOrders = [];
 try {
 
-    $easybuyIP = '192.168.1.26';
+    $easybuyIP = $_ENV['EASYBUY_IP'] ?? 'localhost';
     $easybuyApiUrl = "http://$easybuyIP/EasyBuy-x-PackIT/EasyBuy/api/getAllOrders.php";
     
     $context = stream_context_create([
