@@ -53,7 +53,7 @@
                         </div>
                     </div>
 
-                    <p class="text-danger text-center" id="otpError"></p>
+                    <p class="text-danger text-center fw-normal small" id="otpError"></p>
                     
                     <p class="text-center mb-4">
                         Didn't receive one? <a href="#" id="resendCode" style="color: #6EC064; text-decoration: none; font-weight: 500;">Resend code.</a>
@@ -121,7 +121,7 @@
                 } else {
                     otpInputs.forEach(input => input.value = '');
                     otpInputs[0].focus();
-                    otpInputs.forEach(input => input.style.border = '2px solid red');
+                    otpInputs.forEach(input => input.style.border = '1px solid red');
                     otpError.textContent = result.error || 'Invalid OTP. Please try again.';
                 }
 
