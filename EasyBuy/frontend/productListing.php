@@ -42,7 +42,7 @@
 <body>
     <?php include './components/navbar.php'; ?>
 
-    <div class="container-fluid mt-5 pt-5">
+    <div class="container-fluid pt-lg-5">
         <div class="row justify-content-center g-3">
             <div class="col-12 col-lg-3 order-1 order-lg-1">
                 <div class="container-fluid p-3">
