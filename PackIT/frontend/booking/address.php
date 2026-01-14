@@ -321,14 +321,6 @@ $pkgQty = (int)($state["package_quantity"] ?? 1);
               <div class="alert alert-danger"><?= h($error) ?></div>
             <?php endif; ?>
 
-            <div class="alert alert-info">
-              <div class="fw-bold mb-1">Default pickup details</div>
-              <!-- <div class="muted-sm mb-2">Auto-fill from your DB profile (users + addresses).</div> -->
-              <button class="btn btn-sm btn-warning" type="button" id="useDefaultPickupBtn">
-                Use my profile defaults
-              </button>
-            </div>
-
             <form method="post" id="addressForm" novalidate>
               <input type="hidden" name="pickup_region_code" id="pickup_region_code" value="<?= h((string)($pickup["region_code"] ?? "")) ?>">
               <input type="hidden" name="pickup_region_name" id="pickup_region_name" value="<?= h((string)($pickup["region_name"] ?? "")) ?>">
@@ -342,7 +334,6 @@ $pkgQty = (int)($state["package_quantity"] ?? 1);
               <input type="hidden" name="drop_city_name" id="drop_city_name" value="<?= h((string)($drop["municipality"] ?? "")) ?>">
               <input type="hidden" name="drop_barangay_name" id="drop_barangay_name" value="<?= h((string)($drop["barangay"] ?? "")) ?>">
 
-              <!-- Contacts -->
               <div class="row g-3 mb-3">
                 <div class="col-md-6">
                   <div class="bg-light p-3 rounded h-100">
@@ -607,26 +598,7 @@ $pkgQty = (int)($state["package_quantity"] ?? 1);
         updateHiddenName(this, hiddenBarangay);
       });
     }
-
-    (async function init() {
-      const regionsData = await fetchData("action=get_regions");
-      regionsData.forEach(r => { REGION_MAP[r.region_code] = r.region_name; });
-
-      setupSelector("pickup", {
-        province_code: "<?= h((string)($pickup["province_code"] ?? "")) ?>",
-        city_code: "<?= h((string)($pickup["city_code"] ?? "")) ?>",
-        brgy_code: "<?= h((string)($pickup["brgy_code"] ?? "")) ?>"
-      });
-
-      setupSelector("drop", {
-        province_code: "<?= h((string)($drop["province_code"] ?? "")) ?>",
-        city_code: "<?= h((string)($drop["city_code"] ?? "")) ?>",
-        brgy_code: "<?= h((string)($drop["brgy_code"] ?? "")) ?>"
-      });
-
-      setupPhoneInputs();
-    })();
-
+    
     // Smart matching
     function normalize(str) {
       if (!str) return "";
@@ -711,35 +683,45 @@ $pkgQty = (int)($state["package_quantity"] ?? 1);
       });
     }
 
-    // UPDATED BUTTON: fill BOTH address + contact from DB
-    document.getElementById("useDefaultPickupBtn").addEventListener("click", async () => {
+    // FUNCTION: fill BOTH address + contact from DB
+    async function loadProfileDefaults(silent = false) {
       try {
         const res = await fetch("?action=get_user_profile_defaults");
         const data = await res.json();
 
         if (!data) {
-          alert("No profile defaults found (user or address missing).");
+          if (!silent) alert("No profile defaults found (user or address missing).");
           return;
         }
 
         // Fill contact
         if (data.contact) {
-          const name = data.contact.name || "";
-          const cp = data.contact.contact_number || "";
-          document.getElementById("pickup_contact_name").value = name;
-          // normalize client-side (handles +63 or 63 or 9...)
-          document.getElementById("pickup_contact_number").value = clientNormalizePhone(cp);
+            const name = data.contact.name || "";
+            const cp = data.contact.contact_number || "";
+            // Always try to fill name/number if they are empty
+            const nameInput = document.getElementById("pickup_contact_name");
+            const cpInput = document.getElementById("pickup_contact_number");
+
+            if (!nameInput.value) nameInput.value = name;
+            if (!cpInput.value) cpInput.value = clientNormalizePhone(cp);
         }
 
         // Fill address
         const p = data.address;
         if (!p) {
-          alert("No address found in your database profile.");
+          if (!silent) alert("No address found in your database profile.");
           return;
+        }
+        
+        // If 'silent' (auto-load), don't overwrite existing address data
+        // If not silent (button click), overwrite it
+        const houseInput = document.getElementById("pickup_house");
+        if (silent && houseInput.value) {
+            return; 
         }
 
         // 1. Fill House
-        document.getElementById("pickup_house").value = p.house || "";
+        houseInput.value = p.house || "";
 
         // 2. Province
         const provSelect = document.getElementById("pickup_province");
@@ -776,14 +758,37 @@ $pkgQty = (int)($state["package_quantity"] ?? 1);
             }
           }, 100);
         } else {
-          alert(`Could not find province "${p.province}"`);
+          if (!silent) alert(`Could not find province "${p.province}"`);
         }
 
       } catch (e) {
         console.error("Error fetching profile defaults", e);
-        alert("Failed to load profile defaults.");
+        if (!silent) alert("Failed to load profile defaults.");
       }
-    });
+    }
+
+    (async function init() {
+      const regionsData = await fetchData("action=get_regions");
+      regionsData.forEach(r => { REGION_MAP[r.region_code] = r.region_name; });
+
+      // Ensure selectors are set up first
+      await setupSelector("pickup", {
+        province_code: "<?= h((string)($pickup["province_code"] ?? "")) ?>",
+        city_code: "<?= h((string)($pickup["city_code"] ?? "")) ?>",
+        brgy_code: "<?= h((string)($pickup["brgy_code"] ?? "")) ?>"
+      });
+
+      await setupSelector("drop", {
+        province_code: "<?= h((string)($drop["province_code"] ?? "")) ?>",
+        city_code: "<?= h((string)($drop["city_code"] ?? "")) ?>",
+        brgy_code: "<?= h((string)($drop["brgy_code"] ?? "")) ?>"
+      });
+
+      setupPhoneInputs();
+      
+      // AUTO-FILL on load if fields are empty
+      await loadProfileDefaults(true);
+    })();
   </script>
 </body>
 </html>

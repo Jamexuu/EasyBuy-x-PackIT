@@ -70,7 +70,6 @@ $dropContactNumber = (string)$state["drop_contact_number"];
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PackIT - Review</title>
-
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     :root { --brand-yellow:#f8e14b; --brand-yellow-dark:#e6cc32; --brand-black:#1c1c1c; }
@@ -80,7 +79,6 @@ $dropContactNumber = (string)$state["drop_contact_number"];
     .muted-sm { font-size:.9rem; color:#6c757d; }
     .detail-box { background:#f8f9fa; border-radius:.75rem; padding:1rem; }
   </style>
-
   <script src="https://www.paypal.com/sdk/js?client-id=<?= PAYPAL_CLIENT_ID ?>&currency=PHP"></script>
 </head>
 <body>
@@ -151,7 +149,8 @@ $dropContactNumber = (string)$state["drop_contact_number"];
             </ul>
 
             <div class="d-flex gap-2 align-items-center flex-column">
-              <div id="paypal-button-container" class="w-100"></div>
+              <div id="paypal-button-container" class="col-12 col-md-10 col-lg-8"></div>
+              
               <div class="small text-muted text-center" style="max-width: 520px;">
                 You will be redirected to the success page after payment. Please ensure you are logged in before booking.
               </div>
