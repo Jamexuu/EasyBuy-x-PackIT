@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="../assets/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet">
 </head>
 
 <body>
@@ -18,6 +19,11 @@
             </div>
         </div>
     </div>
+
+    <button class="back-btn mx-3 my-3" onclick="window.history.back()"
+        style="background: none; border: none; color: #6EC064; font-size: 2rem; cursor: pointer;">
+        <span class="material-symbols-rounded">arrow_back</span>
+    </button>
 
     <div class="container">
         <div class="row">
@@ -35,7 +41,7 @@
                             class="form-control py-2 rounded-3">
                     </div>
                     <div class="small text-danger mb-3 fw-normal" id="emailError"></div>
-                    <button type="submit" class="btn btn-success px-4 py-2">Submit</button>   
+                    <button type="submit" class="btn btn-success px-4 py-2">Submit</button>
                 </form>
             </div>
         </div>
@@ -50,7 +56,7 @@
         const email = document.getElementById('Email');
         const emailError = document.getElementById('emailError');
 
-        async function sendOTP(){
+        async function sendOTP() {
             try {
 
                 if (!email.value) {

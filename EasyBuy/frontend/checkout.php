@@ -1,4 +1,4 @@
-<?php 
+<?php
 require_once '../api/classes/Auth.php';
 require_once '../api/config.php';
 
@@ -17,7 +17,8 @@ Auth::requireAuth();
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
     <link rel="stylesheet" href="../assets/css/style.css">
-    <script src="https://www.paypal.com/sdk/js?client-id=<?php echo htmlspecialchars($_ENV['PAYPAL_CLIENT_ID']); ?>&currency=USD"></script>
+    <script
+        src="https://www.paypal.com/sdk/js?client-id=<?php echo htmlspecialchars($_ENV['PAYPAL_CLIENT_ID']); ?>&currency=USD"></script>
 </head>
 
 <body>
@@ -26,6 +27,11 @@ Auth::requireAuth();
 
     <div class="container-fluid mb-5">
         <div class="row mb-3 mb-md-0" id="userAddress"></div>
+
+        <button class="back-btn mx-3 my-3" onclick="window.history.back()"
+            style="background: none; border: none; color: #6EC064; font-size: 2rem; cursor: pointer;">
+            <span class="material-symbols-rounded">arrow_back</span>
+        </button>
 
         <div class="container mt-5">
             <div class="row mb-3 mb-md-0">
@@ -40,7 +46,7 @@ Auth::requireAuth();
                                 </tr>
                             </thead>
                             <tbody id="checkoutItems">
-                                
+
                             </tbody>
                         </table>
                     </div>
@@ -53,7 +59,7 @@ Auth::requireAuth();
                             <div class="h6 m-0 p-2">Order Summary</div>
                         </div>
                         <div class="card-body p-5" id="orderSummary">
-                            
+
                         </div>
                     </div>
                 </div>
@@ -65,7 +71,8 @@ Auth::requireAuth();
                         <div class="card-body px-5 py-4">
                             <div id="payment-options">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="radioDefault" id="cashOnDelivery" checked>
+                                    <input class="form-check-input" type="radio" name="radioDefault" id="cashOnDelivery"
+                                        checked>
                                     <label class="form-check-label" for="cashOnDelivery">
                                         Cash on Delivery
                                     </label>
@@ -82,15 +89,16 @@ Auth::requireAuth();
                                 </div>
                             </div>
                             <div id="paypal-button-container" style="display: none;"></div>
-                            <button id="back-to-payment" class="btn btn-outline-secondary mt-3" style="display: none;">← Back to Payment Options</button>
+                            <button id="back-to-payment" class="btn btn-outline-secondary mt-3" style="display: none;">←
+                                Back to Payment Options</button>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <div class="row p-md-5">
                 <div class="col p-0 d-flex justify-content-end align-items-center gap-4" id="placeOrderSection">
-                    
+
                 </div>
             </div>
         </div>
@@ -112,9 +120,9 @@ Auth::requireAuth();
         var paypalButtonsRendered = false;
         var userAddress = document.getElementById('userAddress');
 
-        async function getUserAddress(){
+        async function getUserAddress() {
 
-            try{
+            try {
 
                 const response = await fetch('../api/getuserDetails.php', {
                     method: 'GET',
@@ -154,16 +162,16 @@ Auth::requireAuth();
                     </div>
                 `;
 
-            } catch(error){
+            } catch (error) {
                 console.error('Error fetching user address:', error);
-            }       
+            }
         }
 
         getUserAddress();
 
-        async function getUserCartItems(){
+        async function getUserCartItems() {
 
-            try{    
+            try {
 
                 const directCheckoutResponse = await fetch('../api/getDirectCheckoutItems.php', {
                     method: 'GET',
@@ -173,7 +181,7 @@ Auth::requireAuth();
                 });
 
                 let data = [];
-                
+
                 if (directCheckoutResponse.ok) {
                     const directData = await directCheckoutResponse.json();
                     if (directData && directData.length > 0) {
@@ -195,12 +203,12 @@ Auth::requireAuth();
 
                     data = await response.json();
                 }
-                
+
                 if (!data || data.length === 0) {
                     checkoutItems.innerHTML = '<tr><td colspan="3" class="text-center py-4">No items to checkout</td></tr>';
                     return;
                 }
-                
+
                 var totalAmount = 0;
                 var shippingFee = await getShippingFee();
                 var totalWeight = 0;
@@ -214,13 +222,13 @@ Auth::requireAuth();
                             <td>
                                 <div class="row align-items-center text-start">
                                     <div class="col-auto px-5 py-2">
-                                        <img src="`+ item.image +`" alt=""
+                                        <img src="`+ item.image + `" alt=""
                                             class="img-fluid border border-1 rounded border-dark"
                                             style="width:100px; height:100px; object-fit: contain;">
                                     </div>
                                     <div class="col">
-                                        <p class="mb-0">`+ item.product_name +`</p>
-                                        ${ item.is_sale == 1 ? `<span class="badge" style="background-color:#28a745;">`+ item.sale_percentage + `% Off</span>` : '' }
+                                        <p class="mb-0">`+ item.product_name + `</p>
+                                        ${item.is_sale == 1 ? `<span class="badge" style="background-color:#28a745;">` + item.sale_percentage + `% Off</span>` : ''}
                                     </div>
                                 </div>
                             </td>
@@ -228,10 +236,10 @@ Auth::requireAuth();
                                 `+ item.quantity + `
                             </td>
                             <td class="align-middle text-center">
-                                ${ item.is_sale == 1 ? `
+                                ${item.is_sale == 1 ? `
                                     <div><small class="text-decoration-line-through text-muted">₱`+ (item.price * item.quantity).toFixed(2) + `</small></div>
                                     <div class="fw-bold text-success">₱`+ (item.final_price * item.quantity).toFixed(2) + `</div>
-                                ` : `₱`+ (item.final_price * item.quantity).toFixed(2) }
+                                ` : `₱` + (item.final_price * item.quantity).toFixed(2)}
                             </td>
                         </tr>
                     `;
@@ -239,7 +247,7 @@ Auth::requireAuth();
 
                 totalAmount = subTotal + shippingFee;
 
-                orderSummary.innerHTML =`
+                orderSummary.innerHTML = `
                     <div class="d-flex justify-content-between mb-2">
                         <div>Subtotal</div>
                         <div>₱`+ subTotal.toFixed(2) + `</div>
@@ -256,7 +264,7 @@ Auth::requireAuth();
                 `;
 
                 placeOrderSection.innerHTML = `
-                    <p class="m-0">Total (`+ data.length + ` item${data.length !== 1 ? 's' : ''}) <strong>₱`+ totalAmount.toFixed(2) + `</strong></p>
+                    <p class="m-0">Total (`+ data.length + ` item${data.length !== 1 ? 's' : ''}) <strong>₱` + totalAmount.toFixed(2) + `</strong></p>
                     <input type="button" id="placeOrder" class="btn text-white" style="background-color: #6EC064;" value="Place Order">
                 `;
 
@@ -276,17 +284,17 @@ Auth::requireAuth();
                 if (typeof paypal !== 'undefined' && paypal.Buttons) {
                     initPaypalButtons(totalAmount);
                 } else {
-                    var checkPaypal = setInterval(function() {
+                    var checkPaypal = setInterval(function () {
                         if (typeof paypal !== 'undefined' && paypal.Buttons) {
                             clearInterval(checkPaypal);
                             initPaypalButtons(totalAmount);
                         }
                     }, 100);
                     // Stop checking after 10 seconds to avoid infinite polling
-                    setTimeout(function() { clearInterval(checkPaypal); }, 10000);
+                    setTimeout(function () { clearInterval(checkPaypal); }, 10000);
                 }
 
-            }catch(error){
+            } catch (error) {
                 console.error('Error fetching cart items:', error);
                 checkoutItems.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-danger">Error loading checkout items</td></tr>';
             }
@@ -314,18 +322,18 @@ Auth::requireAuth();
 
         getUserCartItems();
 
-        function submitOrder(checkoutItems, subtotal, totalShipping, totalWeight, total){
+        function submitOrder(checkoutItems, subtotal, totalShipping, totalWeight, total) {
             const placeOrderBtn = document.getElementById('placeOrder');
             if (!placeOrderBtn) return;
-            
-            placeOrderBtn.addEventListener('click', async function(e){
+
+            placeOrderBtn.addEventListener('click', async function (e) {
                 e.preventDefault();
-                
+
                 placeOrderBtn.disabled = true;
                 placeOrderBtn.value = 'Processing...';
-                
+
                 const paymentMethod = getPaymentMethod();
-                
+
                 const payload = {
                     checkout_items: checkoutItems,
                     payment_method: paymentMethod,
@@ -336,16 +344,16 @@ Auth::requireAuth();
                     payment_status: paymentMethod === 'COD' ? 'pending' : 'pending',
                     transaction_id: null
                 };
-                
+
                 try {
                     const response = await fetch('../api/addOrder.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
-                    
+
                     const result = await response.json();
-                    
+
                     if (result.success) {
                         window.location.href = 'orderConfirmation.php?order_id=' + result.order_id;
                     } else {
@@ -353,7 +361,7 @@ Auth::requireAuth();
                         placeOrderBtn.disabled = false;
                         placeOrderBtn.value = 'Place Order';
                     }
-                } catch(error) {
+                } catch (error) {
                     console.error('Error placing order:', error);
                     alert('Failed to place order. Please try again.');
                     placeOrderBtn.disabled = false;
@@ -362,31 +370,31 @@ Auth::requireAuth();
             });
         }
 
-        function getPaymentMethod(){
+        function getPaymentMethod() {
             const paymentMethod = document.getElementById('cashOnDelivery').checked ? 'cod' : 'paypal';
             return paymentMethod;
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             var codRadio = document.getElementById('cashOnDelivery');
             var paypalRadio = document.getElementById('paypal');
             var backButton = document.getElementById('back-to-payment');
-            
+
             if (codRadio && paypalRadio) {
                 codRadio.addEventListener('change', togglePaymentUI);
                 paypalRadio.addEventListener('change', togglePaymentUI);
             }
-            
+
             if (backButton) {
-                backButton.addEventListener('click', function() {
+                backButton.addEventListener('click', function () {
                     document.getElementById('cashOnDelivery').checked = true;
                     togglePaymentUI();
                 });
             }
         });
 
-        async function submitDataForInvoice(orderData){
-            try{
+        async function submitDataForInvoice(orderData) {
+            try {
                 const userRes = await fetch('../api/getUserDetails.php');
                 const userData = await userRes.json();
                 const email = userData.email;
@@ -407,7 +415,7 @@ Auth::requireAuth();
 
                 const result = await response.json();
                 return result;
-            } catch(error){
+            } catch (error) {
                 console.error('Error submitting data for invoice:', error);
             }
         }
@@ -418,7 +426,7 @@ Auth::requireAuth();
             var paypalContainer = document.getElementById('paypal-button-container');
             var paymentOptions = document.getElementById('payment-options');
             var backButton = document.getElementById('back-to-payment');
-            
+
             if (paymentMethod === 'paypal') {
                 if (placeOrderBtn) placeOrderBtn.style.display = 'none';
                 paymentOptions.style.display = 'none';
@@ -443,7 +451,7 @@ Auth::requireAuth();
             var amountUSD = (amount / 58).toFixed(2);
 
             paypal.Buttons({
-                createOrder: function(data, actions) {
+                createOrder: function (data, actions) {
                     return fetch('../api/createPaypalOrder.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -452,21 +460,21 @@ Auth::requireAuth();
                             description: 'EasyBuy Grocery Order'
                         })
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('PayPal Order Response:', data);
-                        if (!data.success) {
-                            console.error('Order creation failed:', data);
-                            throw new Error(data.error || 'Failed to create order');
-                        }
-                        return data.orderId;
-                    })
-                    .catch(error => {
-                        console.error('Create order error:', error);
-                        throw error;
-                    });
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('PayPal Order Response:', data);
+                            if (!data.success) {
+                                console.error('Order creation failed:', data);
+                                throw new Error(data.error || 'Failed to create order');
+                            }
+                            return data.orderId;
+                        })
+                        .catch(error => {
+                            console.error('Create order error:', error);
+                            throw error;
+                        });
                 },
-                onApprove: function(data, actions) {
+                onApprove: function (data, actions) {
                     return fetch('../api/capturePaypalPayment.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -474,25 +482,25 @@ Auth::requireAuth();
                             paypalOrderId: data.orderID
                         })
                     })
-                    .then(response => response.json())
-                    .then(captureData => {
-                        if (!captureData.success) throw new Error('Payment capture failed');
-                        
-                        return saveOrderWithPaypal(captureData.transactionId);
-                    })
-                    .then(result => {
-                        if (result.success) {
-                            window.location.href = 'orderConfirmation.php?order_id=' + result.order_id;
-                        } else {
-                            alert('Error saving order: ' + result.error);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('PayPal error:', error);
-                        alert('Payment processing failed. Please try again.');
-                    });
+                        .then(response => response.json())
+                        .then(captureData => {
+                            if (!captureData.success) throw new Error('Payment capture failed');
+
+                            return saveOrderWithPaypal(captureData.transactionId);
+                        })
+                        .then(result => {
+                            if (result.success) {
+                                window.location.href = 'orderConfirmation.php?order_id=' + result.order_id;
+                            } else {
+                                alert('Error saving order: ' + result.error);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('PayPal error:', error);
+                            alert('Payment processing failed. Please try again.');
+                        });
                 },
-                onError: function(err) {
+                onError: function (err) {
                     console.error('PayPal Buttons error:', err);
                     alert('Payment error occurred. Please try again.');
                 }
