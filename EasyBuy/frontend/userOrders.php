@@ -104,7 +104,6 @@ Auth::requireAuth();
         </div>
     </div>
 
-    <!-- No extra style needed, using Bootstrap badge classes and inline style for position -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
@@ -235,7 +234,7 @@ Auth::requireAuth();
                                 <div class="col-6 col-md-3">
                                     <div class="text-muted small mb-1">Total:</div>
                                     <div class="fw-bold" style="font-size: 1.2rem; color: #212529;">₱${totalPrice}</div>
-                                </div>
+                                    </div>
                             </div>
                             ${cancelButtonHtml ? `<div class="text-end mt-3">${cancelButtonHtml}</div>` : ''}
                         </div>
