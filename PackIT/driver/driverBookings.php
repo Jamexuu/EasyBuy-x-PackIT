@@ -115,9 +115,9 @@ function buildDeliveredEmailHtml(array $row, string $audience): string
     if ($drop !== ',') $html .= $rowHtml("Drop-off", h($drop));
 
     // Money
-    $html .= $rowHtml("Base fare", "₱" . h($base));
-    $html .= $rowHtml("Distance fare", "₱" . h($distance));
-    $html .= $rowHtml("Total", "<span style=\"color:#b8860b\">₱" . h($total) . "</span>");
+    $html .= $rowHtml("Base fare", "Php" . h($base));
+    $html .= $rowHtml("Distance fare", "Php" . h($distance));
+    $html .= $rowHtml("Total", "<span style=\"color:#b8860b\">Php" . h($total) . "</span>");
 
     // Last row remove border-bottom
     $html .= "</table>";
