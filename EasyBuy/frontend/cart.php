@@ -93,7 +93,7 @@ Auth::requireAuth();
 <body>
     <?php include 'components/navbar.php'; ?>
 
-    <div class="container mt-4 text-strong fw-bold">
+    <div class="container mt-4 text-strong fw-bold" style="color: #28a745">
         <h3>Your Shopping Cart</h3>
     </div>
 
