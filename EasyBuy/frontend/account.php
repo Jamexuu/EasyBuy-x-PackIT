@@ -25,10 +25,14 @@
 
     <?php include 'components/navbar.php'; ?>
 
+    <button class="back-btn mx-3 my-3" onclick="window.history.back()"
+        style="background: none; border: none; color: #6EC064; font-size: 2rem; cursor: pointer;">
+        <span class="material-symbols-rounded">arrow_back</span>
+    </button>
     <div class="container">
         <div class="row m-3">
-            <div class="col">
-                <div class="h1 my-3">
+            <div class="col-12 col-md-10 col-lg-8 mx-md-auto px-1">
+                <div class="h1" style="color: #28a745">
                     Account
                 </div>
             </div>
@@ -91,13 +95,13 @@
                 console.log(data);
 
                 accountContentField.innerHTML += `
-                    <div class="col-12 col-md-10 col-lg-8">
+                    <div class="col-12 col-md-10 col-lg-8 mx-md-auto px-1">
                         <div class="card mb-5 rounded-4">
                             <div class="card-body">
                                 <div class="card-title">
-                                    <div class="h3 mb-3" style="color: #6EC064;">Profile</div>
+                                    <div class="h3 mb-3">Profile</div>
                                 </div>
-                                <div class="card-text">
+                                <div class="card-text fw-normal">
                                     <p>Last Name : `+ data.last_name +`</p>
                                     <p>First Name: `+ data.first_name +`</p>
                                     <p>Email: `+ data.email +`</p>
@@ -108,9 +112,9 @@
                         <div class="card mb-5  rounded-4">
                             <div class="card-body">
                                 <div class="card-title">
-                                    <div class="h3 mb-3" style="color: #6EC064;">Address</div>
+                                    <div class="h3 mb-3">Address</div>
                                 </div>
-                                <div class="card-text">
+                                <div class="card-text fw-normal fw-normal">
                                     <p>
                                         `+ data.house_number +` `+ data.street +`, `+ data.barangay +`,
                                         `+ data.city +`, `+ data.province +` `+ data.postal_code +`
@@ -121,10 +125,10 @@
                         <div class="card mb-5 rounded-4">
                             <div class="card-body">
                                 <div class="card-title d-flex justify-content-between align-items-center">
-                                    <div class="h3 mb-3" style="color: #6EC064;">Orders</div>
-                                    <a href="orderHistory.php" class="text-decoration-none" style="color: #6EC064; font-size: 14px;">View order history ›</a>
+                                    <div class="h3 mb-3">Orders</div>
+                                    <a href="orderHistory.php" class="text-decoration-none text-muted" style="font-size: 14px;">View order history ›</a>
                                 </div>
-                                <div class="card-text d-flex justify-content-center gap-5">
+                                <div class="card-text fw-normal d-flex justify-content-center gap-5">
                                     <button onclick="navigateToOrders('placed-orders')" class="btn border-0 bg-transparent d-flex flex-column align-items-center text-decoration-none position-relative" style="cursor: pointer;">
                                         <span class="material-symbols-rounded" style="font-size: 40px; color: #333;">shopping_cart</span>
                                         <span id="placed-orders-badge" class="position-absolute badge rounded-pill bg-danger" style="display:none; top: 2px; right: 40px; font-size: 0.75rem; padding: 0.35em 0.5em;">0</span>
