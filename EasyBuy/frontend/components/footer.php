@@ -31,7 +31,7 @@
                   <span class="material-symbols-rounded" style="font-size:20px; line-height:1;">
                     mail
                   </span>
-                  <span>thisis.acadpurposesonly@gmail.com</span>
+                  <span class="text-break">thisis.acadpurposesonly@gmail.com</span>
                 </a>
               </li>
             </ul>
