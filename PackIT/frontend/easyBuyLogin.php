@@ -14,6 +14,7 @@ Auth::redirectIfLoggedIn();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 
 <body>
@@ -64,12 +65,21 @@ Auth::redirectIfLoggedIn();
                         <input type="email" id="Email" placeholder="Email" name="Email"
                             class="form-control p-2 rounded-3" required>
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label rounded-3" for="Password">Password</label>
-                        <input type="password" id="Password" placeholder="Password" name="Password"
-                            class="form-control p-2" required>
+
+                        <!-- Password with eye toggle -->
+                        <div class="input-group">
+                            <input type="password" id="Password" placeholder="Password" name="Password"
+                                class="form-control p-2" required aria-describedby="togglePasswordBtn">
+                            <button class="btn btn-outline-secondary" type="button" id="togglePasswordBtn"
+                                aria-label="Show password" title="Show password">
+                                <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                            </button>
+                        </div>
                     </div>
-                    
+
                     <div class="form-check mb-3 ms-1">
                         <input class="form-check-input" type="checkbox" id="rememberMe" name="rememberMe">
                         <label class="form-check-label small text-muted" for="rememberMe">Remember me</label>
@@ -86,7 +96,7 @@ Auth::redirectIfLoggedIn();
                             Sign Up with EasyBuy
                         </a>
                     </p>
-                    
+
                     <p class="text-center mt-2">
                         <a href="login.php" class="text-muted small text-decoration-none">
                             &larr; Back to PackIT Login
@@ -110,6 +120,27 @@ Auth::redirectIfLoggedIn();
             modal.show();
         }
 
+        // Password eye toggle
+        (function () {
+            const input = document.getElementById('Password');
+            const btn = document.getElementById('togglePasswordBtn');
+            const icon = document.getElementById('togglePasswordIcon');
+            if (!input || !btn || !icon) return;
+
+            btn.addEventListener('click', () => {
+                const isHidden = input.type === 'password';
+                input.type = isHidden ? 'text' : 'password';
+
+                // swap icon
+                icon.classList.toggle('bi-eye', !isHidden);
+                icon.classList.toggle('bi-eye-slash', isHidden);
+
+                // accessibility labels
+                btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+                btn.setAttribute('title', isHidden ? 'Hide password' : 'Show password');
+            });
+        })();
+
         async function postUserData(event) {
             event.preventDefault();
 
@@ -127,9 +158,9 @@ Auth::redirectIfLoggedIn();
                     },
                     body: JSON.stringify(payload)
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (response.ok && data.success) {
                     window.location.href = '../index.php';
                 } else {
