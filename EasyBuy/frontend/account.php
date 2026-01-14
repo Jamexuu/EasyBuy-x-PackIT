@@ -123,12 +123,14 @@
                                     <a href="orderHistory.php" class="text-decoration-none" style="color: #6EC064; font-size: 14px;">View order history ›</a>
                                 </div>
                                 <div class="card-text d-flex justify-content-center gap-5">
-                                    <button onclick="navigateToOrders('placed-orders')" class="btn border-0 bg-transparent d-flex flex-column align-items-center text-decoration-none" style="cursor: pointer;">
+                                    <button onclick="navigateToOrders('placed-orders')" class="btn border-0 bg-transparent d-flex flex-column align-items-center text-decoration-none position-relative" style="cursor: pointer;">
                                         <span class="material-symbols-rounded" style="font-size: 40px; color: #333;">shopping_cart</span>
+                                        <span id="placed-orders-badge" class="position-absolute badge rounded-pill bg-danger" style="display:none; top: 2px; right: 40px; font-size: 0.75rem; padding: 0.35em 0.5em;">0</span>
                                         <span style="font-size: 14px; color: #333;">Placed Orders</span>
                                     </button>
-                                    <button onclick="navigateToOrders('to-receive')" class="btn border-0 bg-transparent d-flex flex-column align-items-center text-decoration-none" style="cursor: pointer;">
+                                    <button onclick="navigateToOrders('to-receive')" class="btn border-0 bg-transparent d-flex flex-column align-items-center text-decoration-none position-relative" style="cursor: pointer;">
                                         <span class="material-symbols-rounded" style="font-size: 40px; color: #333;">local_shipping</span>
+                                        <span id="to-receive-badge" class="position-absolute badge rounded-pill bg-danger" style="display:none; top: 2px; right: 30px; font-size: 0.75rem; padding: 0.35em 0.5em;">0</span>
                                         <span style="font-size: 14px; color: #333;">To Receive</span>
                                     </button>
                                 </div>
@@ -180,8 +182,34 @@
         }
 
         fetchUserData();
+
+        // Fetch order counts and update badges
+        async function updateOrderBadges() {
+            try {
+                const response = await fetch('../api/getUserOrder.php');
+                const data = await response.json();
+                if (data.success && data.orders) {
+                    const placedOrders = data.orders.filter(order => 
+                        order.status === 'order placed' || order.status === 'waiting for courier'
+                    );
+                    const toReceiveOrders = data.orders.filter(order => 
+                        order.status === 'picked up' || order.status === 'in transit'
+                    );
+                    const placedBadge = document.getElementById('placed-orders-badge');
+                    const toReceiveBadge = document.getElementById('to-receive-badge');
+                    placedBadge.textContent = placedOrders.length;
+                    toReceiveBadge.textContent = toReceiveOrders.length;
+                    placedBadge.style.display = placedOrders.length > 0 ? 'inline-block' : 'none';
+                    toReceiveBadge.style.display = toReceiveOrders.length > 0 ? 'inline-block' : 'none';
+                }
+            } catch (error) {
+                // Silent fail
+            }
+        }
+        updateOrderBadges();
     </script>
 </body>
 
 
+    <!-- No extra style needed, using Bootstrap badge classes and inline style for position -->
 </html>
