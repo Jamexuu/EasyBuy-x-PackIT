@@ -62,20 +62,6 @@ Auth::requireAdmin();
                 </div>
             </div>
         </div>
-        <div class="row g-4">
-            <div class="col-12 col-lg-6">
-                <div class="dashboard-card">
-                    <div class="dashboard-label fw-bold">Unread emails</div>
-                    <div class="dashboard-number" id="unreadEmails">0</div>
-                </div>
-            </div>
-            <div class="col-12 col-lg-6">
-                <div class="dashboard-card">
-                    <div class="dashboard-label fw-bold">Unread messages</div>
-                    <div class="dashboard-number" id="unreadMessages">0</div>
-                </div>
-            </div>
-        </div>
         <div class="row g-4 mb-4 mt-2 d-flex justify-content-center">
             <div class="col-12 col-md-7 col-lg-5">
                 <div class="dashboard-card">
@@ -84,13 +70,9 @@ Auth::requireAdmin();
                 </div>
             </div>
         </div>
-        <div class="row mt-4">
-            <div class="col-12 text-end">
-                <form action="../api/logout.php" method="POST">
-                    <button type="submit" class="btn btn-danger">Logout</button>
-                </form>
-            </div>
-        </div>
+        <form action="../api/logout.php" method="POST" style="position: fixed; bottom: 30px; right: 30px; z-index: 999;">
+            <button type="submit" class="btn btn-danger btn-lg">Logout</button>
+        </form>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
@@ -120,8 +102,7 @@ Auth::requireAdmin();
             }
         });
 
-        // Auto-refresh every 30 seconds
-        setInterval(loadDashboardStats, 30000);
+        setInterval(loadDashboardStats, 10000);
     </script>
 </body>
 

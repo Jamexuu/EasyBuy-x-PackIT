@@ -32,11 +32,17 @@
                     <li class="nav-item">
                         <a class="nav-link text-white fw-normal" href="adminOrders.php">Orders</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white fw-normal" href="adminEmail.php">Email</a>
+                    <li class="nav-item position-relative">
+                        <a class="nav-link text-white fw-normal position-relative" href="adminEmail.php">
+                            Email
+                            <span id="unreadEmailsBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.8rem; display:none;">0</span>
+                        </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white fw-normal" href="adminSMS.php">SMS</a>
+                    <li class="nav-item position-relative">
+                        <a class="nav-link text-white fw-normal position-relative" href="adminSMS.php">
+                            SMS
+                            <span id="unreadMessagesBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.8rem; display:none;">0</span>
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -46,6 +52,28 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
+    <script>
+        async function updateAdminNavBadges() {
+            try {
+                const response = await fetch('/EasyBuy-x-PackIT/EasyBuy/api/getAdminDashboardStats.php');
+                const data = await response.json();
+                const unreadEmails = data.unreadEmails || 0;
+                const unreadMessages = data.unreadMessages || 0;
+                const emailBadge = document.getElementById('unreadEmailsBadge');
+                const smsBadge = document.getElementById('unreadMessagesBadge');
+                if (emailBadge) {
+                    emailBadge.textContent = unreadEmails;
+                    emailBadge.style.display = unreadEmails > 0 ? 'inline-block' : 'none';
+                }
+                if (smsBadge) {
+                    smsBadge.textContent = unreadMessages;
+                    smsBadge.style.display = unreadMessages > 0 ? 'inline-block' : 'none';
+                }
+            } catch (e) {}
+        }
+        document.addEventListener('DOMContentLoaded', updateAdminNavBadges);
+        setInterval(updateAdminNavBadges, 30000);
+    </script>
 </body>
 
 </html>
