@@ -13,6 +13,39 @@
         body {
             background-color: #f5f5f5;
         }
+        .order-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .order-item-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .order-thumb {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+        .order-item-meta { flex: 1 1 auto; }
+        .order-item-stats { display: flex; gap: 2.5rem; align-items: center; }
+
+        @media (max-width: 576px) {
+            .order-card { padding: 12px; }
+            .order-item-row { flex-wrap: wrap; gap: 0.5rem; align-items: flex-start; }
+            .order-thumb { width: 56px; height: 56px; }
+            .order-item-meta { flex: 1 1 auto; min-width: 0; }
+            .order-item-stats { gap: 0.5rem; width: 100%; justify-content: space-between; flex-wrap: wrap; }
+            .order-item-stats > div { min-width: 80px; }
+            .order-item-stats .text-end { text-align: left; }
+            .order-total-row { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+            .order-total-row .text-end { text-align: left; }
+        }
     </style>
 </head>
 
@@ -208,7 +241,7 @@
             let cardsHtml = '';
             orders.forEach(order => {
                 cardsHtml += `
-                    <div style="background: white; border-radius: 12px; padding: 30px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <div class="order-card">
                         <div class="d-flex justify-content-between align-items-center mb-3 pb-3" style="border-bottom: 2px solid #e9ecef;">
                             <div>
                                 <div class="text-muted small">Order #${order.id}</div>
@@ -222,18 +255,16 @@
                     const marginClass = index < order.items.length - 1 ? 'mb-3' : '';
                     const itemPrice = parseFloat(item.product_price);
                     const imageHtml = item.image_url
-                        ? `<img src="${item.image_url}" alt="${item.product_name}" 
-                              style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; flex-shrink: 0;"
-                              onerror="this.outerHTML='<div style=\\'width: 80px; height: 80px; background: #f8f9fa; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #adb5bd;\\'>No Image</div>'">`
+                        ? `<img src="${item.image_url}" alt="${item.product_name}" class="order-thumb" onerror="this.outerHTML='<div style=\\'width: 80px; height: 80px; background: #f8f9fa; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #adb5bd;\\'>No Image</div>'">`
                         : `<div style="width: 80px; height: 80px; background: #f8f9fa; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #adb5bd;">No Image</div>`;
 
                     cardsHtml += `
-                        <div class="d-flex align-items-center gap-4 ${marginClass}">
+                        <div class="order-item-row ${marginClass}">
                             ${imageHtml}
-                            <div class="flex-grow-1">
+                            <div class="order-item-meta">
                                 <div style="color: #495057; font-size: 16px; font-weight: 500;">${item.product_name}</div>
                             </div>
-                            <div class="d-flex align-items-center" style="gap: 50px;">
+                            <div class="order-item-stats">
                                 <div class="text-end">
                                     <div style="color: #6c757d; font-size: 14px; margin-bottom: 4px;">Quantity:</div>
                                     <div style="color: #212529; font-size: 16px; font-weight: 500;">x${item.quantity}</div>
@@ -248,7 +279,7 @@
                 });
 
                 cardsHtml += `
-                        <div class="d-flex justify-content-end align-items-center pt-3 mt-3" style="border-top: 2px solid #e9ecef;">
+                        <div class="d-flex justify-content-end align-items-center pt-3 mt-3 order-total-row" style="border-top: 2px solid #e9ecef;">
                             <div class="text-end ${order.showBuyAgain ? 'me-4' : ''}">
                                 <div style="color: #6c757d; font-size: 14px; margin-bottom: 4px;">Order Total:</div>
                                 <div style="color: #28a745; font-size: 24px; font-weight: 700;">₱${order.total.toFixed(2)}</div>
