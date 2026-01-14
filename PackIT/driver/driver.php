@@ -3,6 +3,8 @@ session_start();
 require_once __DIR__ . '/../api/classes/Database.php';
 require_once __DIR__ . '/../frontend/components/autorefresh.php';
 require_once __DIR__ . '/../api/sms/SmsNotificationService.php'; // Import the SMS service
+require_once __DIR__ . '/../vendor/autoload.php'; // adjust path if vendor is elsewhere
+Dotenv\Dotenv::createImmutable(__DIR__ . '/..')->safeLoad(); // loads PackIT/.env
 
 // Define $action to avoid undefined variable issues
 $action = $_POST['action'] ?? $_GET['action'] ?? null;
@@ -553,7 +555,7 @@ function fmtDims($l, $w, $h): string {
 <?php include __DIR__ . "/../frontend/components/driverFooter.php"; ?>
 
 <script>
-    var easybuyIP = '192.168.1.26';
+    var $easybuyIP = $_ENV['EASYBUY_IP'] ?? 'localhost';
 async function fetchEasyBuyOrders() {
     const container = document.getElementById('easybuyOrdersContainer');
     

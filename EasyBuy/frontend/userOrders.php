@@ -45,18 +45,20 @@ Auth::requireAuth();
                 <div class="col-12 col-sm-11 col-md-10 col-lg-9 col-xl-8">
                     <ul class="nav nav-tabs px-3 justify-content-center" id="orderTabs" role="tablist"
                         style="border-bottom: none; gap: 40px;">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="placed-orders-tab" data-bs-toggle="tab"
+                        <li class="nav-item position-relative" role="presentation">
+                            <button class="nav-link active d-flex align-items-center justify-content-center" id="placed-orders-tab" data-bs-toggle="tab"
                                 data-bs-target="#placed-orders" type="button" role="tab"
-                                style="color: #28a745; border: none; padding: 12px 24px; font-weight: 500; background: transparent; border-bottom: 3px solid #28a745;">
-                                Placed Orders
+                                style="color: #28a745; border: none; padding: 12px 24px; font-weight: 500; background: transparent; border-bottom: 3px solid #28a745; position: relative;">
+                                <span>Placed Orders</span>
+                                <span id="placed-orders-badge" class="position-absolute badge rounded-pill bg-danger" style="display:none; top: 50%; transform: translateY(-50%); right: -5px; font-size: 0.85rem; padding: 0.35em 0.6em;">0</span>
                             </button>
                         </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="to-receive-tab" data-bs-toggle="tab"
+                        <li class="nav-item position-relative" role="presentation">
+                            <button class="nav-link d-flex align-items-center justify-content-center" id="to-receive-tab" data-bs-toggle="tab"
                                 data-bs-target="#to-receive" type="button" role="tab"
-                                style="color: #6c757d; border: none; padding: 12px 24px; font-weight: 500; background: transparent;">
-                                To Receive
+                                style="color: #6c757d; border: none; padding: 12px 24px; font-weight: 500; background: transparent; position: relative;">
+                                <span>To Receive</span>
+                                <span id="to-receive-badge" class="position-absolute badge rounded-pill bg-danger" style="display:none; top: 50%; transform: translateY(-50%); right: -5px; font-size: 0.85rem; padding: 0.35em 0.6em;">0</span>
                             </button>
                         </li>
                     </ul>
@@ -166,6 +168,14 @@ Auth::requireAuth();
                         order.status === 'picked up' || order.status === 'in transit'
                     );
 
+                    // Update badges
+                    const placedBadge = document.getElementById('placed-orders-badge');
+                    const toReceiveBadge = document.getElementById('to-receive-badge');
+                    placedBadge.textContent = placedOrders.length;
+                    toReceiveBadge.textContent = toReceiveOrders.length;
+                    placedBadge.style.display = placedOrders.length > 0 ? 'inline-block' : 'none';
+                    toReceiveBadge.style.display = toReceiveOrders.length > 0 ? 'inline-block' : 'none';
+
                     renderOrders(placedOrders, 'placedOrders', true);
                     renderOrders(toReceiveOrders, 'toReceiveOrders', false);
                 }
@@ -206,22 +216,25 @@ Auth::requireAuth();
                         : `<div style="width: 120px; height: 120px; background: #f8f9fa; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #adb5bd;">No Image</div>`;
 
                     cardsHtml += `
-                        <div style="background: white; border-radius: 12px; padding: 30px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                            <div class="d-flex align-items-center gap-4">
-                                ${imageHtml}
-                                <div class="flex-grow-1">
-                                    <div style="color: #495057; font-size: 18px; font-weight: 500;">${item.product_name}</div>
+                        <div class="order-card bg-white rounded-3 p-3 p-md-4 mb-3 shadow-sm">
+                            <div class="row g-2 g-md-4 align-items-center">
+                                <div class="col-4 col-md-2">
+                                    ${item.image_url 
+                                        ? `<img src="${item.image_url}" alt="${item.product_name}" class="img-fluid rounded" style="object-fit: cover; width: 100%; height: 100px; max-width: 100px;" onerror="this.outerHTML='<div class=\'d-flex align-items-center justify-content-center bg-light rounded\' style=\'width:100px;height:100px;color:#adb5bd;\'>No Image</div>'">`
+                                        : `<div class="d-flex align-items-center justify-content-center bg-light rounded" style="width:100px;height:100px;color:#adb5bd;">No Image</div>`
+                                    }
                                 </div>
-                                <div class="d-flex align-items-center" style="gap: 50px;">
-                                    <div class="text-end">
-                                        <div style="color: #6c757d; font-size: 14px; margin-bottom: 4px;">Quantity:</div>
-                                        <div style="color: #212529; font-size: 16px; font-weight: 500;">x${item.quantity}</div>
-                                    </div>
-                                    <div class="text-end">
-                                        <div style="color: #6c757d; font-size: 14px; margin-bottom: 4px;">Total:</div>
-                                        <div style="color: #212529; font-size: 22px; font-weight: 600;">₱${totalPrice}</div>
-                                    </div>
+                                <div class="col-8 col-md-4">
+                                    <div class="fw-semibold text-truncate" style="font-size: 1rem; color: #495057;">${item.product_name}</div>
                                 </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="text-muted small mb-1">Quantity:</div>
+                                    <div class="fw-medium">x${item.quantity}</div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="text-muted small mb-1">Total:</div>
+                                    <div class="fw-bold" style="font-size: 1.2rem; color: #212529;">₱${totalPrice}</div>
+                                    </div>
                             </div>
                             ${cancelButtonHtml ? `<div class="text-end mt-3">${cancelButtonHtml}</div>` : ''}
                         </div>
