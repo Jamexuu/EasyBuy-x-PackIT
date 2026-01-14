@@ -115,23 +115,23 @@
             confirmPasswordInput.style.border = '';
             newPasswordError.textContent = '';
             confirmPasswordError.textContent = '';
-            toggleNewPassword.classList.remove('border-danger', 'border-2');
-            toggleConfirmPassword.classList.remove('border-danger', 'border-2');
+            toggleNewPassword.classList.remove('border-danger', 'border-1');
+            toggleConfirmPassword.classList.remove('border-danger', 'border-1');
 
             if (newPassword !== confirmPassword) {
-                newPasswordInput.style.border = '2px solid red';
+                newPasswordInput.style.border = '1px solid red';
                 newPasswordError.textContent = 'Passwords do not match.';
-                toggleNewPassword.classList.add('border-danger', 'border-2');
-                toggleConfirmPassword.classList.add('border-danger', 'border-2');
-                confirmPasswordInput.style.border = '2px solid red';
+                toggleNewPassword.classList.add('border-danger', 'border-1');
+                toggleConfirmPassword.classList.add('border-danger', 'border-1');
+                confirmPasswordInput.style.border = '1px solid red';
                 confirmPasswordError.textContent = 'Passwords do not match.';
                 return;
             }
 
             if (newPassword.length < 15) {
-                newPasswordInput.style.border = '2px solid red';
+                newPasswordInput.style.border = '1px solid red';
                 newPasswordError.textContent = 'Password must be at least 15 characters long.';
-                toggleNewPassword.classList.add('border-danger', 'border-2');
+                toggleNewPassword.classList.add('border-danger', 'border-1');
                 return;
             }
 

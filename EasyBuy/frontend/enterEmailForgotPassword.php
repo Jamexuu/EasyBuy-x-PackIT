@@ -34,7 +34,7 @@
                         <input type="email" id="Email" placeholder="Email" name="Email"
                             class="form-control py-2 rounded-3">
                     </div>
-                    <div class="small text-danger mb-3" id="emailError"></div>
+                    <div class="small text-danger mb-3 fw-normal" id="emailError"></div>
                     <button type="submit" class="btn btn-success px-4 py-2">Submit</button>   
                 </form>
             </div>
@@ -54,7 +54,7 @@
             try {
 
                 if (!email.value) {
-                    email.style.border = '2px solid red';
+                    email.style.border = '1px solid red';
                     email.focus();
                     emailError.textContent = 'Please enter your email address.';
                     return;
