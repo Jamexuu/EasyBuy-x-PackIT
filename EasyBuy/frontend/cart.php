@@ -70,16 +70,22 @@ Auth::requireAuth();
             padding: 20px;
         }
 
-        .img {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
+        .cart-thumb {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
             border-radius: 8px;
         }
 
         .form-check-input:checked {
             background-color: #6EC064;
             border-color: #6EC064;
+        }
+        
+        .select-all-container {
+            background-color: #f8f9fa;
+            padding: 12px 20px;
+            border-bottom: 2px solid #dee2e6;
         }
     </style>
 </head>
@@ -96,6 +102,11 @@ Auth::requireAuth();
         <div class="row g-4">
             <div class="col-12">
                 <div class="card rounded-4 overflow-hidden shadow-sm border-0">
+                    <div class="select-all-container d-flex align-items-center">
+                        <input type="checkbox" class="form-check-input me-3" id="selectAllCheckbox" onchange="handleSelectAll()" style="width: 20px; height: 20px;">
+                        <label for="selectAllCheckbox" class="fw-semibold mb-0" style="cursor: pointer;">Select All</label>
+                    </div>
+                    
                     <table class="table mb-0 d-none d-md-table">
                         <thead>
                             <tr class="table-secondary text-center">
@@ -176,7 +187,7 @@ Auth::requireAuth();
                             <td>
                                 <div class="d-flex align-items-center">
                                     <input type="checkbox" class="form-check-input cart-checkbox me-3" value="`+ item.id + `" data-price="`+ item.final_price + `" data-quantity="`+ item.quantity + `" onchange="handleCheckboxChange()" style="width: 20px; height: 20px;">
-                                    <img src="`+ item.image + `" class="border border-1 rounded border-dark me-3" style="width: 80px; height: 80px; object-fit: cover;" alt="Product Image">
+                                    <img src="`+ item.image + `" class="cart-thumb border border-1 rounded border-dark me-3" alt="Product Image">
                                     <div>
                                         <div class="fw-semibold">`+ item.product_name + `</div>
                                         <small class="text-muted">`+ item.category + `</small>
@@ -209,7 +220,7 @@ Auth::requireAuth();
                         <div class="border-bottom p-3">
                             <div class="d-flex mb-3">
                                 <input type="checkbox" class="form-check-input cart-checkbox me-2 mt-2" value="`+ item.id + `" data-price="`+ item.final_price + `" data-quantity="`+ item.quantity + `" onchange="handleCheckboxChange()" style="width: 20px; height: 20px;">
-                                <img src="`+ item.image + `" class="border border-1 rounded border-dark me-3" style="width: 100px; height: 100px; object-fit: cover;" alt="Product Image">
+                                <img src="`+ item.image + `" class="cart-thumb border border-1 rounded border-dark me-3" alt="Product Image">
                                 <div class="flex-grow-1">
                                     <div class="fw-semibold mb-1">`+ item.product_name + `</div>
                                     <small class="text-muted d-block mb-2">`+ item.category + `</small>
@@ -477,6 +488,38 @@ Auth::requireAuth();
             const checkedItems = getCheckedItems();
             console.log('Checked items:', checkedItems);
             updateTotals();
+            updateSelectAllCheckbox();
+        }
+
+        function handleSelectAll() {
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const cartCheckboxes = document.querySelectorAll('.cart-checkbox');
+            
+            cartCheckboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+            
+            updateTotals();
+        }
+
+        function updateSelectAllCheckbox() {
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const cartCheckboxes = document.querySelectorAll('.cart-checkbox');
+            const checkedCheckboxes = document.querySelectorAll('.cart-checkbox:checked');
+            
+            if (cartCheckboxes.length === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            } else if (checkedCheckboxes.length === cartCheckboxes.length) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else if (checkedCheckboxes.length > 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            }
         }
     </script>
 </body>

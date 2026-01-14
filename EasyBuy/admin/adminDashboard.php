@@ -43,33 +43,32 @@ Auth::requireAdmin();
 
     <div class="container-fluid px-5 py-4">
         <div class="row g-4 mb-4">
-            <div class="col-12 col-md-6 col-lg-4">
+            <div class="col-12 col-md-6">
                 <div class="dashboard-card">
                     <div class="dashboard-label fw-bold">All Products</div>
                     <div class="dashboard-number" id="allProducts">0</div>
                 </div>
             </div>
-            <div class="col-12 col-md-6 col-lg-4">
+            <div class="col-12 col-md-6">
                 <div class="dashboard-card">
                     <div class="dashboard-label fw-bold">Placed Orders</div>
                     <div class="dashboard-number" id="placedOrders">0</div>
                 </div>
             </div>
-            <div class="col-12 col-md-6 col-lg-4">
+            <div class="col-12 col-md-6">
                 <div class="dashboard-card">
                     <div class="dashboard-label fw-bold">Picked up</div>
                     <div class="dashboard-number" id="pickedUp">0</div>
                 </div>
             </div>
-        </div>
-        <div class="row g-4 mb-4 mt-2 d-flex justify-content-center">
-            <div class="col-12 col-md-6 col-lg-5">
+            <div class="col-12 col-md-6">
                 <div class="dashboard-card">
                     <div class="dashboard-label fw-bold">Order Arrived</div>
                     <div class="dashboard-number" id="orderArrived">0</div>
                 </div>
             </div>
         </div>
+
         <form action="../api/logout.php" method="POST" style="position: fixed; bottom: 30px; right: 30px; z-index: 999;">
             <button type="submit" class="btn btn-danger btn-lg">Logout</button>
         </form>
@@ -86,8 +85,6 @@ Auth::requireAdmin();
                 document.getElementById('allProducts').textContent = data.allProducts || 0;
                 document.getElementById('placedOrders').textContent = data.placedOrderCount || 0;
                 document.getElementById('pickedUp').textContent = data.pickedUpOrderCount || 0;
-                document.getElementById('unreadEmails').textContent = data.unreadEmails || 0;
-                document.getElementById('unreadMessages').textContent = data.unreadMessages || 0;
                 document.getElementById('orderArrived').textContent = data.orderArrivedCount || 0;
             } catch (error) {
                 console.error('Error loading dashboard stats:', error);

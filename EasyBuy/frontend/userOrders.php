@@ -43,7 +43,7 @@ Auth::requireAuth();
         <div class="container-fluid">
             <div class="row justify-content-center">
                 <div class="col-12 col-sm-11 col-md-10 col-lg-9 col-xl-8">
-                    <ul class="nav nav-tabs px-3 justify-content-center" id="orderTabs" role="tablist"
+                    <ul class="nav nav-tabs px-md-3 justify-content-center" id="orderTabs" role="tablist"
                         style="border-bottom: none; gap: 40px;">
                         <li class="nav-item d-flex flex-row" role="presentation">
                             <button class="nav-link active d-flex align-items-center justify-content-center" id="placed-orders-tab" data-bs-toggle="tab"
@@ -209,18 +209,18 @@ Auth::requireAuth();
 
                 order.items.forEach(item => {
                     const totalPrice = (item.product_price * item.quantity).toFixed(2);
-                    const imageHtml = item.image_url 
+                      const imageHtml = item.image_url 
                         ? `<img src="${item.image_url}" alt="${item.product_name}" 
-                              style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px; flex-shrink: 0;"
-                              onerror="this.outerHTML='<div style=\\'width: 120px; height: 120px; background: #f8f9fa; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #adb5bd;\\'>No Image</div>'">` 
-                        : `<div style="width: 120px; height: 120px; background: #f8f9fa; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #adb5bd;">No Image</div>`;
+                            style="width: 100px; height: 100px; object-fit: contain; border-radius: 8px; flex-shrink: 0;"
+                            onerror="this.outerHTML='<div style=\\'width: 100px; height: 100px; background: #f8f9fa; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #adb5bd;\\'>No Image</div>'">` 
+                        : `<div style="width: 100px; height: 100px; background: #f8f9fa; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #adb5bd;">No Image</div>`;
 
                     cardsHtml += `
                         <div class="order-card bg-white rounded-3 p-3 p-md-4 mb-3 shadow-sm">
                             <div class="row g-2 g-md-4 align-items-center">
                                 <div class="col-4 col-md-2">
                                     ${item.image_url 
-                                        ? `<img src="${item.image_url}" alt="${item.product_name}" class="img-fluid rounded" style="object-fit: cover; width: 100%; height: 100px; max-width: 100px;" onerror="this.outerHTML='<div class=\'d-flex align-items-center justify-content-center bg-light rounded\' style=\'width:100px;height:100px;color:#adb5bd;\'>No Image</div>'">`
+                                        ? `<img src="${item.image_url}" alt="${item.product_name}" class="img-fluid rounded" style="object-fit: contain; width: 100%; height: 100px; max-width: 100px;" onerror="this.outerHTML='<div class=\'d-flex align-items-center justify-content-center bg-light rounded\' style=\'width:100px;height:100px;color:#adb5bd;\'>No Image</div>'">`
                                         : `<div class="d-flex align-items-center justify-content-center bg-light rounded" style="width:100px;height:100px;color:#adb5bd;">No Image</div>`
                                     }
                                 </div>

@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 Auth::requireAdmin();
 
 $cacheKey = 'emails_cache';
-$cacheTime = 300;
+$cacheTime = 100;
 
 if (isset($_SESSION[$cacheKey]) && (time() - $_SESSION[$cacheKey]['time']) < $cacheTime) {
     echo json_encode(['success' => true, 'emails' => $_SESSION[$cacheKey]['data'], 'cached' => true]);
@@ -25,10 +25,9 @@ if (isset($_SESSION[$cacheKey]) && (time() - $_SESSION[$cacheKey]['time']) < $ca
 try{
     $imap = new Imap();
     $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
-    $limit = isset($_GET['limit']) ? max(1, intval($_GET['limit'])) : 20;
+    $limit = isset($_GET['limit']) ? max(1, intval($_GET['limit'])) : 10;
 
-    $fetchLimit = $limit * 10;
-    $emails = $imap->fetchEmails($fetchLimit);
+    $emails = $imap->fetchEmails($limit);
 
     $unread = [];
     $read = [];
