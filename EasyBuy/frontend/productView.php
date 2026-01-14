@@ -40,10 +40,6 @@
             background-color: #5da054;
         }
 
-        #addToCartBtn:hover {
-            background-color: #5da054;
-        }
-
         .back-btn:hover {
             color: #5da054;
         }
@@ -63,6 +59,7 @@
         #prevBtn:hover {
             background-color: lightgray;
             color: dimgray;
+            border: 1px solid dimgray;
         }
     </style>
 </head>
@@ -87,10 +84,10 @@
             </div>
 
             <div class="col-12 col-md-6">
-                <h2 class="fw-bold mb-3" id="productName" style="color: #4a4a4a;">Loading...</h2>
+                <h2 class="fw-bold mb-3" id="productName" style="color: #212529;">Loading...</h2>
 
                 <div class="d-flex align-items-center mb-3">
-                    <h3 class="text-dark fw-bold mb-0 me-3" id="productPrice">₱0.00</h3>
+                    <h3 class="fw-bold mb-0 me-3" id="productPrice" style="color: #6C757D;">₱0.00</h3>
                 </div>
                 
                 <div class="d-flex align-items-center gap-2 mb-4">
@@ -105,7 +102,7 @@
                     <form method="post" action="" class="d-inline">
                         <button type="button" id="addToCartBtn" class="btn"
                             onclick="addToCartWithModal(productId, getQuantity());"
-                            style="background-color: #6EC064; color: white; border: none; width: 45px; height: 45px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                            style="color: #6EC064; border: 1px solid #6EC064; width: 45px; height: 45px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
                             <span class="material-symbols-rounded">shopping_cart</span>
                         </button>
                     </form>
