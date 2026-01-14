@@ -260,6 +260,13 @@ class User {
         }
 
         $expiryMinutes = (int)$expiryMinutes;
+        
+        // --- CHANGE: Delete previous tokens for this user first ---
+        $delSql = "DELETE FROM password_resets WHERE user_id = ?";
+        $delStmt = $this->db->executeQuery($delSql, [(string)$user['id']]);
+        mysqli_stmt_close($delStmt);
+        // ----------------------------------------------------------
+
         // reuse password_resets table — token column will hold numeric OTP
         $sql = "INSERT INTO password_resets (user_id, token, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL $expiryMinutes MINUTE))";
         $params = [$user['id'], $otp];
