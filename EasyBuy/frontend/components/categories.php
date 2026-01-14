@@ -1,7 +1,7 @@
 <div class="container py-5  p-lg-5">
     <div class="row">
-        <div class="col mb-4 d-flex justify-content-between pt-4">
-            <div class="h1 fw-bold text-md-center ps-3 text-lg-start " style="color:#6EC064">
+        <div class="col mb-4 d-flex flex-row justify-content-between pt-4">
+            <div class="h1 fw-bold text-md-center ps-md-3 text-lg-start " style="color:#6EC064">
                 Categories
             </div>
             <a href="frontend/productListing.php"
