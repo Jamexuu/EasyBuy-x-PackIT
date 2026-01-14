@@ -1,4 +1,4 @@
-<div id="footerWrapper" class="container-fluid" style="background: var(--gradient-color-footer);">
+<div id="footerWrapper" class="container-fluid mt-auto" style="background: var(--gradient-color-footer);">
   <footer class="py-3 px-5" style="background: transparent;">
     <div class="row">
       <div class="col-12 col-lg-3">
