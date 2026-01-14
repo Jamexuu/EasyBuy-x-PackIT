@@ -77,11 +77,10 @@
                         </div>
                         <p class="text-danger small fw-normal" id="passwordError"></p>
                     </div>
-                    <div class="small mb-3">
-                        <a href="enterEmailForgotPassword.php" style="color: #6EC064" class="text-decoration-none">Forgot Password?</a>
-                    </div>
+                    
+                    <a href="enterEmailForgotPassword.php" class="text-decoration-none" style="color: #6EC064">Forgot Password?</a>
 
-                    <div class="d-flex justify-content-center">
+                    <div class="d-flex justify-content-center mt-3">
                         <button type="submit" class="btn text-white px-4 py-2 fw-bold w-100 rounded-3"
                             style="background-color: #6EC064">Log in</button>
                     </div>
