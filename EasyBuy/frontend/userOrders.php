@@ -45,7 +45,7 @@ Auth::requireAuth();
                 <div class="col-12 col-sm-11 col-md-10 col-lg-9 col-xl-8">
                     <ul class="nav nav-tabs px-3 justify-content-center" id="orderTabs" role="tablist"
                         style="border-bottom: none; gap: 40px;">
-                        <li class="nav-item position-relative" role="presentation">
+                        <li class="nav-item d-flex flex-row" role="presentation">
                             <button class="nav-link active d-flex align-items-center justify-content-center" id="placed-orders-tab" data-bs-toggle="tab"
                                 data-bs-target="#placed-orders" type="button" role="tab"
                                 style="color: #28a745; border: none; padding: 12px 24px; font-weight: 500; background: transparent; border-bottom: 3px solid #28a745; position: relative;">
@@ -53,7 +53,7 @@ Auth::requireAuth();
                                 <span id="placed-orders-badge" class="position-absolute badge rounded-pill bg-danger" style="display:none; top: 50%; transform: translateY(-50%); right: -5px; font-size: 0.85rem; padding: 0.35em 0.6em;">0</span>
                             </button>
                         </li>
-                        <li class="nav-item position-relative" role="presentation">
+                        <li class="nav-item d-flex flex-row" role="presentation">
                             <button class="nav-link d-flex align-items-center justify-content-center" id="to-receive-tab" data-bs-toggle="tab"
                                 data-bs-target="#to-receive" type="button" role="tab"
                                 style="color: #6c757d; border: none; padding: 12px 24px; font-weight: 500; background: transparent; position: relative;">

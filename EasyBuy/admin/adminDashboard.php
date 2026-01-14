@@ -63,7 +63,7 @@ Auth::requireAdmin();
             </div>
         </div>
         <div class="row g-4 mb-4 mt-2 d-flex justify-content-center">
-            <div class="col-12 col-md-7 col-lg-5">
+            <div class="col-12 col-md-6 col-lg-5">
                 <div class="dashboard-card">
                     <div class="dashboard-label fw-bold">Order Arrived</div>
                     <div class="dashboard-number" id="orderArrived">0</div>

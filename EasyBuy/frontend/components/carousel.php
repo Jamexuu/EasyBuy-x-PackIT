@@ -1,9 +1,9 @@
 <div id="carouselExampleInterval" class="carousel slide" data-bs-ride="carousel">
   <div class="carousel-inner">
     <div class="carousel-item active" data-bs-interval="10000">
-      <img src="assets/carousel/1full.png" class="d-none d-lg-block w-100" alt="...">
-      <img src="assets/carousel/1medium.png" class="d-none d-md-block d-lg-none w-100" alt="...">
-      <img src="assets/carousel/1small.png" class="d-block d-md-none w-100" alt="...">
+      <img src="assets/carousel/1fullReplacement.png" class="d-none d-lg-block w-100" alt="...">
+      <img src="assets/carousel/1mediumReplacement.png" class="d-none d-md-block d-lg-none w-100" alt="...">
+      <img src="assets/carousel/1smallReplacement.png" class="d-block d-md-none w-100" alt="...">
     </div>
 
     <div class="carousel-item" data-bs-interval="2000">
@@ -13,9 +13,9 @@
     </div>
 
     <div class="carousel-item">
-      <img src="assets/carousel/3full.png" class="d-none d-lg-block w-100" alt="...">
-      <img src="assets/carousel/3medium.png" class="d-none d-md-block d-lg-none w-100" alt="...">
-      <img src="assets/carousel/3small.png" class="d-block d-md-none w-100" alt="...">
+      <img src="assets/carousel/3fullReplacement.png" class="d-none d-lg-block w-100" alt="...">
+      <img src="assets/carousel/3mediumReplacement.png" class="d-none d-md-block d-lg-none w-100" alt="...">
+      <img src="assets/carousel/3smallReplacement.png" class="d-block d-md-none w-100" alt="...">
     </div>
 
     <div class="carousel-item">
