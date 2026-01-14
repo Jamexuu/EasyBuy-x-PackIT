@@ -87,12 +87,7 @@ Auth::requireAuth();
                     </div>
                 </div>
             </div>
-            <!-- <div class="row p-md-5">
-                <div class="col p-0">
-                    <p class="fw-normal">By placing an order, you agree to the <strong>EasyBuy Online Grocery Store Terms of Use and Sale</strong> and
-                        acknowledge that you have read the <strong>Privacy Policy</strong>.</p>
-                </div>
-            </div> -->
+            
             <div class="row p-md-5">
                 <div class="col p-0 d-flex justify-content-end align-items-center gap-4" id="placeOrderSection">
                     
@@ -221,7 +216,7 @@ Auth::requireAuth();
                                     <div class="col-auto px-5 py-2">
                                         <img src="`+ item.image +`" alt=""
                                             class="img-fluid border border-1 rounded border-dark"
-                                            style="max-height: 100px;">
+                                            style="width:100px; height:100px; object-fit: contain;">
                                     </div>
                                     <div class="col">
                                         <p class="mb-0">`+ item.product_name +`</p>
