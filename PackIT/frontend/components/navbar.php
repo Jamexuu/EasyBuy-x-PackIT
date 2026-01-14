@@ -1,6 +1,6 @@
 <?php
 // Frontend navbar for PackIT
-require_once __DIR__ . '/helpers.php'; 
+require_once __DIR__ . '/helpers.php';
 
 // Keep your original $BASE_URL assignment
 $BASE_URL = defined('PACKIT_BASE_URL') ? PACKIT_BASE_URL : '/EasyBuy-x-PackIT/PackIT';
@@ -22,7 +22,7 @@ $csrfToken = $_SESSION['csrf_token'];
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
 <style>
-/* Responsive Notification Dropdown 
+/* Responsive Notification Dropdown
    - Mobile: Spans the full width of the navbar (position: static parent).
    - Desktop: Fixed 360px width aligned to the bell (position: relative parent).
 */
@@ -93,7 +93,7 @@ $csrfToken = $_SESSION['csrf_token'];
                                         </div>
                                         <div>
                                             <div class="fw-bold text-dark lh-1">Notifications</div>
-                                            <div class="small text-dark" style="opacity:.75;">Feedback replies & updates</div>
+                                            <div class="small text-dark" style="opacity:.75;">Feedback replies & SMS updates</div>
                                         </div>
                                     </div>
 
@@ -109,10 +109,16 @@ $csrfToken = $_SESSION['csrf_token'];
 
                             <div class="p-2 border-top bg-white"
                                  style="border-bottom-left-radius:18px; border-bottom-right-radius:18px;">
-                                <a href="<?= htmlspecialchars(u('frontend/myFeedback.php')) ?>"
-                                   class="btn btn-light w-100 rounded-pill fw-semibold">
-                                    View feedback
-                                </a>
+                                <div class="d-flex gap-2">
+                                    <a href="<?= htmlspecialchars(u('frontend/myFeedback.php')) ?>"
+                                       class="btn btn-light w-50 rounded-pill fw-semibold">
+                                        Feedback
+                                    </a>
+                                    <a href="<?= htmlspecialchars(u('frontend/smsTransactions.php')) ?>"
+                                       class="btn btn-light w-50 rounded-pill fw-semibold">
+                                        SMS
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -192,6 +198,7 @@ $csrfToken = $_SESSION['csrf_token'];
   const notifFetchUrl = '<?= htmlspecialchars(u("frontend/notificationsFetch.php")) ?>';
   const notifMarkReadUrl = '<?= htmlspecialchars(u("frontend/notificationsMarkRead.php")) ?>';
   const goToFeedbackUrl = '<?= htmlspecialchars(u("frontend/myFeedback.php")) ?>';
+  const goToSmsUrl = '<?= htmlspecialchars(u("frontend/smsTransactions.php")) ?>';
   const csrfToken = <?= json_encode($csrfToken) ?>;
   const userLoggedIn = <?= $loggedIn ? 'true' : 'false' ?>;
 
@@ -237,19 +244,21 @@ $csrfToken = $_SESSION['csrf_token'];
       btn.className = 'w-100 text-start border-0 bg-white p-0';
 
       const status = (it.status || 'open').toString();
+      const type = (it.type || 'feedback').toString();
+      const iconClass = (type === 'sms') ? 'bi-chat-left-text' : 'bi-chat-square-text';
 
       btn.innerHTML = `
         <div class="p-3 rounded-4" style="transition: background .15s;">
           <div class="d-flex gap-3 align-items-start">
             <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
                  style="width:38px;height:38px;background:#f8e15b;">
-              <i class="bi bi-chat-square-text text-dark"></i>
+              <i class="bi ${iconClass} text-dark"></i>
             </div>
 
             <div class="flex-grow-1">
               <div class="d-flex justify-content-between align-items-start gap-2">
                 <div class="fw-semibold text-dark">
-                  ${escapeHtml(it.subject || 'Feedback update')}
+                  ${escapeHtml(it.subject || (type === 'sms' ? 'Booking update' : 'Feedback update'))}
                 </div>
                 <div class="text-muted small flex-shrink-0">
                   ${escapeHtml(it.time || '')}
@@ -260,9 +269,12 @@ $csrfToken = $_SESSION['csrf_token'];
                 ${escapeHtml(it.excerpt || '')}
               </div>
 
-              <div class="mt-2">
+              <div class="mt-2 d-flex align-items-center gap-2">
                 <span class="badge rounded-pill text-bg-light border">
                   ${escapeHtml(status)}
+                </span>
+                <span class="badge rounded-pill text-bg-secondary">
+                  ${escapeHtml(type)}
                 </span>
               </div>
             </div>
@@ -283,12 +295,17 @@ $csrfToken = $_SESSION['csrf_token'];
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Accept': 'application/json' },
-            body: new URLSearchParams({ id: it.id, csrf_token: csrfToken })
+            body: new URLSearchParams({ id: it.id, type: type, csrf_token: csrfToken })
           });
         } catch (e) {
           console.error('Mark read request failed:', e);
         }
-        window.location.href = goToFeedbackUrl;
+
+        if (type === 'sms') {
+          window.location.href = goToSmsUrl;
+        } else {
+          window.location.href = goToFeedbackUrl;
+        }
       });
 
       list.appendChild(btn);
@@ -311,18 +328,25 @@ $csrfToken = $_SESSION['csrf_token'];
 
   async function markAllRead() {
     if (!userLoggedIn) return;
-    try {
-      const res = await fetch(notifMarkReadUrl, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Accept': 'application/json' },
-        body: new URLSearchParams({ csrf_token: csrfToken })
-      });
-      const j = await res.json().catch(() => null);
 
-      if (!res.ok || !j || !j.success) {
-        console.error('Mark all read failed:', j);
-        alert(j?.message || 'Mark all read failed');
+    // Mark BOTH feedback + sms as read
+    try {
+      const doMark = async (type) => {
+        const res = await fetch(notifMarkReadUrl, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Accept': 'application/json' },
+          body: new URLSearchParams({ type, csrf_token: csrfToken })
+        });
+        return await res.json().catch(() => null);
+      };
+
+      const fb = await doMark('feedback');
+      const sms = await doMark('sms');
+
+      if (!fb?.success || !sms?.success) {
+        console.error('Mark all read failed:', { fb, sms });
+        alert((fb && fb.message) || (sms && sms.message) || 'Mark all read failed');
         return;
       }
 

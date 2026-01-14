@@ -57,7 +57,7 @@ if ($booking && isset($booking['user_id']) && (int)$booking['user_id'] > 0) {
       $emailHtml = "<div style=\"font-family:Arial,Helvetica,sans-serif;color:#222;line-height:1.4\">";
       $emailHtml .= "<h2 style=\"color:#198754\">PackIT Booking Receipt</h2>";
       $emailHtml .= "<p>Hi " . h($firstName) . ",</p>";
-      $emailHtml .= "<p>Thank you — your booking has been confirmed. Below are the details:</p>";
+      $emailHtml .= "<p>Thank you, your booking has been confirmed. Below are the details:</p>";
 
       $emailHtml .= "<table style=\"width:100%;max-width:600px;border-collapse:collapse\">";
       $emailHtml .= "<tr><td style=\"padding:8px;border-top:1px solid #eee;\">Booking #</td><td style=\"padding:8px;border-top:1px solid #eee;\"> " . (int)$booking['id'] . "</td></tr>";
@@ -65,9 +65,8 @@ if ($booking && isset($booking['user_id']) && (int)$booking['user_id'] > 0) {
       $emailHtml .= "<tr><td style=\"padding:8px;\">Vehicle</td><td style=\"padding:8px;\"> " . h((string)$booking['vehicle_type']) . "</td></tr>";
       $emailHtml .= "<tr><td style=\"padding:8px;\">Pickup</td><td style=\"padding:8px;\"> " . h((string)$booking['pickup_municipality']) . ', ' . h((string)$booking['pickup_province']) . "</td></tr>";
       $emailHtml .= "<tr><td style=\"padding:8px;\">Drop-off</td><td style=\"padding:8px;\"> " . h((string)$booking['drop_municipality']) . ', ' . h((string)$booking['drop_province']) . "</td></tr>";
-      $emailHtml .= "<tr><td style=\"padding:8px;\">Total</td><td style=\"padding:8px;\"> ₱" . number_format((float)$booking['total_amount'], 2) . "</td></tr>";
+      $emailHtml .= "<tr><td style=\"padding:8px;\">Total</td><td style=\"padding:8px;\"> Php" . number_format((float)$booking['total_amount'], 2) . "</td></tr>";
       $emailHtml .= "<tr><td style=\"padding:8px;\">Payment status</td><td style=\"padding:8px;\"> " . h((string)$booking['payment_status']) . "</td></tr>";
-      $emailHtml .= "<tr><td style=\"padding:8px;border-bottom:1px solid #eee;\">Tracking status</td><td style=\"padding:8px;border-bottom:1px solid #eee;\"> " . h((string)$booking['tracking_status']) . "</td></tr>";
       $emailHtml .= "</table>";
 
       $emailHtml .= "<p style=\"margin-top:16px\">You may view tracking here: <a href=\"" . h((string)('/frontend/tracking.php?booking_id=' . $bookingId)) . "\">View Booking</a></p>";
@@ -75,7 +74,7 @@ if ($booking && isset($booking['user_id']) && (int)$booking['user_id'] > 0) {
       $emailHtml .= "</div>";
 
       // Subject
-      $subject = "PackIT Receipt — Booking #" . (int)$booking['id'];
+      $subject = "PackIT Receipt Booking #" . (int)$booking['id'];
 
       // sendMail may throw Exception; catch below
       sendMail($recipientEmail, $subject, $emailHtml);
