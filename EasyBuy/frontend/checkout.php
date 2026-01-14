@@ -87,12 +87,12 @@ Auth::requireAuth();
                     </div>
                 </div>
             </div>
-            <div class="row p-md-5">
+            <!-- <div class="row p-md-5">
                 <div class="col p-0">
                     <p class="fw-normal">By placing an order, you agree to the <strong>EasyBuy Online Grocery Store Terms of Use and Sale</strong> and
                         acknowledge that you have read the <strong>Privacy Policy</strong>.</p>
                 </div>
-            </div>
+            </div> -->
             <div class="row p-md-5">
                 <div class="col p-0 d-flex justify-content-end align-items-center gap-4" id="placeOrderSection">
                     
