@@ -96,7 +96,6 @@ Auth::requireAuth();
         <div class="row g-4">
             <div class="col-12">
                 <div class="card rounded-4 overflow-hidden shadow-sm border-0">
-                    <!-- Desktop Table View -->
                     <table class="table mb-0 d-none d-md-table">
                         <thead>
                             <tr class="table-secondary text-center">
@@ -111,7 +110,6 @@ Auth::requireAuth();
                         </tbody>
                     </table>
                     
-                    <!-- Mobile Card View -->
                     <div class="d-md-none" id="cartItemContainerMobile">
                         
                     </div>
@@ -124,7 +122,6 @@ Auth::requireAuth();
         
     </div>
 
-    <!-- Delete Confirmation Modal -->
     <div id="deleteConfirmModal" class="modal fade" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-4 rounded-5 shadow text-center border-0"
@@ -171,8 +168,7 @@ Auth::requireAuth();
 
                 const data = await response.json();
 
-                data.forEach(item => {
-                    // desktop table row
+                data.slice().reverse().forEach(item => {
                     cartItemContainer.innerHTML += `
                         <tr>
                             <td>
@@ -207,7 +203,6 @@ Auth::requireAuth();
                         </tr>
                     `;
                     
-                    // mobile card layout
                     cartItemContainerMobile.innerHTML += `
                         <div class="border-bottom p-3">
                             <div class="d-flex mb-3">
@@ -276,7 +271,6 @@ Auth::requireAuth();
                     </form>
                 `;
 
-                // Add event listener AFTER form is created
                 const form = document.querySelector('form');
                 if (form) {
                     form.addEventListener('submit', async (e) => {
@@ -455,10 +449,8 @@ Auth::requireAuth();
         }
 
         async function updateTotals() {
-            // Recalculate totals based on current quantities and selections
             const totals = await calculateSelectedTotal();
             
-            // Update display
             const subtotalEl = document.getElementById('selectedSubtotal');
             const shippingEl = document.getElementById('selectedShipping');
             const totalEl = document.getElementById('selectedTotal');
@@ -468,7 +460,6 @@ Auth::requireAuth();
             if (shippingEl) shippingEl.textContent = totals.shipping;
             if (totalEl) totalEl.textContent = totals.total;
             
-            // Enable/disable checkout button
             if (checkoutBtn) {
                 if (totals.itemCount > 0) {
                     checkoutBtn.disabled = false;
