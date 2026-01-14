@@ -80,6 +80,9 @@
             </div>
         </div>
 
+        <div id="ordersPagination" class="d-flex justify-content-center align-items-center gap-3 mt-3"></div>
+        </div>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
@@ -87,69 +90,96 @@
         crossorigin="anonymous"></script>
 
     <script>
-        fetch('../api/getAllOrders.php')
-            .then(response => response.json())
-            .then(orders => {
-                const accordion = document.getElementById('ordersAccordion');
-                const loadingMessage = document.getElementById('loadingMessage');
+        
+        var ordersData = [];
+        var currentPage = 1;
+        var pageSize = 10;
 
-                if (loadingMessage) {
-                    loadingMessage.remove();
-                }
+        function renderOrdersPage() {
+            const accordion = document.getElementById('ordersAccordion');
+            const loadingMessage = document.getElementById('loadingMessage');
+            if (loadingMessage) loadingMessage.remove();
 
-                if (!orders || orders.length === 0) {
-                    accordion.innerHTML = `
-                        <div class="text-center py-5">
-                            <p style="color: #666;">No orders found.</p>
-                        </div>
-                    `;
-                    return;
-                }
+            if (!ordersData || ordersData.length === 0) {
+                accordion.innerHTML = `
+                    <div class="text-center py-5">
+                        <p style="color: #666;">No orders found.</p>
+                    </div>
+                `;
+                document.getElementById('ordersPagination').innerHTML = '';
+                return;
+            }
 
-                let html = '';
-                orders.forEach(order => {
-                    const statusColor = getStatusColor(order.status);
-                    html += `
-                        <div class="accordion-item mb-3" style="border: none; border-radius: 8px; overflow: hidden;">
-                            <h2 class="accordion-header">
-                                <div class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#order${order.orderID}" aria-expanded="false" aria-controls="order${order.orderID}"
-                                    style="background-color: #e8e8e8; box-shadow: none; padding: 15px 20px; display: flex; align-items: center; cursor: pointer;">
-                                    <span style="color: #333; font-weight: 500; width: 16.666%; flex-shrink: 0;">${order.orderID}</span>
-                                    <span style="color: #333; width: 58.333%; flex-shrink: 0;">${escapeHtml(order.userEmail)}</span>
-                                    <div style="width: 25%; flex-shrink: 0; display: flex; justify-content: center;" onclick="event.stopPropagation();">
-                                        <select class="status-dropdown" style="background-color: ${statusColor};" 
-                                                onchange="updateOrderStatus(${order.orderID}, this.value)">
-                                            <option value="Order Placed" ${order.status === 'order placed' ? 'selected' : ''}>Order Placed</option>
-                                            <option value="Waiting for Courier" ${order.status === 'waiting for courier' ? 'selected' : ''}>Waiting for Courier</option>
-                                            <option value="Picked up" ${order.status === 'picked up' ? 'selected' : ''}>Picked up</option>
-                                            <option value="In Transit" ${order.status === 'in transit' ? 'selected' : ''}>In Transit</option>
-                                            <option value="Order Arrived" ${order.status === 'order arrived' ? 'selected' : ''}>Order Arrived</option>
-                                            <option value="Cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </h2>
-                            <div id="order${order.orderID}" class="accordion-collapse collapse" data-bs-parent="#ordersAccordion">
-                                <div class="accordion-body" style="background-color: #e8e8e8; padding: 20px;">
-                    `;
+            const start = (currentPage - 1) * pageSize;
+            const pageOrders = ordersData.slice(start, start + pageSize);
 
-                    order.items.forEach((item, index) => {
-                        const marginBottom = index < order.items.length - 1 ? 'margin-bottom: 8px;' : '';
-                        html += `
-                            <div style="color: #333; ${marginBottom} font-weight: 500;">
-                                ${escapeHtml(item.product_name)} (${item.quantity})
-                            </div>
-                        `;
-                    });
-
-                    html += `
+            let html = '';
+            pageOrders.forEach(order => {
+                const statusColor = getStatusColor(order.status);
+                html += `
+                    <div class="accordion-item mb-3" style="border: none; border-radius: 8px; overflow: hidden;">
+                        <h2 class="accordion-header">
+                            <div class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#order${order.orderID}" aria-expanded="false" aria-controls="order${order.orderID}"
+                                style="background-color: #e8e8e8; box-shadow: none; padding: 15px 20px; display: flex; align-items: center; cursor: pointer;">
+                                <span style="color: #333; font-weight: 500; width: 16.666%; flex-shrink: 0;">${order.orderID}</span>
+                                <span style="color: #333; width: 58.333%; flex-shrink: 0;">${escapeHtml(order.userEmail)}</span>
+                                <div style="width: 25%; flex-shrink: 0; display: flex; justify-content: center;" onclick="event.stopPropagation();">
+                                    <select class="status-dropdown" style="background-color: ${statusColor};" 
+                                            onchange="updateOrderStatus(${order.orderID}, this.value)">
+                                        <option value="Order Placed" ${order.status === 'order placed' ? 'selected' : ''}>Order Placed</option>
+                                        <option value="Waiting for Courier" ${order.status === 'waiting for courier' ? 'selected' : ''}>Waiting for Courier</option>
+                                        <option value="Picked up" ${order.status === 'picked up' ? 'selected' : ''}>Picked up</option>
+                                        <option value="In Transit" ${order.status === 'in transit' ? 'selected' : ''}>In Transit</option>
+                                        <option value="Order Arrived" ${order.status === 'order arrived' ? 'selected' : ''}>Order Arrived</option>
+                                        <option value="Cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                                    </select>
                                 </div>
                             </div>
+                        </h2>
+                        <div id="order${order.orderID}" class="accordion-collapse collapse" data-bs-parent="#ordersAccordion">
+                            <div class="accordion-body" style="background-color: #e8e8e8; padding: 20px;">
+                `;
+
+                order.items.forEach((item, index) => {
+                    const marginBottom = index < order.items.length - 1 ? 'margin-bottom: 8px;' : '';
+                    html += `
+                        <div style="color: #333; ${marginBottom} font-weight: 500;">
+                            ${escapeHtml(item.product_name)} (${item.quantity})
                         </div>
                     `;
                 });
 
-                accordion.innerHTML = html;
+                html += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            accordion.innerHTML = html;
+            renderOrdersPagination();
+        }
+
+        function renderOrdersPagination() {
+            var totalPages = Math.max(1, Math.ceil((ordersData.length || 0) / pageSize));
+            var container = document.getElementById('ordersPagination');
+            if (!container) return;
+            if (totalPages <= 1) { container.innerHTML = ''; return; }
+            container.innerHTML = `
+                <button class="btn btn-sm btn-outline-secondary" ${currentPage === 1 ? 'disabled' : ''} onclick="ordersPrevPage()">Prev</button>
+                <div class="px-2">Page ${currentPage} of ${totalPages}</div>
+                <button class="btn btn-sm btn-outline-secondary" ${currentPage === totalPages ? 'disabled' : ''} onclick="ordersNextPage()">Next</button>
+            `;
+        }
+
+        function ordersPrevPage() { if (currentPage > 1) { currentPage--; renderOrdersPage(); window.scrollTo({ top: 0, behavior: 'smooth' }); } }
+        function ordersNextPage() { var totalPages = Math.max(1, Math.ceil((ordersData.length || 0) / pageSize)); if (currentPage < totalPages) { currentPage++; renderOrdersPage(); window.scrollTo({ top: 0, behavior: 'smooth' }); } }
+
+        fetch('../api/getAllOrders.php')
+            .then(response => response.json())
+            .then(orders => {
+                ordersData = orders || [];
+                renderOrdersPage();
             })
             .catch(error => {
                 console.error('Error fetching orders:', error);
@@ -160,7 +190,6 @@
                     </div>
                 `;
             });
-
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;

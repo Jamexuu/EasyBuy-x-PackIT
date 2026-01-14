@@ -47,6 +47,7 @@
             </div>
         </div>
         <div id="productList"></div>
+        <div id="productPagination" class="d-flex justify-content-center align-items-center gap-3 mt-3"></div>
     </div>
 
     <div class="container py-5" id="productFormView" style="display: none;">
@@ -150,6 +151,8 @@
     <script>
         var products = [];
         var filteredProducts = [];
+        var currentPage = 1;
+        var pageSize = 10; // items per page
         var currentImageData = '';
         var editingProductId = null;
 
@@ -272,7 +275,7 @@
             try {
                 var url = editingProductId !== null ? '../api/updateProduct.php' : '../api/addProduct.php';
                 var method = editingProductId !== null ? 'PUT' : 'POST';
-                
+
                 if (editingProductId !== null) {
                     productData.product_id = editingProductId;
                 }
@@ -300,19 +303,26 @@
             var response = await fetch("../api/getAllProducts.php");
             products = await response.json();
             filteredProducts = products;
+            currentPage = 1;
             getProducts();
         }
 
         function getProducts() {
             var productList = document.getElementById('productList');
             productList.innerHTML = '';
-            
+
             if (filteredProducts.length === 0) {
                 productList.innerHTML = '<div class="text-center text-muted py-5"><p>No products yet. Click "Add Product" to get started.</p></div>';
                 return;
             }
-            
-            filteredProducts.forEach(function(product) {
+
+            var totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
+            if (currentPage > totalPages) currentPage = totalPages;
+            var startIndex = (currentPage - 1) * pageSize;
+            var endIndex = startIndex + pageSize;
+            var pageItems = filteredProducts.slice(startIndex, endIndex);
+
+            pageItems.forEach(function (product) {
                 var productId = product.id || product.product_id;
                 var productName = product.name || product.product_name;
                 var productItem = document.createElement('div');
@@ -331,6 +341,42 @@
                 `;
                 productList.appendChild(productItem);
             });
+
+            renderPagination(filteredProducts.length, currentPage, pageSize);
+        }
+
+        function renderPagination(totalItems, page, perPage) {
+            var totalPages = Math.max(1, Math.ceil(totalItems / perPage));
+            var container = document.getElementById('productPagination');
+            if (!container) return;
+
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = `
+                <button class="btn btn-sm btn-outline-secondary" ${page === 1 ? 'disabled' : ''} onclick="prevPage()">Prev</button>
+                <div class="px-2">Page ${page} of ${totalPages}</div>
+                <button class="btn btn-sm btn-outline-secondary" ${page === totalPages ? 'disabled' : ''} onclick="nextPage()">Next</button>
+            `;
+        }
+
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                getProducts();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function nextPage() {
+            var totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
+            if (currentPage < totalPages) {
+                currentPage++;
+                getProducts();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         }
 
         async function deleteProduct(id) {
@@ -352,8 +398,10 @@
                 });
 
                 if (response.ok) {
-                    products = products.filter(function(p) { return (p.id || p.product_id) !== id; });
+                    products = products.filter(function (p) { return (p.id || p.product_id) !== id; });
                     filteredProducts = products;
+                    var totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
+                    if (currentPage > totalPages) currentPage = totalPages;
                     getProducts();
                     showMessage('success', 'Product Deleted', 'The product has been deleted successfully.', 'OK');
                 } else {
@@ -365,7 +413,7 @@
         }
 
         function editProduct(id) {
-            var product = products.find(function(p) { return (p.id || p.product_id) === id; });
+            var product = products.find(function (p) { return (p.id || p.product_id) === id; });
             if (!product) return;
 
             editingProductId = product.id || product.product_id;
@@ -376,7 +424,7 @@
             document.getElementById('productPrice').value = product.price || product.product_price || '';
             document.getElementById('productStocks').value = product.stocks || '';
             document.getElementById('discountPercentage').value = product.sale_percentage || '';
-            
+
             var productImage = product.image || product.product_image;
             if (productImage) {
                 currentImageData = productImage;
@@ -384,16 +432,17 @@
                 document.getElementById('imagePreview').style.display = 'block';
                 document.getElementById('removeImageBtn').style.display = 'flex';
             }
-            
+
             showProductForm(true);
         }
 
         document.getElementById('searchInput').addEventListener('input', function (e) {
             var searchTerm = e.target.value.toLowerCase();
-            filteredProducts = products.filter(function(product) {
+            filteredProducts = products.filter(function (product) {
                 var productName = (product.name || product.product_name || '').toLowerCase();
                 return productName.includes(searchTerm);
             });
+            currentPage = 1;
             getProducts();
         });
 
