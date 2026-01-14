@@ -11,7 +11,7 @@ $basePath = '../';
 $db = new Database();
 $pdo = $db->pdo();
 
-// --- Feedback stats (safe defaults) ---
+// --- Feedback stats ---
 $feedbackStats = [
     'total' => 0,
     'unread_for_user' => 0,
@@ -34,7 +34,7 @@ if ($pdo instanceof PDO) {
     }
 }
 
-// Define all dashboard cards here for easy management
+// Define all dashboard cards
 $dashboardCards = [
     [
         'title' => 'Users',
@@ -56,7 +56,7 @@ $dashboardCards = [
     ],
     [
         'title' => 'Vehicles',
-        'link'  => 'vehicles.php',
+        'link'  => 'dbTables.php?view=vehicles', 
         'icon'  => 'bi-truck',
         'desc'  => 'Manage vehicle types'
     ],
@@ -96,7 +96,6 @@ $dashboardCards = [
         'icon'  => 'bi-chat-dots',
         'desc'  => 'View support chats'
     ],
-    // ✅ CHANGED: Now points to the internal Admin Table (dbTables.php)
     [
         'title' => 'User Feedback',
         'link'  => 'dbTables.php?view=userFeedback', 
@@ -126,7 +125,7 @@ $dashboardCards = [
 
 <?php include __DIR__ . '/../frontend/components/adminNavbar.php'; ?>
 
-        <div class="col-lg-10 col-md-9">
+        <div class="col-lg-10 col-md-9" id="dashboard-view" style="scroll-margin-top: 20px;">
             <div class="content-area shadow-sm p-5">
                 
                 <div class="d-flex justify-content-between align-items-center mb-4">

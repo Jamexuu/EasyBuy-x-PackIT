@@ -19,7 +19,6 @@ $basePath   = $basePath ?? '../';
     .admin-nav-card {
         display: block;
         width: 100%;
-        /* Reduced padding to make it smaller */
         padding: 0.8rem 0.5rem; 
         text-align: center;
         text-decoration: none;
@@ -28,7 +27,7 @@ $basePath   = $basePath ?? '../';
         border: 2px solid var(--border-gray);
         border-radius: 0.75rem;
         font-weight: 600;
-        font-size: 0.9rem; /* Slightly smaller font */
+        font-size: 0.9rem;
         transition: all 0.2s ease-in-out;
     }
 
@@ -88,7 +87,8 @@ $basePath   = $basePath ?? '../';
     <div class="row g-3">
         <div class="col-lg-2 col-md-3">
             <div class="d-grid gap-2" id="sidebarMenu">
-                <a href="dashboard.php" class="admin-nav-card shadow-sm <?= $activePage === 'dashboard' ? 'active' : '' ?>">
+                
+                <a href="dashboard.php#dashboard-view" class="admin-nav-card shadow-sm <?= $activePage === 'dashboard' ? 'active' : '' ?>">
                     Dashboard
                 </a>
 
@@ -102,7 +102,7 @@ $basePath   = $basePath ?? '../';
                     Drivers
                 </a>
 
-                <a href="vehicles.php#main-table-view" class="admin-nav-card shadow-sm <?= $activePage === 'vehicles' ? 'active' : '' ?>">
+                <a href="dbTables.php?view=vehicles#main-table-view" class="admin-nav-card shadow-sm <?= $activePage === 'vehicles' ? 'active' : '' ?>">
                     Vehicles
                 </a>
 
