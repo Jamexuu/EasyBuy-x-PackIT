@@ -43,8 +43,8 @@
     <?php include './components/navbar.php'; ?>
 
     <div class="container-fluid mt-5 pt-5">
-        <div class="row">
-            <div class="col-12 col-md-3 col-lg-3">
+        <div class="row justify-content-center g-3">
+            <div class="col-12 col-lg-3 order-1 order-lg-1">
                 <div class="container-fluid p-3">
                     <div class="h5 text-start fw-bold">Filter</div>
                     <div class="mb-2">
@@ -74,9 +74,9 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-md-9 col-lg-9">
-                <div class="container p-3 justify-content-center">
-                    <div class="row" id="productsArea"></div>
+            <div class="col-12 col-lg-9 order-2 order-lg-2">
+                <div class="container px-0 py-3 justify-content-center">
+                    <div class="row justify-content-center g-2 g-md-3" id="productsArea"></div>
                     <div class="row" id="paginationArea">
                         <div class="col d-flex mb-5 justify-content-center">
                             <button class="btn me-2" id="prevBtn"
@@ -108,15 +108,15 @@
             const response = await fetch("../api/getAllProducts.php");
             products = await response.json();
             filteredProducts = products;
-            
+
             getCategoryFromURL();
-            
+
             if (currentCategoryFilter) {
                 applyFilters();
             } else {
                 getProducts();
             }
-            
+
             paginationArea.style.display = filteredProducts.length > cardSize ? 'block' : 'none';
         }
 
@@ -129,12 +129,12 @@
 
             filteredProducts.slice(start, end).forEach(product => {
                 const isOnSale = product.is_sale == 1;
-                const salePrice = isOnSale && product.sale_percentage 
-                    ? (product.price * (1 - product.sale_percentage / 100)).toFixed(2)
-                    : product.price;
+                const salePrice = isOnSale && product.sale_percentage ?
+                    (product.price * (1 - product.sale_percentage / 100)).toFixed(2) :
+                    product.price;
 
                 contentArea.innerHTML += `
-                <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4 d-flex justify-content-center">
+           <div class="col-6 col-md-4 col-lg-3 mb-2 d-flex justify-content-center">
                     <div class="card rounded-4 h-100" style="max-width: 280px; width: 100%;">
                         ${isOnSale ? `<div class="position-relative">
                             <img class="img-fluid object-fit-contain p-3 d-block mx-auto" style="height: 180px; width: 100%; cursor: pointer;" 
@@ -146,23 +146,29 @@
                         </div>` : `<img class="img-fluid object-fit-contain p-3 d-block mx-auto" style="height: 180px; width: 100%; cursor: pointer;" 
                              src="${product.image}" alt="${product.product_name}"
                              onclick="window.location.href='productView.php?id=${product.id}'">`}
-                        <div class="card-body mt-0 pt-0 d-block" style="cursor: pointer;" onclick="window.location.href='productView.php?id=${product.id}'">
-                            <h5 class="card-title d-none d-md-block text-center fw-bold">${product.product_name}</h5>
-                            <h3 class="card-title d-md-none text-center fw-bold">${product.product_name}</h3>
-                            <p class="card-text text-center text-secondary">${product.size}</p>
+                       <div class="card-body mt-0 pt-0 pb-0 d-block" style="cursor:pointer; padding-bottom:0;"  onclick="window.location.href='productView.php?id=${product.id}'">
+                        <h6 class="card-title text-center fw-bold" style="font-size:clamp(0.85rem,2.5vw,1rem); display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.4em;">${product.product_name}</h6>
+                            <p class="card-text text-center text-secondary mb-0" style="font-size:clamp(0.7rem,2vw,0.9rem); display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2em;">${product.size}</p>
+
                         </div>
                         <div class="p-3 d-flex justify-content-between align-items-center">
-                            <div class="d-flex flex-column">
-                                ${isOnSale ? `
-                                    <span class="h6 d-none d-md-block text-decoration-line-through" style="color: #dc3545;">₱${product.price}</span>
-                                    <span class="h6 d-none d-md-block fw-bold" style="color: #28a745;">₱${salePrice}</span>
-                                    <span class="h5 d-md-none text-decoration-line-through" style="color: #dc3545;">₱${product.price}</span>
-                                    <span class="h5 d-md-none fw-bold" style="color: #28a745;">₱${salePrice}</span>
-                                ` : `
-                                    <span class="h6 d-none d-md-block fw-bold" style="color: #6EC064;">₱${product.price}</span>
-                                    <span class="h5 d-md-none fw-bold" style="color: #6EC064;">₱${product.price}</span>
-                                `}
-                            </div>
+                            <div class="d-flex flex-wrap justify-content-start align-items-center mb-2 ${isOnSale ? 'flex-column flex-md-row' : ''} gap-1 gap-md-2" style="max-width:calc(100% - 48px);">
+
+                            ${isOnSale ? `
+                                <p class="card-text fw-bold text-success mb-0 order-md-1" style="font-size:1.1em;">
+                                    ₱${salePrice}
+                                </p>
+                                <p class="card-text text-muted text-decoration-line-through mb-0 order-md-2" style="font-size:0.9em;">
+                                    ₱${product.price}
+                                </p>
+                            ` : `
+                                <p class="card-text fw-bold text-success mb-0" style="font-size:1.1em;">
+                                    ₱${product.price}
+                                </p>
+                            `}
+                        </div>
+
+
                             <button type="button" class="btn rounded-3 addToCartBtn" data-product-id="${product.id}" onclick="addToCart(${product.id});">
                                 <span class="material-symbols-rounded">shopping_cart</span>
                             </button>
@@ -180,7 +186,7 @@
         function getCategoryFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
             const categoryParam = urlParams.get('category');
-            
+
             if (categoryParam) {
                 const categoryMap = {
                     'produce': 'produce',
@@ -192,7 +198,7 @@
                     'beverages': 'beverages',
                     'personal-care': 'personal'
                 };
-                
+
                 const mappedCategory = categoryMap[categoryParam];
                 if (mappedCategory) {
                     currentCategoryFilter = mappedCategory;
@@ -201,11 +207,11 @@
             }
         }
 
-        document.getElementById('priceOptions').addEventListener('change', function () {
+        document.getElementById('priceOptions').addEventListener('change', function() {
             currentPriceFilter = this.value;
             applyFilters();
         });
-        document.getElementById('categoryOptions').addEventListener('change', function () {
+        document.getElementById('categoryOptions').addEventListener('change', function() {
             currentCategoryFilter = this.value;
             applyFilters();
         });
@@ -247,44 +253,48 @@
                     filteredProducts = filteredProducts.filter(product => product.is_sale == 1);
                 } else if (currentPriceFilter === "below-100") {
                     filteredProducts = filteredProducts.filter(product => {
-                        const price = product.is_sale == 1 && product.sale_percentage 
-                            ? parseFloat(product.price) * (1 - product.sale_percentage / 100)
-                            : parseFloat(product.price);
+                        const price = product.is_sale == 1 && product.sale_percentage ?
+                            parseFloat(product.price) * (1 - product.sale_percentage / 100) :
+                            parseFloat(product.price);
                         return price < 100;
                     });
                 } else if (currentPriceFilter === "100-200") {
                     filteredProducts = filteredProducts.filter(product => {
-                        const price = product.is_sale == 1 && product.sale_percentage 
-                            ? parseFloat(product.price) * (1 - product.sale_percentage / 100)
-                            : parseFloat(product.price);
+                        const price = product.is_sale == 1 && product.sale_percentage ?
+                            parseFloat(product.price) * (1 - product.sale_percentage / 100) :
+                            parseFloat(product.price);
                         return price >= 100 && price < 200;
                     });
                 } else if (currentPriceFilter === "200-300") {
                     filteredProducts = filteredProducts.filter(product => {
-                        const price = product.is_sale == 1 && product.sale_percentage 
-                            ? parseFloat(product.price) * (1 - product.sale_percentage / 100)
-                            : parseFloat(product.price);
+                        const price = product.is_sale == 1 && product.sale_percentage ?
+                            parseFloat(product.price) * (1 - product.sale_percentage / 100) :
+                            parseFloat(product.price);
                         return price >= 200 && price < 300;
                     });
                 } else if (currentPriceFilter === "300-400") {
                     filteredProducts = filteredProducts.filter(product => {
-                        const price = product.is_sale == 1 && product.sale_percentage 
-                            ? parseFloat(product.price) * (1 - product.sale_percentage / 100)
-                            : parseFloat(product.price);
+                        const price = product.is_sale == 1 && product.sale_percentage ?
+                            parseFloat(product.price) * (1 - product.sale_percentage / 100) :
+                            parseFloat(product.price);
                         return price >= 300 && price < 400;
                     });
                 } else if (currentPriceFilter === "above-500") {
                     filteredProducts = filteredProducts.filter(product => {
-                        const price = product.is_sale == 1 && product.sale_percentage 
-                            ? parseFloat(product.price) * (1 - product.sale_percentage / 100)
-                            : parseFloat(product.price);
+                        const price = product.is_sale == 1 && product.sale_percentage ?
+                            parseFloat(product.price) * (1 - product.sale_percentage / 100) :
+                            parseFloat(product.price);
                         return price > 500;
                     });
                 }
                 console.log('After price filter:', filteredProducts.length);
             }
 
-            console.log('Final filtered products:', filteredProducts.map(p => ({ name: p.product_name, category: p.category, price: p.price })));
+            console.log('Final filtered products:', filteredProducts.map(p => ({
+                name: p.product_name,
+                category: p.category,
+                price: p.price
+            })));
 
             getProducts();
             paginationArea.style.display = filteredProducts.length > cardSize ? 'block' : 'none';
