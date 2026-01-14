@@ -18,36 +18,19 @@ if (empty($userPrompt)) {
     exit;
 }
 
-// Pre-filter: Check for off-topic keywords
-$lowerPrompt = strtolower($userPrompt);
+// Build STRICT AI prompt with boundaries
+$prompt = "You are EasyBuy Store Assistant. Follow these rules STRICTLY:
 
-$productKeywords = ['product', 'price', 'cost', 'stock', 'buy', 'purchase', 'available', 'sale', 'discount', 'cheap', 'expensive', 'food', 'vegetable', 'fruit', 'meat', 'dairy', 'snack', 'drink', 'beverage', 'milk', 'egg', 'chicken', 'beef', 'fish', 'bread', 'rice', 'pasta', 'shampoo', 'soap', 'toothpaste', 'detergent', 'grocery', 'groceries', 'item', 'catalog'];
-$offTopicKeywords = ['weather', 'temperature', 'rain', 'president', 'government', 'politics', 'election', 'calculate', 'math', 'solve', 'equation', 'recipe', 'how to cook', 'who is', 'who was', 'what is a', 'what is the', 'define', 'meaning of', 'capital of', 'country', 'history', 'religion', 'bible', 'quran', 'tell me about', 'explain', 'describe', 'write'];
+1. ONLY answer questions about products from the list below
+2. If asked about ANYTHING else (weather, math, recipes, politics, etc.), respond EXACTLY: \"I can only help with EasyBuy products!\"
+3. Be friendly and use emojis for product questions
+4. Keep responses under 50 words
 
-$hasProductKeyword = false;
-foreach ($productKeywords as $keyword) {
-    if (strpos($lowerPrompt, $keyword) !== false) {
-        $hasProductKeyword = true;
-        break;
-    }
-}
+PRODUCTS:
+" . $productData . "
 
-$hasOffTopicKeyword = false;
-foreach ($offTopicKeywords as $keyword) {
-    if (strpos($lowerPrompt, $keyword) !== false) {
-        $hasOffTopicKeyword = true;
-        break;
-    }
-}
-
-// Block off-topic questions
-if ($hasOffTopicKeyword || (!$hasProductKeyword && strlen($userPrompt) > 25)) {
-    echo "I'd love to help, but I'm specialized in EasyBuy products! 😊 Ask me about our groceries, prices, or what's on sale today!";
-    exit;
-}
-
-// Build AI prompt
-$prompt = "You are a friendly EasyBuy store assistant. Answer warmly and conversationally. Use emojis occasionally. Only discuss products from the list below.\n\nProducts:\n" . $productData . "\n\nCustomer: " . $userPrompt . "\nYou:";
+Customer: " . $userPrompt . "
+Assistant:";
 
 // Get AI response
 try {
@@ -55,26 +38,76 @@ try {
     $response = $client->completions()->create([
         'model' => 'gemma2:2b',
         'prompt' => $prompt,
-        'stream' => false,
+        'stream' => true,
         'options' => [
-            'num_predict' => 60,
-            'temperature' => 0.3,
-            'top_k' => 40,
-            'repeat_penalty' => 1.1,
+            'num_predict' => 35,
+            'temperature' => 0.2,  
+            'num_ctx' => 512,
+            'top_k' => 20,          
+            'top_p' => 0.8,         
+            'repeat_penalty' => 1.2,
+            'stop' => ['\n\n', 'Customer:', 'Human:'], 
         ]
     ]);
     
-    $aiResponse = $response->response ?? "I'm sorry, I couldn't generate a response. Please try again.";
+    $aiResponse = trim($response->response ?? "");
     
-    // Post-validate: Check if AI responded with off-topic content
+    if (empty($aiResponse)) {
+        echo "I'm sorry, I couldn't generate a response. Please try again.";
+        exit;
+    }
+    
+    // Post-validation: Detect off-topic responses
     $responseLower = strtolower($aiResponse);
-    $offTopicPhrases = ['weather', 'president', 'calculate', 'recipe', 'capital', 'country', 'history', 'as an ai', 'i can help you with', 'however', 'unfortunately'];
     
-    foreach ($offTopicPhrases as $phrase) {
-        if (strpos($responseLower, $phrase) !== false) {
-            echo "I'd love to help, but I'm specialized in EasyBuy products! 😊 Ask me about our groceries, prices, or what's on sale today!";
-            exit;
+    // Check for refusal patterns (good signs)
+    $refusalPatterns = ['only help with', 'easybuy products', 'can\'t help', 'specialized in'];
+    $isRefusal = false;
+    foreach ($refusalPatterns as $pattern) {
+        if (strpos($responseLower, $pattern) !== false) {
+            $isRefusal = true;
+            break;
         }
+    }
+    
+    // Check for off-topic content (bad signs)
+    $offTopicIndicators = [
+        'weather', 'temperature', 'rain', 'sunny',
+        'president', 'government', 'election', 'political',
+        'calculate', 'equation', 'math problem',
+        'recipe', 'how to cook', 'ingredients for',
+        'capital of', 'country', 'history of',
+        'as an ai', 'language model', 'i don\'t have access'
+    ];
+    
+    $hasOffTopicContent = false;
+    foreach ($offTopicIndicators as $indicator) {
+        if (strpos($responseLower, $indicator) !== false && !$isRefusal) {
+            $hasOffTopicContent = true;
+            break;
+        }
+    }
+    
+    // Block if off-topic detected
+    if ($hasOffTopicContent) {
+        echo "I can only help with EasyBuy products! 😊 Ask me about groceries, prices, or stock availability.";
+        exit;
+    }
+    
+    // Check if response mentions products from the catalog
+    $hasProductMention = false;
+    $productNames = ['milk', 'egg', 'bread', 'rice', 'chicken', 'apple', 'banana']; // Add your actual products
+    foreach ($productNames as $product) {
+        if (strpos($responseLower, $product) !== false) {
+            $hasProductMention = true;
+            break;
+        }
+    }
+    
+    // If it's not a refusal and doesn't mention products, it's probably off-topic
+    if (!$isRefusal && !$hasProductMention && strlen($userPrompt) > 15) {
+        echo "I can only help with EasyBuy products! 😊 Ask me about groceries, prices, or stock availability.";
+        exit;
     }
     
     echo $aiResponse;
