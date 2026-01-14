@@ -21,7 +21,7 @@
     </style>
 </head>
 
-<body>
+<body class="d-flex flex-column vh-100">
     <?php include './components/navbar.php'; ?>
 
     <div class="container mt-3 pt-5">
