@@ -50,7 +50,7 @@ Auth::redirectIfLoggedIn();
         }
 
         .easybuy-btn {
-            background: #F8E15B;
+            background: #38ce13;
             color: #000;
             border-radius: 999px;
             padding: .6rem 1rem;
