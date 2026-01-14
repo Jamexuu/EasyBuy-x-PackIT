@@ -68,7 +68,7 @@
     <?php include './components/navbar.php'; ?>
     <?php include './components/addToCart.php'; ?>
 
-    <div class="container mt-5 p-4">
+    <div class="container p-4">
         <button class="back-btn mb-3" onclick="window.history.back()"
             style="background: none; border: none; color: #6EC064; font-size: 2rem; cursor: pointer;">
             <span class="material-symbols-rounded">arrow_back</span>
@@ -325,7 +325,7 @@
 
             similarProducts.forEach((product, index) => {
                 const col = document.createElement('div');
-                col.className = 'col-12 col-sm-6 col-md-4 col-lg-3 mb-4 d-flex justify-content-center';
+                col.className = 'col-6 col-md-4 col-lg-3 mb-2 d-flex justify-content-center';
 
                 const badgeHtml = '';
 
@@ -337,13 +337,13 @@
                         </div>
                         <div class="card-body mt-0 pt-0 d-block" style="cursor: pointer;" onclick="window.location.href='productView.php?id=${product["Product ID"]}'">
                             <h5 class="card-title d-none d-md-block text-center fw-bold">${product["Product Name"]}</h5>
-                            <h3 class="card-title d-md-none text-center fw-bold">${product["Product Name"]}</h3>
+                            <h6 class="card-title d-md-none text-center fw-bold">${product["Product Name"]}</h3>
                             <p class="card-text text-center text-secondary">${product.size || ''}</p>
                         </div>
                         <div class="p-3 d-flex justify-content-between align-items-center">
                             <div class="d-flex flex-column">
                                 <span class="h6 d-none d-md-block fw-bold" style="color: #6EC064;">₱${product.Price.toFixed(2)}</span>
-                                <span class="h5 d-md-none fw-bold" style="color: #6EC064;">₱${product.Price.toFixed(2)}</span>
+                                <span class="h6 d-md-none fw-bold" style="color: #6EC064;">₱${product.Price.toFixed(2)}</span>
                             </div>
                             <button type="button" class="btn rounded-3 addToCartBtn" data-product-id="${product["Product ID"]}" onclick="event.stopPropagation(); addToCartWithModal(${product["Product ID"]}, 1);" style="background-color: #6EC064; color: #FFFFFF; border: none; width: 45px; height: 45px; border-radius: 8px; display:flex; align-items:center; justify-content:center;">
                                 <span class="material-symbols-rounded">shopping_cart</span>
