@@ -103,77 +103,25 @@ $chatPath = __DIR__ . '/../../frontend/components/chat.php';
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PackIT - Payment Success</title>
 
-  <!-- Bootstrap -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <!-- Optional: add your PackIT global stylesheet if you have one -->
-  <!-- <link href="../../frontend/assets/css/style.css" rel="stylesheet"> -->
-
-  <style>
-    /* Lightweight "PackIT-like" polish without needing a separate CSS file */
-    .packit-page {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      background: #f8f9fa;
-    }
-
-    .packit-main {
-      flex: 1;
-    }
-
-    .success-card {
-      border: 0;
-      border-radius: 1rem;
-    }
-
-    .success-badge {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(25, 135, 84, 0.12);
-      color: #198754;
-      font-size: 28px;
-      margin-bottom: 12px;
-    }
-
-    .kv {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-    }
-
-    .kv .label {
-      color: #6c757d;
-    }
-
-    .kv .value {
-      font-weight: 600;
-      text-align: right;
-    }
-  </style>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
-<body class="packit-page">
+<body class="d-flex flex-column min-vh-100 bg-light">
 
-  <!-- Navbar -->
-  <?php if (file_exists($navbarPath)) {
-    include $navbarPath;
-  } ?>
+  <?php if (file_exists($navbarPath)) { include $navbarPath; } ?>
 
-  <main class="packit-main">
+  <main class="flex-grow-1">
     <div class="container py-5">
       <div class="row justify-content-center">
         <div class="col-12 col-lg-7 col-xl-6">
 
-          <div class="card success-card shadow-sm">
+          <div class="card border-0 rounded-4 shadow-sm">
             <div class="card-body p-4 p-md-5">
 
               <div class="text-center">
-                <div class="success-badge">✓</div>
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success-subtle text-success mb-3" style="width: 56px; height: 56px; font-size: 28px;">
+                  ✓
+                </div>
                 <h1 class="h3 text-success mb-2">Booking Confirmed</h1>
                 <p class="text-muted mb-4">
                   Payment received. Your booking has been processed successfully.
@@ -193,33 +141,33 @@ $chatPath = __DIR__ . '/../../frontend/components/chat.php';
                 </div>
 
                 <div class="border rounded-3 p-3 p-md-4 mb-4 bg-white">
-                  <div class="kv py-2 border-bottom">
-                    <div class="label">Vehicle</div>
-                    <div class="value"><?= h((string)$booking['vehicle_type']) ?></div>
+                  <div class="d-flex justify-content-between gap-3 py-2 border-bottom">
+                    <div class="text-secondary">Vehicle</div>
+                    <div class="fw-semibold text-end"><?= h((string)$booking['vehicle_type']) ?></div>
                   </div>
 
-                  <div class="kv py-2 border-bottom">
-                    <div class="label">Pickup</div>
-                    <div class="value">
+                  <div class="d-flex justify-content-between gap-3 py-2 border-bottom">
+                    <div class="text-secondary">Pickup</div>
+                    <div class="fw-semibold text-end">
                       <?= h((string)$booking['pickup_municipality']) ?>, <?= h((string)$booking['pickup_province']) ?>
                     </div>
                   </div>
 
-                  <div class="kv py-2 border-bottom">
-                    <div class="label">Drop-off</div>
-                    <div class="value">
+                  <div class="d-flex justify-content-between gap-3 py-2 border-bottom">
+                    <div class="text-secondary">Drop-off</div>
+                    <div class="fw-semibold text-end">
                       <?= h((string)$booking['drop_municipality']) ?>, <?= h((string)$booking['drop_province']) ?>
                     </div>
                   </div>
 
-                  <div class="kv py-2 border-bottom">
-                    <div class="label">Payment Status</div>
-                    <div class="value"><?= h((string)$booking['payment_status']) ?></div>
+                  <div class="d-flex justify-content-between gap-3 py-2 border-bottom">
+                    <div class="text-secondary">Payment Status</div>
+                    <div class="fw-semibold text-end"><?= h((string)$booking['payment_status']) ?></div>
                   </div>
 
-                  <div class="kv py-2">
-                    <div class="label">Tracking Status</div>
-                    <div class="value"><?= h((string)$booking['tracking_status']) ?></div>
+                  <div class="d-flex justify-content-between gap-3 py-2">
+                    <div class="text-secondary">Tracking Status</div>
+                    <div class="fw-semibold text-end"><?= h((string)$booking['tracking_status']) ?></div>
                   </div>
                 </div>
 
@@ -246,15 +194,10 @@ $chatPath = __DIR__ . '/../../frontend/components/chat.php';
     </div>
   </main>
 
-  <!-- Footer -->
-  <?php if (file_exists($chatPath)) {
-    include $chatPath;
-  } ?>
-  <?php if (file_exists($footerPath)) {
-    include $footerPath;
-  } ?>
+  <?php if (file_exists($chatPath)) { include $chatPath; } ?>
+  <?php if (file_exists($footerPath)) { include $footerPath; } ?>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

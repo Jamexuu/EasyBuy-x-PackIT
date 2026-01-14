@@ -41,16 +41,53 @@ session_start();
             <div class="d-grid">
               <button type="submit" class="btn btn-warning fw-bold">Verify code</button>
             </div>
-
-            <div class="text-center mt-3">
-              <a href="forgotPassword.php" class="small text-decoration-none">Back</a>
-            </div>
           </form>
+
+          <form action="forgotPasswordProcess.php" method="POST" class="text-center mt-3">
+            <input type="hidden" name="email" value="<?= htmlspecialchars($_GET['email'] ?? '') ?>">
+            <span class="small text-muted">Didn't receive the code?</span>
+            <button type="submit" id="resendBtn" class="btn btn-link btn-sm p-0 align-baseline text-decoration-none fw-bold" disabled>
+              Resend OTP (60s)
+            </button>
+          </form>
+
+          <div class="text-center mt-3">
+            <a href="forgotPassword.php" class="small text-decoration-none">Back</a>
+          </div>
 
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Simple 60-second countdown timer for the Resend button
+  (function() {
+    const resendBtn = document.getElementById('resendBtn');
+    if (!resendBtn) return;
+
+    let timeLeft = 60;
+    
+    // Function to update button state
+    const updateTimer = () => {
+      if (timeLeft <= 0) {
+        resendBtn.disabled = false;
+        resendBtn.innerText = "Resend OTP";
+        resendBtn.classList.remove('text-secondary'); 
+      } else {
+        resendBtn.disabled = true;
+        resendBtn.innerText = `Resend OTP (${timeLeft}s)`;
+        resendBtn.classList.add('text-secondary');
+        timeLeft--;
+        setTimeout(updateTimer, 1000);
+      }
+    };
+
+    // Start timer on page load
+    updateTimer();
+  })();
+</script>
 </body>
 </html>

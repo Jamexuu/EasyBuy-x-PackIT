@@ -31,8 +31,8 @@ if (!$userRow) {
     exit;
 }
 
-// Create numeric OTP (e.g. 6 digits) valid for 15 minutes
-$otp = $user->createPasswordResetOTP($email, 15, 6);
+// Create numeric OTP (e.g. 6 digits) valid for 3 minutes
+$otp = $user->createPasswordResetOTP($email, 3, 6);
 
 if (!$otp) {
     $_SESSION['fp_error'] = 'Could not create reset OTP. Try again later.';
@@ -44,7 +44,7 @@ if (!$otp) {
 $subject = "PackIT password reset code";
 $body = "
 <p>Hello,</p>
-<p>We received a request to reset your PackIT account password. Use the following one-time code to verify and set a new password (code expires in 15 minutes):</p>
+<p>We received a request to reset your PackIT account password. Use the following one-time code to verify and set a new password (code expires in 3 minutes):</p>
 <h2 style='letter-spacing:4px;'>$otp</h2>
 <p>If you didn't request this, you can safely ignore this message.</p>
 ";
