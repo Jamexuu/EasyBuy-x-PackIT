@@ -49,9 +49,6 @@
           <li>
             <a href="" class="text-decoration-none text-dark">Location Map</a>
           </li>
-          <li>
-            <a href="" class="text-decoration-none text-dark">About</a>
-          </li>
         </ul>
       </div>
       <div class="col-12 col-lg-2 py-lg-5">
@@ -84,7 +81,7 @@
             <a href="" class="text-decoration-none text-dark">FAQ</a>
           </li>
           <li>
-            <a href="" class="text-decoration-none text-dark">Contact us</a>
+            <a href="/EasyBuy-x-PackIT/EasyBuy/frontend/customerSupport.php" class="text-decoration-none text-dark">Contact us</a>
           </li>
         </ul>
       </div>
