@@ -30,6 +30,7 @@
     <?php include '../frontend/components/messageModal.php'; ?>
     <?php include '../frontend/components/confirmModal.php'; ?>
 
+    <!-- Product List View -->
     <div class="container py-5" id="productListView">
         <div class="row align-items-center mb-4">
             <div class="col-12 col-md-6 mb-3 mb-md-0">
@@ -47,9 +48,10 @@
             </div>
         </div>
         <div id="productList"></div>
-        <div id="productPagination" class="d-flex justify-content-center align-items-center gap-3 mt-3"></div>
+        <div id="productPagination" class="d-flex justify-content-center align-items-center gap-3 mt-4"></div>
     </div>
 
+    <!-- Product Form View -->
     <div class="container py-5" id="productFormView" style="display: none;">
         <div class="row align-items-center mb-4">
             <div class="col-12">
@@ -114,7 +116,7 @@
                         <div class="col-12 col-lg-6 mb-3">
                             <label class="fw-medium mb-2" style="color: #6a6a6a;">Size in ML</label>
                             <input type="text" id="productSize" class="form-control border-0 rounded-pill"
-                                style="background-color: #f5f5f5; padding: 0.6rem 1rem;" placeholder="400 ml">
+                                style="background-color: #f5f5f5; padding: 0.6rem 1rem;" placeholder="400 ml (Optional)">
                         </div>
                         <div class="col-12 col-lg-6 mb-3">
                             <label class="fw-medium mb-2" style="color: #6a6a6a;">Discount</label>
@@ -149,13 +151,14 @@
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
     <script>
-        var products = [];
-        var filteredProducts = [];
-        var currentPage = 1;
-        var pageSize = 10; // items per page
-        var currentImageData = '';
-        var editingProductId = null;
+        let products = [];
+        let filteredProducts = [];
+        let currentPage = 1;
+        const pageSize = 10;
+        let currentImageData = '';
+        let editingProductId = null;
 
+        // View Management
         function showProductList() {
             document.getElementById('productListView').style.display = 'block';
             document.getElementById('productFormView').style.display = 'none';
@@ -185,147 +188,243 @@
             editingProductId = null;
         }
 
-        document.getElementById('addProductBtn').addEventListener('click', function () {
-            editingProductId = null;
-            showProductForm(false);
-        });
+        // Form Validation
+        function validateProductForm() {
+            const productName = document.getElementById('productName').value.trim();
+            const productWeight = document.getElementById('productWeight').value.trim();
+            const productCategory = document.getElementById('productCategory').value;
+            const productPrice = document.getElementById('productPrice').value.trim();
+            const productStocks = document.getElementById('productStocks').value.trim();
 
-        document.getElementById('backToListBtn').addEventListener('click', showProductList);
-        document.getElementById('cancelBtn').addEventListener('click', showProductList);
-
-        document.getElementById('fileUploadBtn').addEventListener('click', function () {
-            document.getElementById('fileInput').click();
-        });
-
-        document.getElementById('fileInput').addEventListener('change', async function (e) {
-            var file = e.target.files[0];
-            if (!file) return;
-
-            var formData = new FormData();
-            formData.append('image', file);
-
-            try {
-                var response = await fetch('../api/uploadProductImage.php', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                var result = await response.json();
-                if (result.success) {
-                    var img = document.getElementById('imagePreview');
-                    var removeBtn = document.getElementById('removeImageBtn');
-                    currentImageData = result.path;
-                    img.src = currentImageData;
-                    img.style.display = 'block';
-                    removeBtn.style.display = 'flex';
-                } else {
-                    alert('Failed to upload image');
-                }
-            } catch (error) {
-                alert('Error uploading image');
-                console.error(error);
-            }
-        });
-
-        document.getElementById('removeImageBtn').addEventListener('click', function () {
-            document.getElementById('imagePreview').src = '';
-            document.getElementById('imagePreview').style.display = 'none';
-            document.getElementById('removeImageBtn').style.display = 'none';
-            document.getElementById('fileInput').value = '';
-            currentImageData = '';
-        });
-
-        document.getElementById('saveProductBtn').addEventListener('click', async function () {
-            var productName = document.getElementById('productName').value.trim();
-            var productWeight = document.getElementById('productWeight').value.trim();
-            var productSize = document.getElementById('productSize').value.trim();
-            var productCategory = document.getElementById('productCategory').value;
-            var productPrice = document.getElementById('productPrice').value.trim();
-            var salePercentage = document.getElementById('discountPercentage').value.trim();
-            var productStocks = document.getElementById('productStocks').value.trim();
-
-            if (!productName || !productSize || !productCategory || !productPrice || !productStocks || !currentImageData) {
-                showMessage('error', 'Missing Information', 'Please fill in all required fields and upload an image.', 'OK');
-                return;
+            if (!productName) {
+                showMessage('error', 'Missing Information', 'Please enter a product name.', 'OK');
+                return false;
             }
 
-            var actionText = editingProductId !== null ? 'update' : 'add';
-            var confirmResult = await showConfirm(
+            if (!productWeight) {
+                showMessage('error', 'Missing Information', 'Please enter the product weight.', 'OK');
+                return false;
+            }
+
+            if (!productCategory || productCategory === 'all') {
+                showMessage('error', 'Missing Information', 'Please select a product category.', 'OK');
+                return false;
+            }
+
+            if (!productPrice) {
+                showMessage('error', 'Missing Information', 'Please enter the product price.', 'OK');
+                return false;
+            }
+
+            if (!productStocks) {
+                showMessage('error', 'Missing Information', 'Please enter the product stocks.', 'OK');
+                return false;
+            }
+
+            if (!currentImageData) {
+                showMessage('error', 'Missing Information', 'Please upload a product image.', 'OK');
+                return false;
+            }
+
+            return true;
+        }
+
+        // Add Product Function
+        async function addProduct() {
+            if (!validateProductForm()) return;
+
+            const confirmResult = await showConfirm(
                 'info',
-                'Confirm ' + (editingProductId !== null ? 'Update' : 'Add'),
-                'Are you sure you want to ' + actionText + ' this product?',
-                editingProductId !== null ? 'Update' : 'Add',
+                'Confirm Add Product',
+                'Are you sure you want to add this product?',
+                'Add',
                 'Cancel'
             );
 
             if (!confirmResult) return;
 
-            var productData = {
-                product_name: productName,
-                size: productSize,
-                weight_grams: productWeight,
-                category: productCategory,
-                price: productPrice,
-                stocks: productStocks,
-                is_sale: salePercentage > 0 ? 1 : 0,
-                sale_percentage: salePercentage || 0,
+            const sizeValue = document.getElementById('productSize').value.trim();
+            const discountValue = document.getElementById('discountPercentage').value.trim();
+
+            const productData = {
+                product_name: document.getElementById('productName').value.trim(),
+                size: sizeValue ? sizeValue : null,
+                weight_grams: document.getElementById('productWeight').value.trim(),
+                category: document.getElementById('productCategory').value,
+                price: document.getElementById('productPrice').value.trim(),
+                stocks: document.getElementById('productStocks').value.trim(),
+                is_sale: discountValue > 0 ? 1 : 0,
+                sale_percentage: discountValue || 0,
                 image: currentImageData
             };
 
             try {
-                var url = editingProductId !== null ? '../api/updateProduct.php' : '../api/addProduct.php';
-                var method = editingProductId !== null ? 'PUT' : 'POST';
-
-                if (editingProductId !== null) {
-                    productData.product_id = editingProductId;
-                }
-
-                var response = await fetch(url, {
-                    method: method,
+                const response = await fetch('../api/addProduct.php', {
+                    method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(productData)
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to save product');
+                    throw new Error('Failed to add product');
                 }
 
-                showMessage('success', 'Product Saved', 'The product has been saved successfully.', 'Continue');
-                displayProducts();
+                showMessage('success', 'Product Added', 'The product has been added successfully.', 'Continue');
+                await displayProducts();
                 showProductList();
             } catch (error) {
-                showMessage('error', 'Error', 'Failed to save product. Please try again.', 'OK');
+                showMessage('error', 'Error', 'Failed to add product. Please try again.', 'OK');
                 console.error(error);
             }
-        });
+        }
 
+        // Update Product Function
+        async function updateProduct() {
+            if (!validateProductForm()) return;
+
+            const confirmResult = await showConfirm(
+                'info',
+                'Confirm Update Product',
+                'Are you sure you want to update this product?',
+                'Update',
+                'Cancel'
+            );
+
+            if (!confirmResult) return;
+
+            const sizeValue = document.getElementById('productSize').value.trim();
+            const discountValue = document.getElementById('discountPercentage').value.trim();
+
+            const productData = {
+                product_id: editingProductId,
+                product_name: document.getElementById('productName').value.trim(),
+                size: sizeValue ? sizeValue : null,
+                weight_grams: document.getElementById('productWeight').value.trim(),
+                category: document.getElementById('productCategory').value,
+                price: document.getElementById('productPrice').value.trim(),
+                stocks: document.getElementById('productStocks').value.trim(),
+                is_sale: discountValue > 0 ? 1 : 0,
+                sale_percentage: discountValue || 0,
+                image: currentImageData
+            };
+
+            try {
+                const response = await fetch('../api/updateProduct.php', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(productData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update product');
+                }
+
+                showMessage('success', 'Product Updated', 'The product has been updated successfully.', 'Continue');
+                await displayProducts();
+                showProductList();
+            } catch (error) {
+                showMessage('error', 'Error', 'Failed to update product. Please try again.', 'OK');
+                console.error(error);
+            }
+        }
+
+        // Delete Product Function
+        async function deleteProduct(id) {
+            const confirmResult = await showConfirm(
+                'delete',
+                'Delete Product',
+                'Are you sure you want to delete this product? This action cannot be undone.',
+                'Delete',
+                'Cancel'
+            );
+
+            if (!confirmResult) return;
+
+            try {
+                const response = await fetch('../api/deleteProduct.php', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId: id })
+                });
+
+                if (response.ok) {
+                    products = products.filter(p => (p.id || p.product_id) !== id);
+                    filteredProducts = filteredProducts.filter(p => (p.id || p.product_id) !== id);
+                    
+                    // Adjust current page if needed
+                    const totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
+                    if (currentPage > totalPages) currentPage = totalPages;
+                    
+                    getProducts();
+                    showMessage('success', 'Product Deleted', 'The product has been deleted successfully.', 'OK');
+                } else {
+                    showMessage('error', 'Delete Failed', 'Failed to delete product. Please try again.', 'OK');
+                }
+            } catch (error) {
+                showMessage('error', 'Error', 'An error occurred while deleting the product.', 'OK');
+            }
+        }
+
+        // Edit Product Function
+        function editProduct(id) {
+            const product = products.find(p => (p.id || p.product_id) === id);
+            if (!product) return;
+
+            editingProductId = product.id || product.product_id;
+            document.getElementById('productName').value = product.name || product.product_name || '';
+            document.getElementById('productWeight').value = product.weight_grams || '';
+            document.getElementById('productSize').value = product.size || product.product_size || '';
+            document.getElementById('productCategory').value = product.category || product.product_category || 'all';
+            document.getElementById('productPrice').value = product.price || product.product_price || '';
+            document.getElementById('productStocks').value = product.stocks || '';
+            document.getElementById('discountPercentage').value = product.sale_percentage || '';
+
+            const productImage = product.image || product.product_image;
+            if (productImage) {
+                currentImageData = productImage;
+                document.getElementById('imagePreview').src = productImage;
+                document.getElementById('imagePreview').style.display = 'block';
+                document.getElementById('removeImageBtn').style.display = 'flex';
+            }
+
+            showProductForm(true);
+        }
+
+        // Display Products with Pagination
         async function displayProducts() {
-            var response = await fetch("../api/getAllProducts.php");
-            products = await response.json();
-            filteredProducts = products;
-            currentPage = 1;
-            getProducts();
+            try {
+                const response = await fetch("../api/getAllProducts.php");
+                products = await response.json();
+                filteredProducts = products;
+                currentPage = 1;
+                getProducts();
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                showMessage('error', 'Error', 'Failed to load products.', 'OK');
+            }
         }
 
         function getProducts() {
-            var productList = document.getElementById('productList');
+            const productList = document.getElementById('productList');
             productList.innerHTML = '';
 
             if (filteredProducts.length === 0) {
-                productList.innerHTML = '<div class="text-center text-muted py-5"><p>No products yet. Click "Add Product" to get started.</p></div>';
+                productList.innerHTML = '<div class="text-center text-muted py-5"><p>No products found.</p></div>';
+                document.getElementById('productPagination').innerHTML = '';
                 return;
             }
 
-            var totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
+            const totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
             if (currentPage > totalPages) currentPage = totalPages;
-            var startIndex = (currentPage - 1) * pageSize;
-            var endIndex = startIndex + pageSize;
-            var pageItems = filteredProducts.slice(startIndex, endIndex);
 
-            pageItems.forEach(function (product) {
-                var productId = product.id || product.product_id;
-                var productName = product.name || product.product_name;
-                var productItem = document.createElement('div');
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = startIndex + pageSize;
+            const pageItems = filteredProducts.slice(startIndex, endIndex);
+
+            pageItems.forEach(product => {
+                const productId = product.id || product.product_id;
+                const productName = product.name || product.product_name;
+                const productItem = document.createElement('div');
                 productItem.className = 'product-item d-flex justify-content-between align-items-center rounded-3 mb-3';
                 productItem.style.cssText = 'background-color: #e8e8e8; padding: 1.25rem 1.5rem;';
                 productItem.innerHTML = `
@@ -345,9 +444,11 @@
             renderPagination(filteredProducts.length, currentPage, pageSize);
         }
 
+        // Pagination Functions
         function renderPagination(totalItems, page, perPage) {
-            var totalPages = Math.max(1, Math.ceil(totalItems / perPage));
-            var container = document.getElementById('productPagination');
+            const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
+            const container = document.getElementById('productPagination');
+            
             if (!container) return;
 
             if (totalPages <= 1) {
@@ -356,9 +457,15 @@
             }
 
             container.innerHTML = `
-                <button class="btn btn-sm btn-outline-secondary" ${page === 1 ? 'disabled' : ''} onclick="prevPage()">Prev</button>
-                <div class="px-2">Page ${page} of ${totalPages}</div>
-                <button class="btn btn-sm btn-outline-secondary" ${page === totalPages ? 'disabled' : ''} onclick="nextPage()">Next</button>
+                <button class="btn btn-sm btn-outline-secondary" ${page === 1 ? 'disabled' : ''} onclick="prevPage()">
+                    Previous
+                </button>
+                <div class="px-3 fw-medium">
+                    Page ${page} of ${totalPages}
+                </div>
+                <button class="btn btn-sm btn-outline-secondary" ${page === totalPages ? 'disabled' : ''} onclick="nextPage()">
+                    Next
+                </button>
             `;
         }
 
@@ -371,7 +478,7 @@
         }
 
         function nextPage() {
-            var totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
+            const totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
             if (currentPage < totalPages) {
                 currentPage++;
                 getProducts();
@@ -379,73 +486,76 @@
             }
         }
 
-        async function deleteProduct(id) {
-            var confirmResult = await showConfirm(
-                'delete',
-                'Delete Product',
-                'Are you sure you want to delete this product? This action cannot be undone.',
-                'Delete',
-                'Cancel'
-            );
+        // Event Listeners
+        document.getElementById('addProductBtn').addEventListener('click', function () {
+            editingProductId = null;
+            showProductForm(false);
+        });
 
-            if (!confirmResult) return;
+        document.getElementById('backToListBtn').addEventListener('click', showProductList);
+        document.getElementById('cancelBtn').addEventListener('click', showProductList);
+
+        document.getElementById('fileUploadBtn').addEventListener('click', function () {
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', async function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('image', file);
 
             try {
-                var response = await fetch('../api/deleteProduct.php', {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ productId: id })
+                const response = await fetch('../api/uploadProductImage.php', {
+                    method: 'POST',
+                    body: formData
                 });
 
-                if (response.ok) {
-                    products = products.filter(function (p) { return (p.id || p.product_id) !== id; });
-                    filteredProducts = products;
-                    var totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
-                    if (currentPage > totalPages) currentPage = totalPages;
-                    getProducts();
-                    showMessage('success', 'Product Deleted', 'The product has been deleted successfully.', 'OK');
+                const result = await response.json();
+                if (result.success) {
+                    const img = document.getElementById('imagePreview');
+                    const removeBtn = document.getElementById('removeImageBtn');
+                    currentImageData = result.path;
+                    img.src = currentImageData;
+                    img.style.display = 'block';
+                    removeBtn.style.display = 'flex';
                 } else {
-                    showMessage('error', 'Delete Failed', 'Failed to delete product. Please try again.', 'OK');
+                    showMessage('error', 'Upload Failed', 'Failed to upload image. Please try again.', 'OK');
                 }
             } catch (error) {
-                showMessage('error', 'Error', 'An error occurred while deleting the product.', 'OK');
+                showMessage('error', 'Error', 'An error occurred while uploading the image.', 'OK');
+                console.error(error);
             }
-        }
+        });
 
-        function editProduct(id) {
-            var product = products.find(function (p) { return (p.id || p.product_id) === id; });
-            if (!product) return;
+        document.getElementById('removeImageBtn').addEventListener('click', function () {
+            document.getElementById('imagePreview').src = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('removeImageBtn').style.display = 'none';
+            document.getElementById('fileInput').value = '';
+            currentImageData = '';
+        });
 
-            editingProductId = product.id || product.product_id;
-            document.getElementById('productName').value = product.name || product.product_name || '';
-            document.getElementById('productWeight').value = product.weight_grams || '';
-            document.getElementById('productSize').value = product.size || product.product_size || '';
-            document.getElementById('productCategory').value = product.category || product.product_category || 'all';
-            document.getElementById('productPrice').value = product.price || product.product_price || '';
-            document.getElementById('productStocks').value = product.stocks || '';
-            document.getElementById('discountPercentage').value = product.sale_percentage || '';
-
-            var productImage = product.image || product.product_image;
-            if (productImage) {
-                currentImageData = productImage;
-                document.getElementById('imagePreview').src = productImage;
-                document.getElementById('imagePreview').style.display = 'block';
-                document.getElementById('removeImageBtn').style.display = 'flex';
+        document.getElementById('saveProductBtn').addEventListener('click', function () {
+            if (editingProductId !== null) {
+                updateProduct();
+            } else {
+                addProduct();
             }
-
-            showProductForm(true);
-        }
+        });
 
         document.getElementById('searchInput').addEventListener('input', function (e) {
-            var searchTerm = e.target.value.toLowerCase();
-            filteredProducts = products.filter(function (product) {
-                var productName = (product.name || product.product_name || '').toLowerCase();
+            const searchTerm = e.target.value.toLowerCase();
+            filteredProducts = products.filter(product => {
+                const productName = (product.name || product.product_name || '').toLowerCase();
                 return productName.includes(searchTerm);
             });
             currentPage = 1;
             getProducts();
         });
 
+        // Initialize
         displayProducts();
     </script>
 </body>
