@@ -23,7 +23,93 @@
     </div>
   </div>
 </div>
+
+<div id="carouselLoginRequiredModal" class="modal fade" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content p-4 rounded-5 shadow text-center border-0"
+      style="width: 85%; max-width: 320px; margin: auto;">
+      <div class="h5 fw-bold mb-2">Login Required</div>
+      <p class="mb-4">Please log in to continue with your purchase</p>
+      <div class="d-flex justify-content-center gap-2">
+        <button type="button" class="btn px-4" style="background-color: #e8e8e8; color: #666;"
+          data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button type="button" class="btn px-4 text-white" style="background-color: #6EC064;"
+          onclick="window.location.href='frontend/login.php'">
+          Login
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="carouselBuyNowErrorModal" class="modal fade" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content p-4 rounded-5 shadow text-center border-0"
+      style="width: 85%; max-width: 320px; margin: auto;">
+      <div class="h5 fw-bold mb-2">Error</div>
+      <p class="mb-4" id="carouselBuyNowErrorMessage">Failed to process request</p>
+      <div class="d-flex justify-content-center">
+        <button type="button" class="btn px-4 text-white" style="background-color: #6EC064;"
+          data-bs-dismiss="modal">
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
+  async function carouselBuyNow(productId) {
+    const buyNowBtn = event.target;
+    const originalText = buyNowBtn.innerHTML;
+    
+    buyNowBtn.disabled = true;
+    buyNowBtn.textContent = 'Processing...';
+    
+    try {
+      const response = await fetch('api/createDirectCheckout.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          productId: productId,
+          quantity: 1
+        })
+      });
+
+      if (response.status === 401) {
+        const loginModal = new bootstrap.Modal(document.getElementById("carouselLoginRequiredModal"));
+        loginModal.show();
+        buyNowBtn.disabled = false;
+        buyNowBtn.innerHTML = originalText;
+        return;
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        window.location.href = 'frontend/checkout.php';
+      } else {
+        document.getElementById("carouselBuyNowErrorMessage").textContent = result.error || 'Failed to process request';
+        const errorModal = new bootstrap.Modal(document.getElementById("carouselBuyNowErrorModal"));
+        errorModal.show();
+        buyNowBtn.disabled = false;
+        buyNowBtn.innerHTML = originalText;
+      }
+      
+    } catch (error) {
+      console.error('Error in carouselBuyNow:', error);
+      document.getElementById("carouselBuyNowErrorMessage").textContent = "Failed to process your request. Please try again.";
+      const errorModal = new bootstrap.Modal(document.getElementById("carouselBuyNowErrorModal"));
+      errorModal.show();
+      buyNowBtn.disabled = false;
+      buyNowBtn.innerHTML = originalText;
+    }
+  }
+
   fetch("api/getDiscountedProducts.php")
     .then(res => res.json())
     .then(products => {
@@ -103,6 +189,7 @@
             });
             buyNowBtn.addEventListener('click', function(e) {
               e.stopPropagation();
+              carouselBuyNow(product.id);
             });
             row.appendChild(col);
           });
