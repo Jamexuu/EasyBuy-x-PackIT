@@ -28,7 +28,7 @@ $productData = [
 ];
 
 
-if (!$productData['product_name'] || !$productData['category'] || !$productData['size'] || !$productData['price'] || !$productData['image']) {
+if (!$productData['product_name'] || !$productData['category'] || !$productData['price'] || !$productData['image']) {
     http_response_code(400);
     echo json_encode(['error' => 'Missing required fields']);
     exit();
