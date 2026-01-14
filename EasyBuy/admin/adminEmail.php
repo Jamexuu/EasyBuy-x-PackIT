@@ -21,7 +21,7 @@ Auth::requireAdmin();
 
     <div class="container-fluid">
         <div class="row">
-            <div class="col-2 d-none d-md-block py-5" style="background-color: #F5F5F5; height: 200vh;">
+            <div class="col-2 d-none d-md-block py-5" style="background-color: #F5F5F5; height: 100vh;">
                 <div class="btn rounded-pill text-center py-2 d-inline-flex align-items-center" style="background-color: #D9D9D9;"
                     onclick="toggleComposeEmail()">
                     <span class="material-symbols-outlined">
