@@ -241,7 +241,7 @@
             let cardsHtml = '';
             orders.forEach(order => {
                 cardsHtml += `
-                    <div class="order-card">
+                    <div class="order-card mb-5">
                         <div class="d-flex justify-content-between align-items-center mb-3 pb-3" style="border-bottom: 2px solid #e9ecef;">
                             <div>
                                 <div class="text-muted small">Order #${order.id}</div>

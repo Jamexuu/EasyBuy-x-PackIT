@@ -5,8 +5,8 @@
     }
   </style>
   <div class="row">
-    <div class="col mb-4 d-flex justify-content-center justify-content-lg-start mt-4 p-0">
-      <div class="h1 fw-bold ps-lg-3" style="color:#6EC064">
+    <div class="col mb-4 d-flex justify-content-between pt-4">
+      <div class="h1 fw-bold text-md-center text-lg-start " style="color:#6EC064">
         Sale
       </div>
     </div>
@@ -64,10 +64,10 @@
   async function carouselBuyNow(productId) {
     const buyNowBtn = event.target;
     const originalText = buyNowBtn.innerHTML;
-    
+
     buyNowBtn.disabled = true;
     buyNowBtn.textContent = 'Processing...';
-    
+
     try {
       const response = await fetch('api/createDirectCheckout.php', {
         method: 'POST',
@@ -89,7 +89,7 @@
       }
 
       const result = await response.json();
-      
+
       if (result.success) {
         window.location.href = 'frontend/checkout.php';
       } else {
@@ -99,7 +99,7 @@
         buyNowBtn.disabled = false;
         buyNowBtn.innerHTML = originalText;
       }
-      
+
     } catch (error) {
       console.error('Error in carouselBuyNow:', error);
       document.getElementById("carouselBuyNowErrorMessage").textContent = "Failed to process your request. Please try again.";
@@ -135,7 +135,7 @@
           const imgSrc = "/EasyBuy-x-PackIT/EasyBuy/Product Images/all/" +
             product.image.split("/").pop();
 
-            col.innerHTML = `
+          col.innerHTML = `
               <div class="card h-100 rounded-4 shadow-sm" style="cursor:pointer;">
                 <div class="card-img-overlay"><span class="badge position-absolute me-3 end-0 fw-normal" style="background-color:#28a745;">${product.sale_percentage}% Off</span></div>
                 <img src="/EasyBuy-x-PackIT/EasyBuy/Product%20Images/all/${product.image.split('/').pop()}"
@@ -171,28 +171,28 @@
                 </div>
               </div>
               `;
-            // Add event listeners after DOM creation
-            const card = col.querySelector('.card');
-            const addToCartBtn = col.querySelector('.add-to-cart-btn');
-            const buyNowBtn = col.querySelector('.buy-now-btn');
-            card.addEventListener('click', function(e) {
-              if (
-                !e.target.closest('.add-to-cart-btn') &&
-                !e.target.closest('.buy-now-btn')
-              ) {
-                window.location.href = 'frontend/productView.php?id=' + product.id;
-              }
-            });
-            addToCartBtn.addEventListener('click', function(e) {
-              e.stopPropagation();
-              addToCart(product.id);
-            });
-            buyNowBtn.addEventListener('click', function(e) {
-              e.stopPropagation();
-              carouselBuyNow(product.id);
-            });
-            row.appendChild(col);
+          // Add event listeners after DOM creation
+          const card = col.querySelector('.card');
+          const addToCartBtn = col.querySelector('.add-to-cart-btn');
+          const buyNowBtn = col.querySelector('.buy-now-btn');
+          card.addEventListener('click', function(e) {
+            if (
+              !e.target.closest('.add-to-cart-btn') &&
+              !e.target.closest('.buy-now-btn')
+            ) {
+              window.location.href = 'frontend/productView.php?id=' + product.id;
+            }
           });
+          addToCartBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            addToCart(product.id);
+          });
+          buyNowBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            carouselBuyNow(product.id);
+          });
+          row.appendChild(col);
+        });
         carouselItem.appendChild(row);
         carouselInner.appendChild(carouselItem);
         slideIndex++;
