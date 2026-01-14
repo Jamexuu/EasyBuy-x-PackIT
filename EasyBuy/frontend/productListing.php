@@ -39,7 +39,7 @@
     </style>
 </head>
 
-<body>
+<body class="d-flex flex-column min-vh-100">
     <?php include './components/navbar.php'; ?>
 
     <div class="container-fluid pt-lg-5">
