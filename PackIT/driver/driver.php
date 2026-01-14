@@ -555,7 +555,7 @@ function fmtDims($l, $w, $h): string {
 <?php include __DIR__ . "/../frontend/components/driverFooter.php"; ?>
 
 <script>
-    var $easybuyIP = $_ENV['EASYBUY_IP'] ?? 'localhost';
+    const easybuyIP = <?= json_encode($_ENV['EASYBUY_IP'] ?? 'localhost') ?>;
 async function fetchEasyBuyOrders() {
     const container = document.getElementById('easybuyOrdersContainer');
     
