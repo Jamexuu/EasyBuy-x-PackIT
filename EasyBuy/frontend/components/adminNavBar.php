@@ -6,42 +6,78 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
     <link rel="stylesheet" href="/EasyBuy-x-PackIT/EasyBuy/assets/css/style.css">
 </head>
 
 <body>
-    <div class="navbar navbar-expand-lg" style="background: var(--gradient-color-adminNav);">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/EasyBuy-x-PackIT/EasyBuy/admin/adminDashboard.php">
-                <img src="/EasyBuy-x-PackIT/EasyBuy/assets/navbar_logo.svg" alt="EasyBuy" class="img-fluid px-lg-3 p-2 ms-5"
-                    style="max-height: 60px;">
-            </a>
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
-                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
-                aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav ms-auto me-5 gap-5">
-                    <li class="nav-item">
-                        <a class="nav-link text-white fw-normal" href="adminDashboard.php">Dashboard</a>
+    
+    <div class="container-fluid p-3" style="background: var(--gradient-color-adminNav);">
+        <div class="row align-items-center">
+            <div class="col-6 px-3 d-none d-md-block">
+                <a href="/EasyBuy-x-PackIT/EasyBuy/admin/adminDashboard.php" class="text-decoration-none">
+                    <img src="../assets/navbar_logo.svg" alt="easybuy logo" class="img-fluid" style="height: 70px;">
+                </a>
+            </div>
+            <div class="col col-md-6">
+                <ul class="d-none d-md-flex list-unstyled ms-auto justify-content-end gap-4">
+                    <li>
+                        <a class="nav-link fw-normal" href="adminDashboard.php">Dashboard</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white fw-normal" href="adminProducts.php">Products</a>
+                    <li>
+                        <a class="nav-link fw-normal" href="adminProducts.php">Products</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white fw-normal" href="adminOrders.php">Orders</a>
+                    <li>
+                        <a class="nav-link fw-normal" href="adminOrders.php">Orders</a>
                     </li>
-                    <li class="nav-item position-relative">
-                        <a class="nav-link text-white fw-normal position-relative" href="adminEmail.php">
+                    <li class="position-relative">
+                        <a class="nav-link fw-normal position-relative" href="adminEmail.php">
                             Email
                             <span id="unreadEmailsBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.8rem; display:none;">0</span>
                         </a>
                     </li>
-                    <li class="nav-item position-relative">
-                        <a class="nav-link text-white fw-normal position-relative" href="adminSMS.php">
+                    <li class="">
+                        <a class="nav-link fw-normal position-relative" href="adminSMS.php">
                             SMS
                             <span id="unreadMessagesBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.8rem; display:none;">0</span>
+                        </a>
+                    </li>
+                </ul>
+                <ul class="d-flex d-md-none list-unstyled ms-auto justify-content-around gap-4">
+                    <li>
+                        <a class="nav-link fw-normal" href="adminDashboard.php">
+                            <span class="material-symbols-outlined">
+                                dashboard
+                            </span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav-link fw-normal" href="adminProducts.php">
+                            <span class="material-symbols-outlined">
+                                grocery
+                            </span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav-link fw-normal" href="adminOrders.php">
+                            <span class="material-symbols-outlined">
+                                receipt_long
+                            </span>
+                        </a>
+                    </li>
+                    <li class="position-relative">
+                        <a class="nav-link fw-normal position-relative" href="adminEmail.php">
+                            <span class="material-symbols-outlined">
+                                mail
+                            </span>
+                            <span id="unreadMobileEmailsBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.8rem; display:none;">0</span>
+                        </a>
+                    </li>
+                    <li class="">
+                        <a class="nav-link fw-normal position-relative" href="adminSMS.php">
+                            <span class="material-symbols-outlined">
+                                sms
+                            </span>
                         </a>
                     </li>
                 </ul>
@@ -61,13 +97,15 @@
                 const unreadMessages = data.unreadMessages || 0;
                 const emailBadge = document.getElementById('unreadEmailsBadge');
                 const smsBadge = document.getElementById('unreadMessagesBadge');
+                const emailBadgeMobile = document.getElementById('unreadMobileEmailsBadge');
+
                 if (emailBadge) {
                     emailBadge.textContent = unreadEmails;
                     emailBadge.style.display = unreadEmails > 0 ? 'inline-block' : 'none';
                 }
-                if (smsBadge) {
-                    smsBadge.textContent = unreadMessages;
-                    smsBadge.style.display = unreadMessages > 0 ? 'inline-block' : 'none';
+                if (emailBadgeMobile) {
+                    emailBadgeMobile.textContent = unreadEmails;
+                    emailBadgeMobile.style.display = unreadEmails > 0 ? 'inline-block' : 'none';
                 }
             } catch (e) {}
         }
