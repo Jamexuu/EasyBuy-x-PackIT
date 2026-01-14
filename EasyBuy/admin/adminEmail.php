@@ -79,6 +79,15 @@ Auth::requireAdmin();
             </div>
         </div>
     </div>
+    <div class="d-lg-none position-fixed bottom-0 start-0 end-0 p-3 z-1">
+        <div class="btn rounded-pill text-center py-2 d-flex align-items-center justify-content-center w-50"
+            style="background-color: #D9D9D9;" onclick="toggleComposeSMS();">
+            <span class="material-symbols-outlined">
+                edit
+            </span>
+            Compose Message
+        </div>
+    </div>
 
     <?php include '../frontend/components/messageModal.php'; ?>
 
