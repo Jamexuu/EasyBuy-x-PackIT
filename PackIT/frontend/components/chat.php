@@ -1,56 +1,108 @@
 <?php
-// Chat widget (frontend/components/chat.php)
-// Updated to use model "gemma2:2b" by default from the frontend (backend must honour it).
-// Kept same UI structure; small JS changes: send 'model' in the POST, update text references from "POC" to "gemma2:2b",
-// and expose both window.gemmaSendMessage and window.pocSendMessage for backward compatibility.
+// frontend/components/chat.php
+// Chat launcher + modal (fixed caption visibility bug)
+//
+// Fixes included in this version:
+// - Uses the provided chatbot image: /EasyBuy-x-PackIT/PackIT/assets/chatbot.png
+// - "Need Help?" caption appears only on hover/focus (no background) and is hidden while the modal is open.
+// - Caption visibility is controlled via a CSS class on the launcher instead of inline styles so it reliably
+//   returns after the modal closes (no hard refresh required).
+// - User message bubbles are yellow with dark text (unchanged from your last working version).
+//
+// Replace your current frontend/components/chat.php with this file.
 ?>
-
 <style>
-  /* --- CONSOLIDATED CHAT STYLES --- */
-
-  /* Floating Chat Button */
-  .poc-chat-btn {
+  /* --- LAUNCHER: button + caption --- */
+  .poc-chat-launcher {
     position: fixed;
     bottom: 20px;
     right: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    z-index: 1060;
+    pointer-events: auto;
+  }
+
+  /* Caption hidden by default; becomes visible when launcher is hovered/focused */
+  .poc-chat-caption {
+    font-size: 0.85rem;
+    color: #111827;
+    padding: 0;
+    margin: 0;
+    line-height: 1;
+    cursor: pointer;
+    user-select: none;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.12s ease, transform 0.12s ease;
+    pointer-events: none;
+  }
+
+  /* Show caption on hover or keyboard focus inside launcher */
+  .poc-chat-launcher:hover .poc-chat-caption,
+  .poc-chat-launcher:focus-within .poc-chat-caption {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  /* When the chat is open, apply a state class to hide the caption (no inline styles needed) */
+  .poc-chat-launcher.chat-open .poc-chat-caption {
+    opacity: 0 !important;
+    transform: translateY(6px) !important;
+    pointer-events: none !important;
+  }
+  .poc-chat-launcher.chat-open .poc-chat-btn {
+    transform: scale(0.98);
+  }
+
+  @media (max-width: 576px) {
+    /* Hide caption on extra-small screens to keep original compact appearance */
+    .poc-chat-caption { display: none; }
+  }
+
+  /* --- Floating Chat Button (uses project image) --- */
+  .poc-chat-btn {
     width: 60px;
     height: 60px;
     border-radius: 50%;
     background: #facc15;
     color: #1f2937;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     font-size: 24px;
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s;
-    z-index: 1060;
+    border: 0;
+    overflow: hidden;
+  }
+  .poc-chat-btn img {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    display: block;
   }
   .poc-chat-btn:hover { transform: scale(1.05); box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); }
-  
   .poc-chat-btn.hidden { opacity: 0; pointer-events: none; }
-  .poc-tooltip { position: absolute; right: 70px; top: 50%; transform: translateY(-50%); background: #333; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
-  .poc-chat-btn:hover .poc-tooltip { opacity: 1; }
 
   /* --- CHAT MODAL / WIDGET --- */
-  
-  /* Desktop: Fixed Widget Position */
   .poc-chat-modal .modal-dialog {
     margin: 0;
     position: fixed;
     bottom: 90px;
     right: 20px;
     width: 400px;
-    /* FIX: Prevent overflow on zoomed screens */
     max-width: 90vw; 
     z-index: 1061;
     transition: transform 0.3s ease-out;
   }
 
-  /* Chat Window Container */
   .poc-chat-window {
-    /* FIX: Use vh (viewport height) so it shrinks if you zoom in */
     height: 500px; 
     max-height: 65vh; 
     display: flex;
@@ -60,8 +112,6 @@
     border-radius: 0.5rem;
   }
 
-  /* --- MOBILE / TABLET / ZOOMED RESPONSIVENESS --- */
-  /* FIX: Increased breakpoint to 768px (Tablets) so it switches to mobile view sooner */
   @media (max-width: 768px) {
     .poc-chat-modal { padding-right: 0 !important; }
 
@@ -79,7 +129,6 @@
       border-radius: 1.5rem 1.5rem 0 0 !important;
       border: none;
       box-shadow: 0 -5px 25px rgba(0,0,0,0.15);
-      /* Use dvh for mobile browsers */
       height: 80dvh; 
       max-height: 80dvh;
       display: flex;
@@ -88,7 +137,6 @@
 
     .poc-chat-modal .modal-body { flex: 1; overflow: hidden; padding: 0; }
 
-    /* Override the desktop constraints for mobile */
     .poc-chat-window {
       height: 100% !important; 
       max-height: none !important;
@@ -128,9 +176,11 @@
     word-wrap: break-word;
   }
 
+  /* User bubble: yellow with dark text */
   .poc-chat-msg.user { justify-content: flex-end; }
-  .poc-chat-msg.user .poc-chat-bubble { background: #0d6efd; color: #fff; border-bottom-right-radius: 0.25rem; }
+  .poc-chat-msg.user .poc-chat-bubble { background: #facc15; color: #1f2937; border-bottom-right-radius: 0.25rem; }
 
+  /* Bot bubble unchanged (light) */
   .poc-chat-msg.bot .poc-chat-bubble { background: #f1f3f5; color: #212529; border-bottom-left-radius: 0.25rem; }
 
   .poc-chat-typing {
@@ -147,7 +197,6 @@
     flex-wrap: wrap; 
   }
 
-  /* Mobile/Tablet Specific for Quick Buttons: Horizontal Scroll */
   @media (max-width: 768px) {
     #packit-quick-buttons {
       flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
@@ -162,7 +211,7 @@
     font-size: 13px; white-space: nowrap; transition: background 0.2s;
   }
   .packit-quick-btn:hover { background: #e8f0ff; }
-  
+
   .mobile-drag-handle {
     display: none; width: 40px; height: 5px; background-color: #dee2e6;
     border-radius: 10px; margin: 8px auto;
@@ -172,10 +221,19 @@
   }
 </style>
 
-<div class="poc-chat-btn" id="pocChatBtn" role="button" aria-label="Open chat" tabindex="0">
-  <i class="bi bi-chat-text-fill"></i>
+<!-- Launcher: circular button with caption below (caption shows on hover/focus; hidden while chat is open) -->
+<div class="poc-chat-launcher" id="pocChatLauncher" aria-hidden="false">
+  <div class="poc-chat-btn" id="pocChatBtn" role="button" aria-label="Open chat" tabindex="0">
+    <img src="/EasyBuy-x-PackIT/PackIT/assets/chatbot.png" alt="Chatbot">
+  </div>
+
+  <!-- Simple caption below the icon (hidden by default; appears on hover/focus) -->
+  <div class="poc-chat-caption" id="pocChatCaption" role="button" tabindex="0" aria-label="Need Help? Open chat">
+    Need Help?
+  </div>
 </div>
 
+<!-- Chat modal (unchanged behavior) -->
 <div class="modal fade poc-chat-modal" id="pocChatModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="false">
   <div class="modal-dialog shadow-lg rounded-3">
     <div class="modal-content border-0">
@@ -209,7 +267,7 @@
               <div class="d-flex gap-2 align-items-center">
                 <textarea id="pocChatInput" class="form-control form-control-sm" placeholder="Type a message..." aria-label="Message" style="resize: none; height: 42px; font-size: 0.95rem;"></textarea>
                 <button id="pocSendBtn" class="btn btn-warning btn-sm rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" type="button">
-                  <i class="bi bi-send-fill"></i>
+                  <i class="bi bi-send-fill" aria-hidden="true"></i>
                 </button>
               </div>
             </form>
@@ -222,8 +280,9 @@
 
 <script>
 (function () {
+  const launcher = document.getElementById('pocChatLauncher');
   const btn = document.getElementById('pocChatBtn');
-  const launcher = document.getElementById('chatbotLauncher'); // In case it exists in index
+  const caption = document.getElementById('pocChatCaption');
   const modalEl = document.getElementById('pocChatModal');
   const messagesEl = document.getElementById('pocChatMessages');
   const inputEl = document.getElementById('pocChatInput');
@@ -244,8 +303,8 @@
     bsModal.show();
   }
 
-  // Handle launchers
-  [btn, launcher].forEach(el => {
+  // Make both the circular button AND the caption open the chat (click and keyboard)
+  [btn, caption].forEach(el => {
     if (el) {
       el.addEventListener('click', (e) => { e.preventDefault(); showChat(); });
       el.addEventListener('keydown', (e) => {
@@ -281,8 +340,9 @@
 
   // Modal Events
   modalEl.addEventListener('show.bs.modal', function () {
-    // Hide floating button when chat opens
-    if(btn) btn.classList.add('hidden');
+    // Indicate chat is open: hide the floating button and hide caption via launcher state class
+    if (btn) btn.classList.add('hidden');
+    if (launcher) launcher.classList.add('chat-open');
   });
 
   modalEl.addEventListener('shown.bs.modal', async function () {
@@ -306,10 +366,13 @@
     }
   });
 
-  modalEl.addEventListener('hide.bs.modal', () => { 
-    messagesEl.innerHTML = ''; 
-    // Show floating button again
-    if(btn) btn.classList.remove('hidden');
+  modalEl.addEventListener('hide.bs.modal', () => {
+    // Clear messages and restore launcher state so caption reliably reappears
+    messagesEl.innerHTML = '';
+    if (btn) btn.classList.remove('hidden');
+    if (launcher) launcher.classList.remove('chat-open');
+    // return focus to button for accessibility
+    if (btn) btn.focus();
   });
 
   async function sendMessage(text, model = DEFAULT_MODEL) {
@@ -325,7 +388,6 @@
     try {
       const fd = new FormData();
       fd.append('prompt', msg);
-      // include model preference so backend can route to the correct model if it supports it
       fd.append('model', model);
 
       const res = await fetch(chatEndpoint, { method: 'POST', body: fd, credentials: 'same-origin' });
@@ -335,7 +397,6 @@
       if (!res.ok || !data) {
         appendMessage('System error. Please try again.', 'bot');
       } else if (!data.success) {
-        // Friendly message referencing new assistant name
         appendMessage(data.reply ?? data.error ?? 'gemma2:2b unavailable.', 'bot');
       } else {
         appendMessage(data.reply, 'bot');
