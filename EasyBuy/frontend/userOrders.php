@@ -43,7 +43,7 @@ Auth::requireAuth();
         <div class="container-fluid">
             <div class="row justify-content-center">
                 <div class="col-12 col-sm-11 col-md-10 col-lg-9 col-xl-8">
-                    <ul class="nav nav-tabs px-3 justify-content-center" id="orderTabs" role="tablist"
+                    <ul class="nav nav-tabs px-md-3 justify-content-center" id="orderTabs" role="tablist"
                         style="border-bottom: none; gap: 40px;">
                         <li class="nav-item d-flex flex-row" role="presentation">
                             <button class="nav-link active d-flex align-items-center justify-content-center" id="placed-orders-tab" data-bs-toggle="tab"

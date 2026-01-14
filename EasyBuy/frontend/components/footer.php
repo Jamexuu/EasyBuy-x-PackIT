@@ -3,9 +3,9 @@
     <div class="row">
       <div class="col-12 col-lg-3">
         <div class="row py-2">
-          <div class="col">
+          <a href="/EasyBuy-x-PackIT/EasyBuy/index.php" class="col">
             <img src="/EasyBuy-x-PackIT/EasyBuy/assets/navbar_logo.svg" alt="" class="img-fluid">
-          </div>
+          </a>
         </div>
         <div class="row my-2">
           <div class="col">
@@ -31,7 +31,7 @@
                   <span class="material-symbols-rounded" style="font-size:20px; line-height:1;">
                     mail
                   </span>
-                  <span>thisis.acadpurposesonly@gmail.com</span>
+                  <span class="text-break">thisis.acadpurposesonly@gmail.com</span>
                 </a>
               </li>
             </ul>
@@ -47,7 +47,7 @@
             <a href="" class="text-decoration-none text-dark">About</a>
           </li>
           <li>
-            <a href="" class="text-decoration-none text-dark">Location Map</a>
+            <a href="https://maps.app.goo.gl/Pqiw85juJoL46cCz9" target="_blank" class="text-decoration-none text-dark">Location Map</a>
           </li>
         </ul>
       </div>
@@ -59,11 +59,7 @@
           <li>
             <a href="/EasyBuy-x-PackIT/EasyBuy/frontend/login.php" class="text-decoration-none text-dark">My Account</a>
           </li>
-          <li>
-            <a href="" class="text-decoration-none text-dark">Terms & Conditions</a>
-          </li>
           <br>
-
         </ul>
       </div>
       <div class="col-12 col-lg-2 py-lg-5">
@@ -72,7 +68,7 @@
             <div class="h6 fw-bold">Customer Care</div>
           </li>
           <li>
-            <a href="" class="text-decoration-none text-dark">FAQ</a>
+            <a href="/EasyBuy-x-PackIT/EasyBuy/frontend/faq.php" class="text-decoration-none text-dark">FAQ</a>
           </li>
           <li>
             <a href="/EasyBuy-x-PackIT/EasyBuy/frontend/customerSupport.php"

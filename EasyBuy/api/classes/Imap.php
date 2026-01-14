@@ -21,7 +21,7 @@ class Imap{
         $this->clientManager->connect();
     }
 
-    public function fetchEmails($limit = 20){
+    public function fetchEmails($limit = 10){
         $folder = $this->clientManager->getFolder('INBOX');
         return $folder->messages()->all()->limit($limit)->get();
     }
