@@ -122,6 +122,7 @@
                                             <option value="Order Placed" ${order.status === 'order placed' ? 'selected' : ''}>Order Placed</option>
                                             <option value="Waiting for Courier" ${order.status === 'waiting for courier' ? 'selected' : ''}>Waiting for Courier</option>
                                             <option value="Picked up" ${order.status === 'picked up' ? 'selected' : ''}>Picked up</option>
+                                            <option value="In Transit" ${order.status === 'in transit' ? 'selected' : ''}>In Transit</option>
                                             <option value="Order Arrived" ${order.status === 'order arrived' ? 'selected' : ''}>Order Arrived</option>
                                             <option value="Cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
                                         </select>
@@ -176,6 +177,8 @@
                     return '#f4d03f';
                 case 'picked up':
                     return '#7dcea0';
+                case 'in transit':
+                    return '#d8880f';
                 case 'order arrived':
                     return '#3498db';
                 case 'cancelled':
