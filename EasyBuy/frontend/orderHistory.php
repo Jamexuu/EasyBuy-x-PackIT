@@ -74,8 +74,8 @@
         <div class="container-fluid">
             <div class="row justify-content-center">
                 <div class="col-12 col-sm-11 col-md-10 col-lg-9 col-xl-8">
-                    <ul class="nav nav-tabs px-3 justify-content-center" id="orderTabs" role="tablist"
-                        style="border-bottom: none; gap: 40px;">
+                    <ul class="nav nav-tabs px-md-3 d-flex flex-row justify-content-center" id="orderTabs" role="tablist"
+                        style="border-bottom: none;">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active" id="to-ship-tab" data-bs-toggle="tab"
                                 data-bs-target="#to-ship" type="button" role="tab"
