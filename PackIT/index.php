@@ -64,7 +64,18 @@
         <img src="assets/tracking.png" alt="tracking" style="width: 48px; height: 48px; object-fit: contain;">
         <span>Tracking</span>
       </a>
-      <a href="#" id="chatbotLauncher" class="text-decoration-none text-dark d-flex flex-column align-items-center fw-bold small">
+
+      <!--
+        IMPORTANT FIXES:
+        - Give the launcher the ID expected by the chat widget (pocChatLauncher).
+        - Use href="javascript:void(0);" to avoid page jump.
+        - Add a small inline fallback onclick that calls showChat() if available so the link works
+          even if the chat script hasn't attached its listeners yet.
+        - Keep markup the same visually (icon + label).
+      -->
+      <a href="javascript:void(0);" id="pocChatLauncher" class="text-decoration-none text-dark d-flex flex-column align-items-center fw-bold small"
+         role="button" aria-label="Open chat" tabindex="0"
+         onclick="(function(){ if (typeof showChat === 'function') { showChat(); } else { const b = document.getElementById('pocChatBtn'); if (b) { b.click(); } } return false; })();">
         <img src="assets/chatbot.png" alt="Chatbot" style="width: 48px; height: 48px; object-fit: contain;">
         <span>Chatbot</span>
       </a>
@@ -127,7 +138,11 @@
       window.addEventListener('resize', checkScreen);
       checkScreen();
 
-      // Note: Logic for chatbotLauncher click is handled automatically by chat.php
+      // Note: chat widget's script (frontend/components/chat.php) looks for an element
+      // with id="pocChatLauncher" or id="chatbotLauncher". We changed the id above to
+      // pocChatLauncher to match the current chat widget. The onclick fallback also ensures
+      // the chat opens even if no account is logged in and even if the chat script attaches
+      // listeners later.
     })();
   </script>
 </body>
