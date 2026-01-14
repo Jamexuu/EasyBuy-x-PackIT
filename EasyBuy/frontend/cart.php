@@ -81,6 +81,12 @@ Auth::requireAuth();
             background-color: #6EC064;
             border-color: #6EC064;
         }
+        
+        .select-all-container {
+            background-color: #f8f9fa;
+            padding: 12px 20px;
+            border-bottom: 2px solid #dee2e6;
+        }
     </style>
 </head>
 
@@ -96,6 +102,11 @@ Auth::requireAuth();
         <div class="row g-4">
             <div class="col-12">
                 <div class="card rounded-4 overflow-hidden shadow-sm border-0">
+                    <div class="select-all-container d-flex align-items-center">
+                        <input type="checkbox" class="form-check-input me-3" id="selectAllCheckbox" onchange="handleSelectAll()" style="width: 20px; height: 20px;">
+                        <label for="selectAllCheckbox" class="fw-semibold mb-0" style="cursor: pointer;">Select All</label>
+                    </div>
+                    
                     <table class="table mb-0 d-none d-md-table">
                         <thead>
                             <tr class="table-secondary text-center">
@@ -477,6 +488,38 @@ Auth::requireAuth();
             const checkedItems = getCheckedItems();
             console.log('Checked items:', checkedItems);
             updateTotals();
+            updateSelectAllCheckbox();
+        }
+
+        function handleSelectAll() {
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const cartCheckboxes = document.querySelectorAll('.cart-checkbox');
+            
+            cartCheckboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+            
+            updateTotals();
+        }
+
+        function updateSelectAllCheckbox() {
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const cartCheckboxes = document.querySelectorAll('.cart-checkbox');
+            const checkedCheckboxes = document.querySelectorAll('.cart-checkbox:checked');
+            
+            if (cartCheckboxes.length === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            } else if (checkedCheckboxes.length === cartCheckboxes.length) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else if (checkedCheckboxes.length > 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            }
         }
     </script>
 </body>
