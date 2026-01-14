@@ -37,9 +37,9 @@ function h(string $s): string
 // Try to fetch user email and send receipt email (non-blocking: errors are logged)
 if ($booking && isset($booking['user_id']) && (int)$booking['user_id'] > 0) {
   try {
-    // Fetch user email
+    // Fetch user email and first name
     $userStmt = $db->executeQuery(
-      "SELECT email, first_name, last_name FROM users WHERE id = ? LIMIT 1",
+      "SELECT email, first_name FROM users WHERE id = ? LIMIT 1",
       [(string)(int)$booking['user_id']]
     );
     $userRows = $db->fetch($userStmt);
@@ -47,15 +47,16 @@ if ($booking && isset($booking['user_id']) && (int)$booking['user_id'] > 0) {
     $recipientEmail = $user['email'] ?? '';
 
     if ($recipientEmail) {
-      $fullname = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''));
-      if ($fullname === '') {
-        $fullname = 'Customer';
+      // Use first name only (fallback to "Customer")
+      $firstName = trim((string)($user['first_name'] ?? ''));
+      if ($firstName === '') {
+        $firstName = 'Customer';
       }
 
       // Build simple HTML receipt (feel free to expand/format as needed)
       $emailHtml = "<div style=\"font-family:Arial,Helvetica,sans-serif;color:#222;line-height:1.4\">";
       $emailHtml .= "<h2 style=\"color:#198754\">PackIT Booking Receipt</h2>";
-      $emailHtml .= "<p>Hi " . h($fullname) . ",</p>";
+      $emailHtml .= "<p>Hi " . h($firstName) . ",</p>";
       $emailHtml .= "<p>Thank you — your booking has been confirmed. Below are the details:</p>";
 
       $emailHtml .= "<table style=\"width:100%;max-width:600px;border-collapse:collapse\">";
