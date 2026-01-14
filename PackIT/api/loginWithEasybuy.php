@@ -3,6 +3,9 @@ require_once 'classes/Auth.php';
 require_once 'classes/User.php';
 require_once 'classes/Database.php';
 
+require_once __DIR__ . '/../vendor/autoload.php';
+Dotenv\Dotenv::createImmutable(__DIR__ . '/..')->safeLoad(); // loads PackIT/.env
+
 Auth::start();
 header('Content-Type: application/json');
 
@@ -22,7 +25,13 @@ if (empty($email) || empty($password)) {
     exit();
 }
 
-$easybuyIP = '192.168.1.26';
+/**
+ * EasyBuy host/IP from PackIT/.env
+ * PackIT/.env example:
+ * EASYBUY_IP=192.168.1.26
+ */
+$easybuyIP = $_ENV['EASYBUY_IP'] ?? 'localhost';
+
 $easybuyLoginUrl = "http://$easybuyIP/EasyBuy-x-PackIT/EasyBuy/api/login.php";
 
 $ch = curl_init($easybuyLoginUrl);
@@ -66,29 +75,29 @@ $existingUser = $db->fetch($result);
 if (empty($existingUser)) {
     // User doesn't exist in PackIT, fetch data from EasyBuy
     $easybuyUserUrl = "http://$easybuyIP/EasyBuy-x-PackIT/EasyBuy/api/getUserDataPublic.php?email=" . urlencode($email);
-    
+
     $ch = curl_init($easybuyUserUrl);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     $userDataResponse = curl_exec($ch);
     $userHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
-    
+
     if ($userHttpCode !== 200) {
         http_response_code(500);
         echo json_encode(['error' => 'Failed to fetch user data from EasyBuy']);
         exit();
     }
-    
+
     $easybuyUserData = json_decode($userDataResponse, true);
-    
+
     if (!$easybuyUserData || !$easybuyUserData['success'] || !isset($easybuyUserData['data'])) {
         http_response_code(500);
         echo json_encode(['error' => 'Invalid user data from EasyBuy']);
         exit();
     }
-    
+
     $easybuyData = $easybuyUserData['data'];
-    
+
     // Prepare user data for PackIT registration
     $userData = [
         'firstName' => $easybuyData['first_name'],
@@ -97,7 +106,7 @@ if (empty($existingUser)) {
         'password' => bin2hex(random_bytes(16)), // Random password
         'contactNumber' => $easybuyData['contact_number']
     ];
-    
+
     // Map EasyBuy address fields to PackIT format
     $addressData = [
         'houseNumber' => $easybuyData['house_number'] ?? '',
@@ -109,11 +118,11 @@ if (empty($existingUser)) {
         'province' => $easybuyData['province'] ?? '',
         'postalCode' => $easybuyData['postal_code'] ?? ''
     ];
-    
+
     // Create user using User class register method
     $userClass = new User();
     $userId = $userClass->register($userData, $addressData);
-    
+
     // Log in the new user
     $fullName = $easybuyData['first_name'] . ' ' . $easybuyData['last_name'];
     Auth::login($userId, $easybuyData['email'], $fullName, 'user');

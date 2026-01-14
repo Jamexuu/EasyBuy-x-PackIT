@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once __DIR__ . '/../api/classes/Database.php';
+require_once __DIR__ . '/../vendor/autoload.php'; // adjust path if vendor is elsewhere
+Dotenv\Dotenv::createImmutable(__DIR__ . '/..')->safeLoad(); // loads PackIT/.env
 
 if (!isset($_SESSION['driver_id'])) {
   header("Location: index.php");
@@ -44,7 +46,7 @@ $transactions = $db->fetch($stmt);
 
 /* Fetch completed EasyBuy orders */
 $easybuyTransactions = [];
-$easybuyIP = "192.168.1.26";
+$easybuyIP = $_ENV['EASYBUY_IP'] ?? 'localhost';
 
 try {
     $easybuyApiUrl = "http://$easybuyIP/EasyBuy-x-PackIT/EasyBuy/api/getAllOrders.php";
