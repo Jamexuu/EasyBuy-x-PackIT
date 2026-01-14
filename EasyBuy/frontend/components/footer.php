@@ -44,9 +44,6 @@
             <div class="h6 fw-bold  ">Company</div>
           </li>
           <li>
-            <a href="" class="text-decoration-none text-dark">About</a>
-          </li>
-          <li>
             <a href="https://maps.app.goo.gl/Pqiw85juJoL46cCz9" target="_blank" class="text-decoration-none text-dark">Location Map</a>
           </li>
         </ul>
