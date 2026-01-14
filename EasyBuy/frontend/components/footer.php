@@ -15,7 +15,7 @@
                   <span class="material-symbols-rounded" style="font-size:20px; line-height:1;">
                     location_on
                   </span>
-                  <span>Tanauan City, Batangas</span>
+                  <span>Altura Bata, Tanauan City, Batangas</span>
                 </a>
               </li>
               <li>
@@ -23,7 +23,7 @@
                   <span class="material-symbols-rounded" style="font-size:20px; line-height:1;">
                     phone_in_talk
                   </span>
-                  <span>09455678910</span>
+                  <span>09652768496</span>
                 </a>
               </li>
               <li>
@@ -31,7 +31,7 @@
                   <span class="material-symbols-rounded" style="font-size:20px; line-height:1;">
                     mail
                   </span>
-                  <span>info@easybuy.com</span>
+                  <span>thisis.acadpurposesonly@gmail.com</span>
                 </a>
               </li>
             </ul>

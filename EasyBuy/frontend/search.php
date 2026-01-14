@@ -24,7 +24,8 @@
 <body>
     <?php include './components/navbar.php'; ?>
 
-    <div class="container mt-5 pt-5">
+    <div class="container mt-3 pt-5">
+        <div class="h3 mb-3" id="resultsLabel"></div>
         <div class="row" id="productsArea"></div>
         <div class="row" id="paginationArea">
             <div class="col d-flex mb-5 justify-content-center">
@@ -41,6 +42,7 @@
         const contentArea = document.getElementById("productsArea");
         const pageText = document.getElementById("pageText");
         const paginationArea = document.getElementById("paginationArea");
+        const resultsLabel = document.getElementById("resultsLabel");
 
         const urlParams = new URLSearchParams(window.location.search);
         const query = urlParams.get('q');
@@ -51,6 +53,7 @@
 
         async function displayProducts() {
             const response = await fetch(`../api/searchProducts.php?keyword=${encodeURIComponent(query || '')}`);
+            resultsLabel.innerText = `Search results for "${query || ''}"`;
             products = await response.json();
             getProducts();
         }

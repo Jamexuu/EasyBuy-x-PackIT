@@ -48,42 +48,21 @@
             color: #5da054;
         }
 
-        .product-card {
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
-            background: white;
-            height: 100%;
+        /* Match listing add-to-cart button styling */
+        .addToCartBtn,
+        .dropdown-item:active,
+        .dropdown-item:focus,
+        #nextBtn,
+        #prevBtn {
+            background-color: #6EC064;
+            color: #FFFFFF;
         }
 
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .product-card img {
-            max-height: 150px;
-            object-fit: contain;
-            margin-bottom: 10px;
-        }
-
-        .product-card .product-name {
-            font-size: 14px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
-            min-height: 40px;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .product-card .add-to-cart-icon:hover {
-            background-color: #5da054;
+        .addToCartBtn:hover,
+        #nextBtn:hover,
+        #prevBtn:hover {
+            background-color: lightgray;
+            color: dimgray;
         }
     </style>
 </head>
@@ -144,7 +123,7 @@
 
         <div style="margin-top: 50px;">
             <h3 style="font-size: 24px; font-weight: bold; color: #333; margin-bottom: 30px;">Similar Products</h3>
-            <div class="row g-3" id="similarProductsContainer">
+            <div class="row g-1" id="similarProductsContainer">
             </div>
         </div>
     </div>
@@ -233,7 +212,8 @@
         </div>
     </div>
 
-
+    <?php include 'components/chatbot.php'; ?>
+    <script src="../assets/js/chatbot.js"></script> 
     <script>
         let currentProduct = null;
         let allProducts = [];
@@ -294,10 +274,10 @@
         async function buyNow() {
             const qty = getQuantity();
             const buyNowBtn = document.getElementById('buyNowBtn');
-            
+
             buyNowBtn.disabled = true;
             buyNowBtn.textContent = 'Processing...';
-            
+
             try {
                 const response = await fetch('../api/createDirectCheckout.php', {
                     method: 'POST',
@@ -319,7 +299,7 @@
                 }
 
                 const result = await response.json();
-                
+
                 if (result.success) {
                     window.location.href = 'checkout.php';
                 } else {
@@ -329,7 +309,7 @@
                     buyNowBtn.disabled = false;
                     buyNowBtn.textContent = 'Buy Now';
                 }
-                
+
             } catch (error) {
                 console.error('Error in buyNow:', error);
                 document.getElementById("addToCartErrorMessage").textContent = "Failed to process your request. Please try again.";
@@ -351,22 +331,30 @@
 
             similarProducts.forEach((product, index) => {
                 const col = document.createElement('div');
-                col.className = 'col-6 col-md-3';
+                col.className = 'col-12 col-sm-6 col-md-4 col-lg-3 mb-4 d-flex justify-content-center';
 
-                const badgeHtml = index === 0 ? '<span style="background-color: #6EC064; color: white; padding: 3px 8px; border-radius: 5px; font-size: 10px; position: absolute; top: 10px; right: 10px;">NEW</span>' : '';
+                const badgeHtml = '';
 
                 col.innerHTML = `
-                    <div class="product-card position-relative" onclick="window.location.href='productView.php?id=${product["Product ID"]}'">
+                    <div class="card rounded-4 h-100" style="max-width: 280px; width: 100%; min-height: 340px;">
                         ${badgeHtml}
-                        <img src="${product.image}" alt="${product["Product Name"]}" class="img-fluid">
-                        <div class="product-name">${product["Product Name"]}</div>
-                        <div class="product-rating mb-2">
-                            <span style="color: #FFC107; font-size: 12px;">★★★★★</span>
+                        <div class="position-relative">
+                            <img class="img-fluid object-fit-contain p-3 d-block mx-auto" style="height: 180px; width: 100%; cursor: pointer;" src="${product.image}" alt="${product["Product Name"]}" onclick="window.location.href='productView.php?id=${product["Product ID"]}'">
                         </div>
-                        <div style="color: #6EC064; font-weight: bold; font-size: 16px; margin-bottom: 10px;">₱${product.Price.toFixed(2)}</div>
-                        <button class="add-to-cart-icon" onclick="event.stopPropagation(); addToCartWithModal(${product["Product ID"]}, 1);" style="background-color: #6EC064; color: white; border-radius: 5px; padding: 8px 12px; border: none; cursor: pointer;">
-                            <span class="material-symbols-rounded" style="font-size: 18px; vertical-align: middle;">shopping_cart</span>
-                        </button>
+                        <div class="card-body mt-0 pt-0 d-block" style="cursor: pointer;" onclick="window.location.href='productView.php?id=${product["Product ID"]}'">
+                            <h5 class="card-title d-none d-md-block text-center fw-bold">${product["Product Name"]}</h5>
+                            <h3 class="card-title d-md-none text-center fw-bold">${product["Product Name"]}</h3>
+                            <p class="card-text text-center text-secondary">${product.size || ''}</p>
+                        </div>
+                        <div class="p-3 d-flex justify-content-between align-items-center">
+                            <div class="d-flex flex-column">
+                                <span class="h6 d-none d-md-block fw-bold" style="color: #6EC064;">₱${product.Price.toFixed(2)}</span>
+                                <span class="h5 d-md-none fw-bold" style="color: #6EC064;">₱${product.Price.toFixed(2)}</span>
+                            </div>
+                            <button type="button" class="btn rounded-3 addToCartBtn" data-product-id="${product["Product ID"]}" onclick="event.stopPropagation(); addToCartWithModal(${product["Product ID"]}, 1);" style="background-color: #6EC064; color: #FFFFFF; border: none; width: 45px; height: 45px; border-radius: 8px; display:flex; align-items:center; justify-content:center;">
+                                <span class="material-symbols-rounded">shopping_cart</span>
+                            </button>
+                        </div>
                     </div>
                 `;
 
