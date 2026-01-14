@@ -8,9 +8,9 @@
 <body>
 
   <div class="d-block d-lg-none text-center sticky-top" style="background: var(--gradient-color);">
-    <div class="pt-3 pb-1 ">
+    <a href="/EasyBuy-x-PackIT/EasyBuy/index.php" class="pt-3 pb-1 ">
       <img src="/EasyBuy-x-PackIT/EasyBuy/assets/easybuylogolongwhite.svg" alt="EasyBuy" style="max-height:36px;">
-    </div>
+    </a>
     <div class="ps-3 pe-1 pb-2">
       <div class="d-flex align-items-center gap-0 w-100 mb-2">
         <input type="text" placeholder="Search EasyBuy" class="form-control rounded-5">
@@ -69,12 +69,12 @@
                 0
               </span>
             </a>
-            <div class="btn">
+            <a href="/EasyBuy-x-PackIT/EasyBuy/frontend/customerSupport.php" class="btn">
               <span class="material-symbols-rounded text-white fs-1 fs-lg-2">
                 support_agent
               </span><br>
               <span class="text-white"></span>
-            </div>
+            </a>
           </div>
         </div>
       </div>
