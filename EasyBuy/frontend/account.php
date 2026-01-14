@@ -40,6 +40,7 @@
         </div>
     </div>
     <?php include 'components/footer.php'; ?>
+    <?php include 'components/chatbot.php'; ?>
 
     <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -59,6 +60,7 @@
         </div>
     </div>
 
+    <script src="../assets/js/chatbot.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>

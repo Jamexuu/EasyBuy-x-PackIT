@@ -92,6 +92,8 @@
         </div>
     </div>
     <?php include 'components/addToCart.php'; ?>
+    <?php include 'components/chatbot.php'; ?>
+    <script src="../assets/js/chatbot.js"></script>
     <script>
         const contentArea = document.getElementById("productsArea");
         const pageText = document.getElementById("pageText");

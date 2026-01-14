@@ -212,7 +212,8 @@
         </div>
     </div>
 
-
+    <?php include 'components/chatbot.php'; ?>
+    <script src="../assets/js/chatbot.js"></script> 
     <script>
         let currentProduct = null;
         let allProducts = [];
