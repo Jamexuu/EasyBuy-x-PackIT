@@ -91,11 +91,8 @@
 
                 <div class="d-flex align-items-center mb-3">
                     <h3 class="text-dark fw-bold mb-0 me-3" id="productPrice">₱0.00</h3>
-                    <div style="color: #FFC107;">
-                        <span>★★★★★</span>
-                    </div>
                 </div>
-
+                
                 <div class="d-flex align-items-center gap-2 mb-4">
                     <button class="qty-btn" style="background-color: #e8e8e8; color: #666;"
                         onclick="decreaseQty()">-</button>
