@@ -70,10 +70,10 @@ Auth::requireAuth();
             padding: 20px;
         }
 
-        .img {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
+        .cart-thumb {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
             border-radius: 8px;
         }
 
@@ -176,7 +176,7 @@ Auth::requireAuth();
                             <td>
                                 <div class="d-flex align-items-center">
                                     <input type="checkbox" class="form-check-input cart-checkbox me-3" value="`+ item.id + `" data-price="`+ item.final_price + `" data-quantity="`+ item.quantity + `" onchange="handleCheckboxChange()" style="width: 20px; height: 20px;">
-                                    <img src="`+ item.image + `" class="border border-1 rounded border-dark me-3" style="width: 80px; height: 80px; object-fit: cover;" alt="Product Image">
+                                    <img src="`+ item.image + `" class="cart-thumb border border-1 rounded border-dark me-3" alt="Product Image">
                                     <div>
                                         <div class="fw-semibold">`+ item.product_name + `</div>
                                         <small class="text-muted">`+ item.category + `</small>
@@ -209,7 +209,7 @@ Auth::requireAuth();
                         <div class="border-bottom p-3">
                             <div class="d-flex mb-3">
                                 <input type="checkbox" class="form-check-input cart-checkbox me-2 mt-2" value="`+ item.id + `" data-price="`+ item.final_price + `" data-quantity="`+ item.quantity + `" onchange="handleCheckboxChange()" style="width: 20px; height: 20px;">
-                                <img src="`+ item.image + `" class="border border-1 rounded border-dark me-3" style="width: 100px; height: 100px; object-fit: cover;" alt="Product Image">
+                                <img src="`+ item.image + `" class="cart-thumb border border-1 rounded border-dark me-3" alt="Product Image">
                                 <div class="flex-grow-1">
                                     <div class="fw-semibold mb-1">`+ item.product_name + `</div>
                                     <small class="text-muted d-block mb-2">`+ item.category + `</small>
