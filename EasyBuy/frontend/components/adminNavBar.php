@@ -22,22 +22,22 @@
             <div class="col col-md-6">
                 <ul class="d-none d-md-flex list-unstyled ms-auto justify-content-end gap-4">
                     <li>
-                        <a class="nav-link fw-normal" href="adminDashboard.php">Dashboard</a>
+                        <a class="nav-link" href="adminDashboard.php">Dashboard</a>
                     </li>
                     <li>
-                        <a class="nav-link fw-normal" href="adminProducts.php">Products</a>
+                        <a class="nav-link" href="adminProducts.php">Products</a>
                     </li>
                     <li>
-                        <a class="nav-link fw-normal" href="adminOrders.php">Orders</a>
+                        <a class="nav-link" href="adminOrders.php">Orders</a>
                     </li>
                     <li class="position-relative">
-                        <a class="nav-link fw-normal position-relative" href="adminEmail.php">
+                        <a class="nav-link position-relative" href="adminEmail.php">
                             Email
                             <span id="unreadEmailsBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.8rem; display:none;">0</span>
                         </a>
                     </li>
                     <li class="">
-                        <a class="nav-link fw-normal position-relative" href="adminSMS.php">
+                        <a class="nav-link position-relative" href="adminSMS.php">
                             SMS
                             <span id="unreadMessagesBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.8rem; display:none;">0</span>
                         </a>
@@ -45,28 +45,28 @@
                 </ul>
                 <ul class="d-flex d-md-none list-unstyled ms-auto justify-content-around gap-4">
                     <li>
-                        <a class="nav-link fw-normal" href="adminDashboard.php">
+                        <a class="nav-link" href="adminDashboard.php">
                             <span class="material-symbols-outlined">
                                 dashboard
                             </span>
                         </a>
                     </li>
                     <li>
-                        <a class="nav-link fw-normal" href="adminProducts.php">
+                        <a class="nav-link" href="adminProducts.php">
                             <span class="material-symbols-outlined">
                                 grocery
                             </span>
                         </a>
                     </li>
                     <li>
-                        <a class="nav-link fw-normal" href="adminOrders.php">
+                        <a class="nav-link" href="adminOrders.php">
                             <span class="material-symbols-outlined">
                                 receipt_long
                             </span>
                         </a>
                     </li>
                     <li class="position-relative">
-                        <a class="nav-link fw-normal position-relative" href="adminEmail.php">
+                        <a class="nav-link position-relative" href="adminEmail.php">
                             <span class="material-symbols-outlined">
                                 mail
                             </span>
@@ -74,7 +74,7 @@
                         </a>
                     </li>
                     <li class="">
-                        <a class="nav-link fw-normal position-relative" href="adminSMS.php">
+                        <a class="nav-link position-relative" href="adminSMS.php">
                             <span class="material-symbols-outlined">
                                 sms
                             </span>
