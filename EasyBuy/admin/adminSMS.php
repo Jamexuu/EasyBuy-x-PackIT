@@ -27,11 +27,11 @@
                 </div>
             </div>
             <div class="col col-lg-10 p-lg-3">
-                <div class="h1 p-3">Messages</div>
+                <div class="h1 p-3" id="label">Messages</div>
                 <div class="row">
-                    <div class="col">
+                    <div class="col" id="composeSmsContainer">
                         <table class="table table-striped table-hover">
-                            <thead>
+                            <thead id="table">
                                 <tr class="text-center">
                                     <th style="width: 30%;">From</th>
                                     <th style="width: 45%;">Message</th>
@@ -45,10 +45,14 @@
                         <div class="row p-3" id="expandMessageRow">
                             
                         </div>
+                        <div class="row">
+                            
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+        
     </div>
     <div class="d-lg-none position-fixed bottom-0 start-0 end-0 p-3 z-1">
         <div class="btn rounded-pill text-center py-2 d-flex align-items-center justify-content-center w-50"
@@ -59,7 +63,7 @@
             Compose Message
         </div>
     </div>
-
+    <?php include '../frontend/components/messageModal.php' ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
@@ -67,9 +71,46 @@
     <script>
         var messageRow = document.getElementById('messageContainer');
         var expandMessageRow = document.getElementById('expandMessageRow');
+        var composeSmsContainer = document.getElementById('composeSmsContainer');
+        var table = document.getElementById('table');
+        var label = document.getElementById('label');
 
-        function toggleComposeSMS() {
-            alert('Compose SMS clicked');
+        function toggleComposeSMS(){
+            composeSmsContainer.innerHTML = `
+                <div class="col col-lg-6 p-lg-5 py-3">
+                    <div class="h1 mb-5">Compose Message</div>
+                    <label for="toNumber" class="form-label">To</label>
+                    <input type="text" class="form-control mb-3" name="toNumber" placeholder="Enter Number" id="toNumber">
+                    <label for="message" class="form-label">Message</label>
+                    <textarea class="form-control rounded-3 mb-3" id="message" name="message" rows="5" placeholder="Type your message here..."></textarea>
+                    <button onclick="sendSms(); return false;" class="btn btn-success px-4 py-2 mb-5">Send</button>
+                </div>
+            `;
+        }
+
+        async function sendSms() {
+            var toNumber = document.getElementById('toNumber');
+            var message = document.getElementById('message');
+
+            const response = await fetch('../api/sendAdminSMS.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    phone_number: toNumber.value,
+                    message: message.value
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.status === 200) {
+                showMessage('Success', '', 'Message sent successfully!', 'OK');
+                toNumber.value = '';
+                message.value = '';
+            } else {
+                showMessage('Error', '', 'Failed to send message: ' + (result.error || 'Unknown error'), 'OK');
+            }
         }
 
         async function fetchMessages(){
@@ -111,6 +152,8 @@
             const message = window.messages.find(msg => msg.id === messageId);
             if (!message) return;
 
+            table.style.display = 'none';
+            label.style.display = 'none';
             messageRow.innerHTML = `
                 <div class="col d-flex flex-column gap-3">
                     <div class="h3">From: `+ message.from +`</div>
