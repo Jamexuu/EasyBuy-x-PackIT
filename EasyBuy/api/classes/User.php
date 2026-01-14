@@ -106,4 +106,38 @@ class User {
         
         return $result[0]['count'] > 0;
     }
+
+    function findByEmail($email){
+        $sql = "SELECT * FROM users WHERE email = ? LIMIT 1";
+        $stmt = $this->db->executeQuery($sql, [$email]);
+        $result = $this->db->fetch($stmt);
+        mysqli_stmt_close($stmt);
+
+        return $result[0] ?? false;
+    }
+
+    function getPhoneNumber($email){
+        $sql = "SELECT contact_number FROM users WHERE email = ?";
+        $stmt = $this->db->executeQuery($sql, [$email]);
+        $result = $this->db->fetch($stmt);
+        mysqli_stmt_close($stmt);
+
+        return $result[0]['contact_number'] ?? null;
+    }
+
+    function updatePassword($email, $newPassword){
+        $sql = "UPDATE users SET password = ? WHERE email = ?";
+        $hashPassword = md5($newPassword);
+
+        $params = [
+            $hashPassword,
+            $email
+        ];
+
+        $stmt = $this->db->executeQuery($sql, $params);
+        $affectedRows = mysqli_stmt_affected_rows($stmt);
+        mysqli_stmt_close($stmt);
+
+        return $affectedRows > 0;
+    }
 }

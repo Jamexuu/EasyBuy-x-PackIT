@@ -16,6 +16,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
 </head>
 
 <body>
@@ -36,7 +37,7 @@
         </div>
     </div>
 
-    <div class="container">
+    <div class="container mb-3">
         <div class="row justify-content-center">
             <div class="col-12 col-md-8 col-xl-6">
                 <!--Modal error message-->
@@ -55,23 +56,31 @@
                         </div>
                     </div>
                 </div>
+                <p class="text-danger small fw-normal" id="errorMessage"></p>
                 <form method="POST" action="" onsubmit="postUserData(event); return false;">
                     <div class="mb-3">
                         <label class="form-label" for="Email">Email</label>
                         <input type="email" id="Email" placeholder="Email" name="Email"
                             class="form-control p-2 rounded-3">
+                        <p class="text-danger small fw-normal" id="emailError"></p>   
                     </div>
                     <div class="mb-3">
-                        <label class="form-label rounded-3" for="Password">Password</label>
-                        <input type="password" id="Password" placeholder="Password" name="Password"
-                            class="form-control p-2">
+                        <label class="form-label" for="Password">Password</label>
+                        <div class="input-group">
+                            <input type="password" id="Password" placeholder="Password" name="password"
+                                class="form-control p-2 border-end-0">
+                            <span class="input-group-text bg-white border-start-0" style="cursor: pointer;" id="togglePassword">
+                                <span class="material-symbols-outlined text-secondary">
+                                    visibility
+                                </span>
+                            </span>
+                        </div>
+                        <p class="text-danger small fw-normal" id="passwordError"></p>
                     </div>
-                    <div class="form-check mb-3 ms-1">
-                        <input class="form-check-input" type="checkbox" id="rememberMe" name="rememberMe">
-                        <label class="form-check-label small text-muted" for="rememberMe">Remember me</label>
-                    </div>
+                    
+                    <a href="enterEmailForgotPassword.php" class="text-decoration-none" style="color: #6EC064">Forgot Password?</a>
 
-                    <div class="d-flex justify-content-center">
+                    <div class="d-flex justify-content-center mt-3">
                         <button type="submit" class="btn text-white px-4 py-2 fw-bold w-100 rounded-3"
                             style="background-color: #6EC064">Log in</button>
                     </div>
@@ -103,8 +112,35 @@
     <script>
         const errorModalElement = document.getElementById('errorModal');
         const errorMessageElement = document.getElementById('errorMessage');
+        const email = document.getElementById('Email');
+        const password = document.getElementById('Password');
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordError = document.getElementById('passwordError');
+        const emailError = document.getElementById('emailError');
+        const errorMessage = document.getElementById('errorMessage');
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.input-group-text').forEach(function(toggle) {
+                toggle.addEventListener('click', function() {
+                    const input = this.previousElementSibling;
+                    const icon = this.querySelector('.material-symbols-outlined');
+                    
+                    if (input && input.type === 'password') {
+                        input.type = 'text';
+                        icon.textContent = 'visibility_off';
+                    } else if (input) {
+                        input.type = 'password';
+                        icon.textContent = 'visibility';
+                    }
+                });
+            });
+        });
     
         <?php if (isset($_GET['error']) && $_GET['error'] == 'invalid_credentials'): ?>
+        email.style.border = '1px solid red';
+        password.style.border = '1px solid red';
+        togglePassword.classList.add('border-danger', 'border-1');
+        errorMessageElement.textContent = 'Invalid Credentials';
         const modal = new bootstrap.Modal(errorModalElement);
         errorMessageElement.textContent = 'Invalid Credentials';
         modal.show();
@@ -116,12 +152,29 @@
             modal.show();
         }
 
+
+
         async function postUserData(event) {
             event.preventDefault();
 
+            email.styleborder = '';
+            password.style.border = '';
+            togglePassword.classList.remove('border-danger', 'border-1');
+
+            if (!email.value || !password.value) {
+                showErrorModal('Please fill in all fields.');
+                email.style.border = '1px solid red';
+                password.style.border = '1px solid red';
+                togglePassword.classList.add('border-danger', 'border-1');
+                emailError.textContent = !email.value ? 'Please enter your email.' : '';
+                passwordError.textContent = !password.value ? 'Please enter your password.' : '';
+                email.focus();
+                return;
+            }
+
             const payload = {
-                email: document.getElementById('Email').value,
-                password: document.getElementById('Password').value
+                email: email.value,
+                password: password.value
             }
 
             try {
