@@ -95,7 +95,7 @@
                 console.log(data);
 
                 accountContentField.innerHTML += `
-                    <div class="col-12 col-md-10 col-lg-8 mx-md-auto px-1">
+                    <div class="col-12 col-md-10 col-lg-8 mx-md-auto px-3">
                         <div class="card mb-5 rounded-4">
                             <div class="card-body">
                                 <div class="card-title">
@@ -126,7 +126,7 @@
                             <div class="card-body">
                                 <div class="card-title d-flex justify-content-between align-items-center">
                                     <div class="h3 mb-3">Orders</div>
-                                    <a href="orderHistory.php" class="text-decoration-none text-muted" style="font-size: 14px;">View order history ›</a>
+                                    <a href="orderHistory.php" class="text-decoration-none text-muted fw-normal" style="font-size: 14px;">View order history ›</a>
                                 </div>
                                 <div class="card-text fw-normal d-flex justify-content-center gap-5">
                                     <button onclick="navigateToOrders('placed-orders')" class="btn border-0 bg-transparent d-flex flex-column align-items-center text-decoration-none position-relative" style="cursor: pointer;">
