@@ -3,6 +3,7 @@
 // Chat endpoint tailored to PackIT DB.
 // - POST 'prompt' (required), optional 'model' (default 'gemma2:2b')
 // - Builds a strict system prompt that includes current user + recent bookings + payments + driver + smslogs summary
+// - NEW: Includes Vehicle List (name, fare, dims) for pricing questions.
 // - Enforces domain limits: assistant must only answer website-related questions (bookings, tracking, payments, fares, ETA, etc.)
 // - Calls Ollama local API and aggregates NDJSON streaming replies
 // - Persists prompt/response to chat_history (session_id + user_id)
@@ -66,6 +67,39 @@ if ($userId) {
 } else {
     $userContext[] = "User: anonymous (no logged-in user). For booking-specific info, require the user to log in.";
 }
+
+// ---------------------------------------------------------
+// NEW: Fetch Vehicle List for Context (Pricing/Specs)
+// ---------------------------------------------------------
+if ($pdo instanceof PDO) {
+    try {
+        // Query columns based on your vehicles table screenshot
+        $vSql = "SELECT name, package_type, fare, max_kg, size_length_m, size_width_m, size_height_m FROM vehicles ORDER BY id ASC";
+        $vStmt = $pdo->prepare($vSql);
+        $vStmt->execute();
+        $vehicles = $vStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (!empty($vehicles)) {
+            $userContext[] = "Official Vehicle Pricing & Specs:";
+            foreach ($vehicles as $v) {
+                // Formatting: "Motorcycle: Base Fare 100.00, Max 20kg (Envelope, Small Bags). Dims: 0.5x0.4x0.5m"
+                $userContext[] = sprintf(
+                    "- %s: Base Fare %s, Max %skg (%s). Dimensions: %sx%sx%s meters.",
+                    $v['name'],
+                    $v['fare'],
+                    $v['max_kg'],
+                    $v['package_type'],
+                    $v['size_length_m'],
+                    $v['size_width_m'],
+                    $v['size_height_m']
+                );
+            }
+        }
+    } catch (Throwable $e) {
+        // ignore vehicle fetch errors
+    }
+}
+// ---------------------------------------------------------
 
 // Fetch recent bookings for user (if DB available)
 $bookingsSummary = [];
@@ -176,7 +210,7 @@ if (!empty($bookingsSummary)) {
 // SYSTEM PROMPT — make assistant strict about domain and data usage
 $systemPreamble = "You are Gemma (gemma2:2b), the PackIT assistant. Follow rules strictly:\n";
 $systemPreamble .= "1) Use ONLY the user context supplied below to answer. Do NOT invent facts or guess details not in the context.\n";
-$systemPreamble .= "2) You may answer ONLY about PackIT site purpose: bookings, tracking status, delivery status, pickup/drop addresses, fares, payments, and booking-related messages. For personal account changes, direct the user to profile or support.\n";
+$systemPreamble .= "2) You may answer ONLY about PackIT site purpose: bookings, tracking status, delivery status, pickup/drop addresses, fares, vehicles, payments, and booking-related messages. For personal account changes, direct the user to profile or support.\n";
 $systemPreamble .= "3) If the user asks about anything outside PackIT (e.g., weather, general knowledge, politics, medical/legal advice), politely refuse and say: 'I can only help with PackIT bookings, tracking, fares, payments and site-related questions.'\n";
 $systemPreamble .= "4) For bookings, prefer to reference booking ID (e.g. Booking #20) and only provide non-sensitive details (status, amount, pickup/drop, driver name/phone when available, recent SMS events). Do NOT provide payment tokens or internal IDs beyond booking id and user id.\n";
 $systemPreamble .= "5) If not logged in and the user asks about their bookings, ask them to log in and provide instructions.\n";

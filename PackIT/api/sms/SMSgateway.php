@@ -18,7 +18,7 @@ class SMSGateway {
         ?string $password = null
     ) {
         // You can later replace these with env/config values.
-        $this->gateway_url = $gatewayUrl ?? "http://192.168.1.7:8080";
+        $this->gateway_url = $gatewayUrl ?? "http://10.94.150.186:8080";
         $this->username    = $username ?? "sms";
         $this->password    = $password ?? "88888888";
     }

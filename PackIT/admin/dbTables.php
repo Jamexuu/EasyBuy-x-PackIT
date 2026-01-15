@@ -254,12 +254,16 @@ $activePageTitle = prettyTitle($activePage);
                                     <?php if ($activePage === 'userFeedback'): ?>
                                         <th class="text-nowrap text-end pe-4">Action</th>
                                     <?php endif; ?>
+
+                                    <?php if ($activePage === 'vehicles'): ?>
+                                        <th class="text-nowrap text-end pe-4">Action</th>
+                                    <?php endif; ?>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php if (count($rows) === 0): ?>
                                     <tr>
-                                        <td colspan="<?= count($columns) + ($activePage === 'userFeedback' ? 1 : 0) ?>" class="text-center py-5">
+                                        <td colspan="<?= count($columns) + ($activePage === 'userFeedback' ? 1 : 0) + ($activePage === 'vehicles' ? 1 : 0) ?>" class="text-center py-5">
                                             <div class="text-muted mb-2" style="font-size: 2rem;">📂</div>
                                             <p class="text-muted fw-medium mb-0">No records found.</p>
                                         </td>
@@ -284,6 +288,28 @@ $activePageTitle = prettyTitle($activePage);
                                                             data-message="<?= htmlspecialchars($r['message'] ?? '') ?>"
                                                             data-reply="<?= htmlspecialchars($r['admin_reply'] ?? '') ?>">
                                                         <i class="bi bi-pencil-square me-1"></i> Reply
+                                                    </button>
+                                                </td>
+                                            <?php endif; ?>
+
+                                            <?php if ($activePage === 'vehicles'): ?>
+                                                <td class="text-end pe-4">
+                                                    <button
+                                                        class="btn btn-sm btn-dark rounded-pill"
+                                                        type="button"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#editVehicleModal"
+                                                        data-id="<?= htmlspecialchars((string)($r['id'] ?? '')) ?>"
+                                                        data-name="<?= htmlspecialchars($r['name'] ?? '') ?>"
+                                                        data-package_type="<?= htmlspecialchars($r['package_type'] ?? '') ?>"
+                                                        data-fare="<?= htmlspecialchars((string)($r['fare'] ?? '')) ?>"
+                                                        data-max_kg="<?= htmlspecialchars((string)($r['max_kg'] ?? '')) ?>"
+                                                        data-size_length_m="<?= htmlspecialchars((string)($r['size_length_m'] ?? '')) ?>"
+                                                        data-size_width_m="<?= htmlspecialchars((string)($r['size_width_m'] ?? '')) ?>"
+                                                        data-size_height_m="<?= htmlspecialchars((string)($r['size_height_m'] ?? '')) ?>"
+                                                        data-image_file="<?= htmlspecialchars($r['image_file'] ?? '') ?>"
+                                                    >
+                                                        Edit
                                                     </button>
                                                 </td>
                                             <?php endif; ?>
@@ -375,6 +401,91 @@ $activePageTitle = prettyTitle($activePage);
             });
         }
     });
+</script>
+<?php endif; ?>
+
+<?php if ($activePage === 'vehicles'): ?>
+<!-- Edit Vehicle Modal (posts to vehicles.php which already contains update logic) -->
+<div class="modal fade" id="editVehicleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Edit Vehicle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form method="POST" action="vehicles.php" class="modal-body">
+                <input type="hidden" name="id" id="v_id">
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Name</label>
+                        <input class="form-control" name="name" id="v_name" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Package Type</label>
+                        <input class="form-control" name="package_type" id="v_package_type" required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Fare (PHP)</label>
+                        <input class="form-control" name="fare" id="v_fare" type="number" step="0.01" min="0" required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Max KG</label>
+                        <input class="form-control" name="max_kg" id="v_max_kg" type="number" step="1" min="0" required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Image File</label>
+                        <input class="form-control" name="image_file" id="v_image_file" required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Length (m)</label>
+                        <input class="form-control" name="size_length_m" id="v_size_length_m" type="number" step="0.01" min="0" required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Width (m)</label>
+                        <input class="form-control" name="size_width_m" id="v_size_width_m" type="number" step="0.01" min="0" required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Height (m)</label>
+                        <input class="form-control" name="size_height_m" id="v_size_height_m" type="number" step="0.01" min="0" required>
+                    </div>
+                </div>
+
+                <div class="modal-footer px-0 pb-0 mt-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-dark rounded-pill">Save changes</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<script>
+const vehModal = document.getElementById('editVehicleModal');
+if (vehModal) {
+    vehModal.addEventListener('show.bs.modal', function (event) {
+        const btn = event.relatedTarget;
+
+        document.getElementById('v_id').value = btn.getAttribute('data-id') || '';
+        document.getElementById('v_name').value = btn.getAttribute('data-name') || '';
+        document.getElementById('v_package_type').value = btn.getAttribute('data-package_type') || '';
+        document.getElementById('v_fare').value = btn.getAttribute('data-fare') || '';
+        document.getElementById('v_max_kg').value = btn.getAttribute('data-max_kg') || '';
+        document.getElementById('v_size_length_m').value = btn.getAttribute('data-size_length_m') || '';
+        document.getElementById('v_size_width_m').value = btn.getAttribute('data-size_width_m') || '';
+        document.getElementById('v_size_height_m').value = btn.getAttribute('data-size_height_m') || '';
+        document.getElementById('v_image_file').value = btn.getAttribute('data-image_file') || '';
+    });
+}
 </script>
 <?php endif; ?>
 
