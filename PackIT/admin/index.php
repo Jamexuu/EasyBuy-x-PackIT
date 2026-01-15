@@ -27,10 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PackIT – Admin Login</title>
-
-  <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
   <style>
@@ -126,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     .password-group .form-control.form-control-lg {
       border-radius: 0;
       border: 0;
-      background: white; /* keep the main input white to match design */
+      background: white;
       padding-left: .5rem;
     }
 
@@ -240,7 +237,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 required
                 autocomplete="current-password">
 
-              <!-- make the toggle a button styled to match input-group-text background -->
               <button
                 id="togglePasswordBtn"
                 type="button"

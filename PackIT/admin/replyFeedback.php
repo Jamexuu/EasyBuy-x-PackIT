@@ -18,25 +18,11 @@ if ($feedbackId <= 0) {
     exit;
 }
 
-// If you want to require a reply message, uncomment:
-/*
-if ($adminReply === '') {
-    header("Location: dbTables.php?view=userFeedback&error=empty_reply");
-    exit;
-}
-*/
+
 
 $db = new Database();
 $conn = $db->connect();
 
-/**
- * ✅ Key fixes:
- * - user_unread = 1        -> user will see a notification
- * - replied_at = NOW()     -> track reply timestamp
- * - acknowledged_at = NOW()-> optional "last updated" timestamp (your table has it)
- *
- * NOTE: We are NOT touching handled_by to avoid FK issues.
- */
 $sql = "UPDATE user_feedback
         SET admin_reply = ?,
             status = ?,

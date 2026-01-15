@@ -1,15 +1,4 @@
 <?php
-// frontend/chatai.php
-// Chat endpoint tailored to PackIT DB.
-// - POST 'prompt' (required), optional 'model' (default 'gemma2:2b')
-// - Builds a strict system prompt that includes current user + recent bookings + payments + driver + smslogs summary
-// - NEW: Includes Vehicle List (name, fare, dims) for pricing questions.
-// - Enforces domain limits: assistant must only answer website-related questions (bookings, tracking, payments, fares, ETA, etc.)
-// - Calls Ollama local API and aggregates NDJSON streaming replies
-// - Persists prompt/response to chat_history (session_id + user_id)
-// - Returns JSON { success, reply, http_code, saved }
-//
-// IMPORTANT: Ensure /api/db.php exposes a PDO instance in $pdo (or update the code accordingly).
 
 declare(strict_types=1);
 header('Content-Type: application/json; charset=utf-8');
@@ -48,12 +37,11 @@ if (file_exists($dbPath)) {
     }
 }
 
-// Build user context from session and DB
+
 $userId = $_SESSION['user']['id'] ?? null;
 $userContext = [];
 $userContext[] = "This context was extracted from the PackIT database and session. Use it exactly as given.";
 
-// Include basic profile if present
 if ($userId) {
     $first = $_SESSION['user']['firstName'] ?? ($_SESSION['user']['first_name'] ?? null);
     $last  = $_SESSION['user']['lastName']  ?? ($_SESSION['user']['last_name'] ?? null);
@@ -68,12 +56,9 @@ if ($userId) {
     $userContext[] = "User: anonymous (no logged-in user). For booking-specific info, require the user to log in.";
 }
 
-// ---------------------------------------------------------
-// NEW: Fetch Vehicle List for Context (Pricing/Specs)
-// ---------------------------------------------------------
+
 if ($pdo instanceof PDO) {
     try {
-        // Query columns based on your vehicles table screenshot
         $vSql = "SELECT name, package_type, fare, max_kg, size_length_m, size_width_m, size_height_m FROM vehicles ORDER BY id ASC";
         $vStmt = $pdo->prepare($vSql);
         $vStmt->execute();
@@ -96,12 +81,11 @@ if ($pdo instanceof PDO) {
             }
         }
     } catch (Throwable $e) {
-        // ignore vehicle fetch errors
+        
     }
 }
 // ---------------------------------------------------------
 
-// Fetch recent bookings for user (if DB available)
 $bookingsSummary = [];
 if ($pdo instanceof PDO && $userId) {
     try {
@@ -123,7 +107,6 @@ if ($pdo instanceof PDO && $userId) {
             $paymentStat = $r['payment_status'] ?? ($r['payment_status'] ?? 'unknown');
             $total = isset($r['total_amount']) ? (string)$r['total_amount'] : (isset($r['total']) ? (string)$r['total'] : null);
 
-            // pickup / drop location assembly
             $pickupParts = [];
             if (!empty($r['pickup_house'])) $pickupParts[] = $r['pickup_house'];
             if (!empty($r['pickup_barangay'])) $pickupParts[] = $r['pickup_barangay'];
@@ -144,7 +127,6 @@ if ($pdo instanceof PDO && $userId) {
             }
             $driverPhone = $r['driver_phone'] ?? null;
 
-            // fetch latest smslog events for the booking (3 latest)
             $smsEvents = [];
             try {
                 $smsStmt = $pdo->prepare("SELECT Status, Message, CreatedAt FROM smslogs WHERE BookingId = :bid ORDER BY CreatedAt DESC LIMIT 5");
@@ -154,7 +136,7 @@ if ($pdo instanceof PDO && $userId) {
                     $smsEvents[] = trim(($s['Status'] ?? '') . ': ' . ($s['Message'] ?? '') . ' @ ' . ($s['CreatedAt'] ?? ''));
                 }
             } catch (Throwable $e) {
-                // ignore sms fetch errors
+                
             }
 
             $bookingsSummary[] = [
@@ -173,11 +155,10 @@ if ($pdo instanceof PDO && $userId) {
             ];
         }
     } catch (Throwable $e) {
-        // ignore DB errors; assistant will work with what it has
+        
     }
 }
 
-// Add bookings summary to context (structured, human-readable)
 if (!empty($bookingsSummary)) {
     $userContext[] = "Recent bookings (most recent first):";
     foreach ($bookingsSummary as $b) {
@@ -214,25 +195,21 @@ $systemPreamble .= "2) You may answer ONLY about PackIT site purpose: bookings, 
 $systemPreamble .= "3) If the user asks about anything outside PackIT (e.g., weather, general knowledge, politics, medical/legal advice), politely refuse and say: 'I can only help with PackIT bookings, tracking, fares, payments and site-related questions.'\n";
 $systemPreamble .= "4) For bookings, prefer to reference booking ID (e.g. Booking #20) and only provide non-sensitive details (status, amount, pickup/drop, driver name/phone when available, recent SMS events). Do NOT provide payment tokens or internal IDs beyond booking id and user id.\n";
 $systemPreamble .= "5) If not logged in and the user asks about their bookings, ask them to log in and provide instructions.\n";
-$systemPreamble .= "6) Keep replies concise, factual and actionable. Offer next steps where relevant (e.g., how to request cancellation or contact support).\n\n";
+$systemPreamble .= "6) The currency is always ₱";
+$systemPreamble .= "7) Keep replies concise, factual and actionable. Offer next steps where relevant (e.g., how to request cancellation or contact support).\n\n";
 $systemPreamble .= "User context:\n";
 $systemPreamble .= implode("\n", $userContext) . "\n\n";
 
-// Combined prompt sent to model
 $combinedPrompt = $systemPreamble . "User: " . $prompt . "\nAssistant:";
 
-// Ollama endpoint
 $ollamaBase = 'http://127.0.0.1:11434';
 $ollamaEndpoint = rtrim($ollamaBase, '/') . '/api/generate';
 
-// Build payload
 $payload = [
     'model' => $model,
     'prompt' => $combinedPrompt,
-    // you can set temperature, max tokens, etc., depending on your Ollama setup
 ];
 
-// Call Ollama
 $ch = curl_init($ollamaEndpoint);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_TIMEOUT, 120);
@@ -251,7 +228,6 @@ if ($responseBody === false || $curlErr) {
     exit;
 }
 
-// Parse NDJSON streaming lines and assemble final reply
 $reply = '';
 $decodedLines = [];
 $lines = preg_split('/\r?\n/', trim($responseBody));
@@ -260,7 +236,6 @@ foreach ($lines as $line) {
     if ($line === '') continue;
     $obj = json_decode($line, true);
     if (json_last_error() !== JSON_ERROR_NONE) {
-        // not JSON; append raw chunk
         $decodedLines[] = $line;
         $reply .= $line;
         continue;
@@ -280,7 +255,6 @@ foreach ($lines as $line) {
     }
 }
 
-// fallback whole-body parse
 if ($reply === '') {
     $whole = json_decode($responseBody, true);
     if (json_last_error() === JSON_ERROR_NONE && is_array($whole)) {
@@ -299,7 +273,6 @@ if ($reply === '') {
 
 $reply = preg_replace('/\s+$/u', '', $reply);
 
-// Persist chat_history (session_id + user_id)
 $saved = false;
 if ($pdo instanceof PDO) {
     try {
@@ -317,7 +290,6 @@ if ($pdo instanceof PDO) {
     }
 }
 
-// Return to frontend
 echo json_encode([
     'success' => true,
     'reply' => $reply,
@@ -325,7 +297,6 @@ echo json_encode([
     'saved' => $saved,
     'debug' => [
         'model' => $model,
-        //'context' => $userContext, // comment out in production if you consider it sensitive
     ],
 ], JSON_UNESCAPED_UNICODE);
 exit;

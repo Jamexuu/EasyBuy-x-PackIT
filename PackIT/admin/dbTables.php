@@ -54,7 +54,6 @@ if (!in_array($selectedTable, $tables, true)) {
     if ($colRes) {
         while ($c = $colRes->fetch_assoc()) {
             
-            // --- UPDATED LOGIC START ---
             // List of columns to HIDE from the table view
             $hiddenColumns = [
                 'replied_at', 
@@ -66,7 +65,6 @@ if (!in_array($selectedTable, $tables, true)) {
             if (in_array($c['Field'], $hiddenColumns)) {
                 continue;
             }
-            // --- UPDATED LOGIC END ---
 
             $columns[] = $c['Field'];
         }

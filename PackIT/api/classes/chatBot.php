@@ -6,7 +6,7 @@ require_once __DIR__ . '/Database.php';
 class ChatBot {
     private $db;
     private $llmEndpoint = 'http://localhost:11434/api/chat';
-    private $model = 'qwen3:1.7b'; // Verify this matches your Ollama model name
+    private $model = 'qwen3:1.7b'; 
 
     // Configuration
     private $defaultCurrency = 'PHP';
@@ -95,7 +95,6 @@ class ChatBot {
         }
 
         $contextText = "";
-        // Default to PHP since your DB dump doesn't store currency in bookings
         $detectedCurrency = $this->defaultCurrency; 
 
         try {

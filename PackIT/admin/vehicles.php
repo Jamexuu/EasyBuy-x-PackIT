@@ -210,8 +210,8 @@ $vehicles = $db->fetch($stmt);
             </div>
         </div>
 
-    </div><!-- row -->
-</div><!-- container -->
+    </div>
+</div>
 
         <?php include '../frontend/components/adminFooter.php'; ?>
 
