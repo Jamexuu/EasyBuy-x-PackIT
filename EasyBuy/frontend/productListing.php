@@ -76,7 +76,7 @@
             </div>
             <div class="col-12 col-lg-9 order-2 order-lg-2">
                 <div class="container px-0 py-3 justify-content-center">
-                    <div class="row justify-content-center g-2 g-md-3" id="productsArea"></div>
+                    <div class="row g-2 g-md-3" id="productsArea"></div>
                     <div class="row" id="paginationArea">
                         <div class="col d-flex mb-5 justify-content-center">
                             <button class="btn me-2" id="prevBtn"
