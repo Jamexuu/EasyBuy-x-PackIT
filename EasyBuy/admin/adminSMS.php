@@ -122,12 +122,13 @@
             });
 
             const messages = await response.json();
-            messages.reverse();
+            window.messages = messages
 
-            window.messages = messages;
+            const arrayMessages = [];
+            arrayMessages.push(...messages);
 
-            messages.forEach(message => {
-                message.text = message.text.length > 10 ? message.text.substring(0, 10) + '...' : message.text;
+            arrayMessages.forEach(message => {
+                shortMessage = message.text.length > 10 ? message.text.substring(0, 10) + '...' : message.text;
 
                 messageRow.innerHTML += `
                     <tr class="text-center" id="messageRow" onclick="expandMessage('`+ message.id +`')" style="cursor: pointer;">
@@ -135,7 +136,7 @@
                             `+ message.from +`
                         </td>
                         <td>
-                            `+ message.text +`   
+                            `+ shortMessage +`   
                         </td>
                         <td>
                             `+ message.receivedStamp +`
